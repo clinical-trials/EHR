@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LumaChart — Planning Document</title>
+<style>
+  :root{
+    --ink:#0B1621; --ink2:#12222F; --luma:#2FB3C6; --luma-bright:#5AD1E0;
+    --amber:#F2B04C; --sage:#86BEA4; --paper:#FFFFFF; --soft:#F4F8F9;
+    --text:#18262F; --muted:#5D6E79; --line:#E2E9ED; --ink-line:#22384a;
+  }
+  @page { size: Letter; margin: 0; }
+  *{ box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+  html,body{ margin:0; padding:0; color:var(--text);
+    font-family:-apple-system,"Helvetica Neue",Arial,sans-serif; font-size:11pt; line-height:1.5; }
+  .page{ position:relative; width:8.5in; min-height:11in; padding:0.85in 0.9in 0.8in;
+    page-break-after:always; overflow:hidden; }
+  .page:last-child{ page-break-after:auto; }
+
+  /* ---------- COVER ---------- */
+  .cover{ background:radial-gradient(120% 90% at 78% 8%, #143444 0%, var(--ink2) 42%, var(--ink) 100%);
+    color:#EAF3F5; padding:0.95in 0.95in 0.8in; }
+  .cover .mark{ display:flex; align-items:center; gap:14px; }
+  .logo-dot{ width:44px; height:44px; border-radius:13px;
+    background:conic-gradient(from 130deg, var(--luma-bright), var(--sage), var(--amber), var(--luma-bright));
+    box-shadow:0 0 34px rgba(90,209,224,.45); position:relative; }
+  .logo-dot::after{ content:""; position:absolute; inset:11px; border-radius:6px; background:var(--ink2); }
+  .wordmark{ font-size:23pt; font-weight:700; letter-spacing:-.4px; }
+  .wordmark b{ color:var(--luma-bright); font-weight:700; }
+  .cover-tag{ margin-top:8px; color:#9FC6CE; font-size:10.5pt; letter-spacing:2.5px; text-transform:uppercase; }
+  .cover h1{ font-size:41pt; line-height:1.04; margin:1.5in 0 0; font-weight:700; letter-spacing:-1px; }
+  .cover h1 .glow{ color:var(--luma-bright); }
+  .cover .sub{ font-size:14.5pt; color:#B9D6DC; margin-top:18px; max-width:6in; line-height:1.45; }
+  .cover .url{ display:inline-block; margin-top:26px; color:var(--amber); font-weight:600; letter-spacing:.5px; font-size:12pt; }
+  .cover-meta{ position:absolute; left:0.95in; right:0.95in; bottom:0.8in;
+    display:flex; justify-content:space-between; border-top:1px solid var(--ink-line);
+    padding-top:14px; color:#8FB3BC; font-size:9pt; }
+  .cover-meta b{ color:#DCEBEE; font-weight:600; }
+
+  /* ---------- SHARED ---------- */
+  .runhead{ display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px solid var(--line); padding-bottom:8px; margin-bottom:20px;
+    color:var(--muted); font-size:8.5pt; letter-spacing:1.5px; text-transform:uppercase; }
+  .runhead .r{ color:var(--luma); font-weight:700; }
+  .kicker{ color:var(--luma); font-weight:700; letter-spacing:2px; text-transform:uppercase; font-size:9pt; }
+  h2.sec{ font-size:22pt; letter-spacing:-.5px; margin:4px 0 4px; line-height:1.1; }
+  h3{ font-size:12.5pt; margin:18px 0 6px; color:var(--ink2); }
+  p{ margin:0 0 10px; }
+  .lead{ font-size:12pt; color:#33424c; }
+  .muted{ color:var(--muted); }
+  a{ color:var(--luma); text-decoration:none; }
+  .pmid{ display:inline-block; font-size:7.6pt; font-weight:700; color:#0d7d8f; background:#E4F5F8;
+    border:1px solid #BEE7ED; border-radius:5px; padding:0 5px; letter-spacing:.3px; vertical-align:1px; white-space:nowrap; margin-left:2px; text-indent:0;}
+  .foot{ position:absolute; bottom:0.5in; left:0.9in; right:0.9in; display:flex; justify-content:space-between;
+    color:#9aa9b2; font-size:8pt; border-top:1px solid var(--line); padding-top:7px; }
+  .foot b{ color:var(--luma); font-weight:700; }
+
+  /* stat cards */
+  .stats{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:12px 0 4px; }
+  .stat{ background:var(--soft); border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+  .stat .n{ font-size:20pt; font-weight:800; letter-spacing:-1px; color:var(--ink2); line-height:1; }
+  .stat .n small{ font-size:12pt; font-weight:700; }
+  .stat .l{ font-size:8.3pt; color:var(--muted); margin-top:5px; line-height:1.3; }
+  .stat.amber .n{ color:#C9822A; } .stat.teal .n{ color:#178294; } .stat.sage .n{ color:#4d8f72; }
+
+  .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .card{ border:1px solid var(--line); border-radius:12px; padding:15px 16px; background:#fff; }
+  .card h4{ margin:0 0 7px; font-size:11.5pt; display:flex; align-items:center; gap:8px; }
+  .chip{ width:22px;height:22px;border-radius:7px;background:var(--luma);display:inline-flex;
+    align-items:center;justify-content:center;color:#fff;font-size:11pt;font-weight:700; flex:none;}
+  .chip.a{ background:var(--amber);} .chip.s{ background:var(--sage);} .chip.k{ background:var(--ink2);}
+  ul.tight{ margin:5px 0 0; padding-left:18px; } ul.tight li{ margin:3px 0; }
+  .pill{ display:inline-block; background:var(--ink2); color:#cfe9ee; border-radius:20px;
+    padding:2px 11px; font-size:8.5pt; font-weight:600; margin:0 4px 4px 0; }
+
+  .quote{ border-left:3px solid var(--amber); background:#FEF7EC; padding:10px 14px; border-radius:0 10px 10px 0;
+    margin:11px 0; font-size:10.8pt; color:#463414; }
+  .quote b{ color:#8a5a12; }
+
+  table.matrix{ width:100%; border-collapse:collapse; font-size:9pt; margin-top:10px; }
+  table.matrix th{ background:var(--ink2); color:#dbeef2; text-align:left; padding:8px 9px; font-size:8.5pt;
+    letter-spacing:.5px; text-transform:uppercase; }
+  table.matrix th:first-child{ border-radius:8px 0 0 0;} table.matrix th:last-child{ border-radius:0 8px 0 0;}
+  table.matrix td{ padding:8px 9px; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.matrix tr:nth-child(even) td{ background:var(--soft); }
+  table.matrix td.f{ font-weight:600; color:var(--ink2); width:33%; }
+
+  .pillar-row{ display:flex; gap:14px; margin:14px 0; align-items:flex-start; }
+  .pillar-num{ font-size:30pt; font-weight:800; color:var(--luma); line-height:1; width:56px; flex:none;
+    -webkit-text-stroke:0; opacity:.9;}
+  .banner{ background:linear-gradient(100deg,var(--ink2),#173341); color:#e7f4f6; border-radius:14px;
+    padding:18px 20px; margin:6px 0 16px; }
+  .banner h3{ color:#fff; margin:0 0 6px; font-size:13pt;}
+  .banner p{ color:#bcd8de; margin:0; font-size:10.5pt;}
+
+  .refs{ font-size:8pt; line-height:1.3; }
+  .refs .ref{ margin:0 0 4px; padding-left:20px; text-indent:-20px; }
+  .refs .ref b{ color:var(--ink2); }
+  .note{ background:var(--soft); border:1px dashed #C7D6DC; border-radius:10px; padding:12px 14px; font-size:9.5pt; color:#3a4a54;}
+  .two-col{ column-count:2; column-gap:22px; }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<section class="page cover">
+  <div class="mark">
+    <div class="logo-dot"></div>
+    <div class="wordmark">Luma<b>Chart</b></div>
+  </div>
+  <div class="cover-tag">The hospital EHR built for public health</div>
+
+  <h1>Redesigning the<br>medical record around<br><span class="glow">health &amp; the healer.</span></h1>
+  <div class="sub">A final planning document for an evidence-based electronic health record that prevents clinician burnout, organizes care around prevention and healthspan, and turns consented data into public-health knowledge.</div>
+  <div class="url">LUMAEHR.com</div>
+
+  <div class="cover-meta">
+    <div><b>Product Design Brief</b> &nbsp;·&nbsp; v1.0</div>
+    <div>Grounded in 24 peer-reviewed sources · 22 verified PubMed IDs</div>
+    <div><b>Prepared</b> July 2026</div>
+  </div>
+</section>
+
+<!-- ============ EXECUTIVE SUMMARY ============ -->
+<section class="page">
+  <div class="runhead"><span>LumaChart · Planning Document</span><span class="r">01 · The Thesis</span></div>
+  <div class="kicker">Executive Summary</div>
+  <h2 class="sec">A third choice — architected around well-being, not billing.</h2>
+  <p class="lead">Epic and Oracle Health (Cerner) were built around documentation and reimbursement. The clinical evidence is now unambiguous that this architecture is a leading, measurable driver of a national burnout epidemic — and that the same billing-first logic crowds out prevention for patients. <b>LumaChart</b> is a clean-sheet electronic health record built around three commitments the incumbents treat as afterthoughts.</p>
+
+  <div class="pillar-row"><div class="pillar-num">1</div><div>
+    <h3 style="margin-top:2px">Clinician sustainability</h3>
+    <p class="muted" style="margin:0">Burnout prevention is engineered <i>into</i> the workflow — lean documentation decoupled from billing, delegated clerical work, and <b>Canary</b>, a private early-warning system that reads a clinician's own EHR-usage signals and intervenes before exhaustion sets in.</p></div></div>
+
+  <div class="pillar-row"><div class="pillar-num">2</div><div>
+    <h3 style="margin-top:2px">Patient healthspan</h3>
+    <p class="muted" style="margin:0">The record is organized around <b>health maintenance</b> — evidence-based prevention, screening, and longevity — rather than billing codes, with every recommendation traceable to the literature.</p></div></div>
+
+  <div class="pillar-row"><div class="pillar-num">3</div><div>
+    <h3 style="margin-top:2px">Public-health research</h3>
+    <p class="muted" style="margin:0">Leaner, structured data plus explicit patient consent makes prospective, population-scale research a first-class feature — exactly what the National Academy of Medicine says the field urgently needs.</p></div></div>
+
+  <div class="quote">"We're spending our days doing the wrong work… we are disconnected from our purpose and have lost touch with the things that give joy and meaning to our work." <b>— Christine Sinsky, MD, AMA</b> <span class="pmid">PMID 29365301</span></div>
+
+  <p>This document reviews the evidence, defines the product, and maps <b>every feature to a specific, verifiable source</b>. It is a design brief and interactive-prototype specification — not a certified production system (see <i>Responsible Design</i>, p.10).</p>
+
+  <div class="foot"><span>The hospital EHR built for <b>public health</b></span><span>LUMAEHR.com</span></div>
+</section>
+
+<!-- ============ THE EVIDENCE ============ -->
+<section class="page">
+  <div class="runhead"><span>LumaChart · Planning Document</span><span class="r">02 · The Problem</span></div>
+  <div class="kicker">Why the EHR must be redesigned</div>
+  <h2 class="sec">The record became the workload.</h2>
+  <p class="lead">Time-motion and EHR event-log studies quantify what clinicians feel: the modern EHR converted highly trained physicians into data-entry clerks and moved hours of unpaid work into the evening.</p>
+
+  <div class="stats">
+    <div class="stat teal"><div class="n">5.9<small> hr</small></div><div class="l">of an 11.4-hour workday spent in the EHR, per primary-care physician <span class="pmid">PMID 28893811</span></div></div>
+    <div class="stat teal"><div class="n">~2<small> : 1</small></div><div class="l">EHR &amp; desk work for every 1 hour of direct patient care <span class="pmid">PMID 27595430</span></div></div>
+    <div class="stat amber"><div class="n">1.4<small> hr</small></div><div class="l">of after-hours "pajama time" in the EHR every day <span class="pmid">PMID 28893811</span></div></div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="n">44<small>%</small></div><div class="l">of EHR time is clerical (documentation, orders, billing, security) <span class="pmid">PMID 28893811</span></div></div>
+    <div class="stat"><div class="n">4×</div><div class="l">longer U.S. notes than the same EHR abroad — driven by billing rules, not medicine <span class="pmid">PMID 29801050</span></div></div>
+    <div class="stat amber"><div class="n">&gt;50<small>%</small></div><div class="l">of U.S. physicians report substantial burnout — ~2× other workers <span class="pmid">PMID 26653297</span></div></div>
+  </div>
+
+  <div class="grid2" style="margin-top:10px">
+    <div class="card" style="padding:12px 14px"><h4><span class="chip k">!</span>The human toll</h4>
+      <ul class="tight muted">
+        <li>Burnout = emotional exhaustion + depersonalization + low personal accomplishment (Maslach). <span class="pmid">PMID 29365301</span></li>
+        <li>+25% odds of alcohol misuse; <b>+200% odds of suicidal ideation.</b> <span class="pmid">NAM 2017</span></li>
+        <li>Independently predicts major medical errors &amp; malpractice suits. <span class="pmid">NAM 2017</span></li>
+        <li>Each 1-pt rise in exhaustion → 28% higher odds of cutting clinical effort. <span class="pmid">NAM 2017</span></li>
+      </ul>
+    </div>
+    <div class="card" style="padding:12px 14px"><h4><span class="chip a">$</span>The system toll</h4>
+      <ul class="tight muted">
+        <li>Burned-out physicians are <b>2× as likely to leave;</b> replacement costs <b>$500K–$1M</b> each. <span class="pmid">PMID 29365301</span></li>
+        <li>Front-line fields — family &amp; internal medicine, EM, neurology — are highest risk. <span class="pmid">NAM 2017</span></li>
+        <li>Lost productivity ≈ eliminating the graduating classes of <b>seven medical schools.</b> <span class="pmid">NAM 2017</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="quote" style="border-color:var(--luma); background:#EAF7F9; color:#123b42">"The highly trained U.S. physician has become a data-entry clerk… we believe the regulations around documentation and billing likely play a larger role." <b>— Downing, Bates &amp; Longhurst</b>, <i>Ann Intern Med</i> 2018 <span class="pmid">PMID 29801050</span></div>
+
+  <div class="foot"><span>The hospital EHR built for <b>public health</b></span><span>LUMAEHR.com</span></div>
+</section>
+
+<!-- ============ DESIGN PHILOSOPHY ============ -->
+<section class="page">
+  <div class="runhead"><span>LumaChart · Planning Document</span><span class="r">03 · Philosophy</span></div>
+  <div class="kicker">Three design principles</div>
+  <h2 class="sec">Reimagine the work — don't digitize the paperwork.</h2>
+  <p class="lead">The evidence points to solutions, not just problems. LumaChart is built on three principles drawn directly from the literature.</p>
+
+  <div class="card" style="margin-bottom:12px"><h4><span class="chip">◎</span>1 · The Quadruple Aim is the product spec</h4>
+    <p class="muted" style="margin:0">Better population health, better experience of care, and lower cost are unreachable without a fourth aim: <b>care of the provider.</b> LumaChart treats clinician well-being as a primary design constraint, not a wellness webpage. <span class="pmid">PMID 25384822</span></p></div>
+
+  <div class="card" style="margin-bottom:12px"><h4><span class="chip a">✎</span>2 · Separate the clinical note from the cash register</h4>
+    <p class="muted" style="margin:0">U.S. notes bloated to 4× international length because billing and compliance data were poured into the clinical narrative. LumaChart keeps the note <b>clinically lean</b> and routes coding/compliance to a separate, mostly-automated layer — the single highest-leverage documentation fix in the literature. <span class="pmid">PMID 29801050</span> <span class="pmid">PMID 24842418</span></p></div>
+
+  <div class="card" style="margin-bottom:14px"><h4><span class="chip s">↻</span>3 · Measure well-being, because you manage what you measure</h4>
+    <p class="muted" style="margin:0">Mayo Clinic benchmarks physician well-being annually and puts it on the CEO scorecard. LumaChart builds validated measurement in — the <b>MBI</b> gold standard and <b>ProQOL</b> — surfaced privately to clinicians and in aggregate to leaders. <span class="pmid">NAM 2017</span> <span class="pmid">PMID 28347144</span></p></div>
+
+  <div class="banner">
+    <h3>The unifying idea</h3>
+    <p>Clinician sustainability and patient healthspan are the same coin: a record optimized for <b>health and well-being</b> instead of <b>billing</b>. Fixing the clinician's day (leaner notes, delegated clerical work, team-based care) is the <i>same</i> act as reorienting the patient's record toward prevention. That is what makes LumaChart a genuine third choice rather than a reskin.</p>
+  </div>
+
+  <p class="muted">Interventions work: meta-analyses of dozens of trials find that both <b>organizational</b> and <b>individual</b> approaches measurably reduce burnout. LumaChart deliberately does both. <span class="pmid">PMID 27692469</span> <span class="pmid">PMID 27918798</span></p>
+
+  <div class="foot"><span>The hospital EHR built for <b>public health</b></span><span>LUMAEHR.com</span></div>
+</section>
+
+<!-- ============ PILLAR 1 — CLINICIAN + CANARY ============ -->
+<section class="page">
+  <div class="runhead"><span>LumaChart · Planning Document</span><span class="r">04 · Pillar I</span></div>
+  <div class="kicker">Clinician experience</div>
+  <h2 class="sec">A workspace that protects the person using it.</h2>
+
+  <div class="grid2">
+    <div class="card"><h4><span class="chip">▤</span>Lean chart &amp; documentation</h4>
+      <ul class="tight muted">
+        <li>Clinical note decoupled from billing/compliance.</li>
+        <li>Ambient / voice capture; auto problem-oriented summaries.</li>
+        <li>Pre-visit patient questionnaire flows into the note. <span class="pmid">PMID 29132154</span></li>
+      </ul></div>
+    <div class="card"><h4><span class="chip s">⛌</span>Team "care choreography"</h4>
+      <ul class="tight muted">
+        <li>Role-based delegation; standing orders; shared inbox.</li>
+        <li>MA/scribe-assisted documentation (RCT: ↑ satisfaction). <span class="pmid">PMID 28893812</span></li>
+        <li>Modeled on APEX: burnout <b>53%→13%</b> in 6 months. <span class="pmid">PMID 29365301</span></li>
+      </ul></div>
+  </div>
+
+  <div class="grid2" style="margin-top:12px">
+    <div class="card"><h4><span class="chip a">⏱</span>Time Well Spent</h4>
+      <ul class="tight muted">
+        <li>Live session timer; face-time vs desktop-time.</li>
+        <li>After-hours / pajama-time trend, inbox-burden meter. <span class="pmid">PMID 28893811</span></li>
+      </ul></div>
+    <div class="card"><h4><span class="chip">❦</span>Wellness Center</h4>
+      <ul class="tight muted">
+        <li>Guided meditation &amp; breathing micro-breaks. <span class="pmid">PMID 18954193</span></li>
+        <li>8-week mindfulness track (evidence: gray-matter change). <span class="pmid">PMID 21071182</span></li>
+        <li>Gratitude practice surfacing patient thank-you notes.</li>
+      </ul></div>
+  </div>
+
+  <div class="banner" style="background:linear-gradient(100deg,#0f2a33,#1d4a4f); margin-top:16px">
+    <h3>🐦 Canary — the burnout early-warning engine</h3>
+    <p style="margin-bottom:8px">The flagship feature, originating in the author's own "Canary" concept: like a canary in a coal mine, it gives an early warning. Canary continuously reads a clinician's <b>own</b> event-log signals — session length, after-hours load, inbox backlog, documentation minutes — against their personal baseline, and escalates gently:</p>
+    <p style="margin:0"><span class="pill">micro-break nudge</span><span class="pill">mindfulness prompt</span><span class="pill">extended-login warning</span><span class="pill">"trending toward burnout risk"</span></p>
+  </div>
+  <div class="note"><b>Designed as support, not surveillance.</b> Canary is private to the clinician by default and non-punitive; only de-identified, aggregate signals reach wellness programs. Any predictive threshold must be clinically validated before real-world use. Signal set is grounded in the measured drivers of burnout. <span class="pmid">PMID 28893811</span> <span class="pmid">PMID 27313121</span></div>
+
+  <div class="foot"><span>The hospital EHR built for <b>public health</b></span><span>LUMAEHR.com</span></div>
+</section>
+
+<!-- ============ PILLAR 2 — PATIENT ============ -->
+<section class="page">
+  <div class="runhead"><span>LumaChart · Planning Document</span><span class="r">05 · Pillar II</span></div>
+  <div class="kicker">Patient experience · theme: Health Maintenance</div>
+  <h2 class="sec">A record organized around living longer &amp; better.</h2>
+  <p class="lead">The patient portal is not a billing statement with a message box. Its organizing logic is <b>healthspan</b>: what keeps you well, what's due, and what the evidence says it buys you.</p>
+
+  <div class="grid2">
+    <div class="card"><h4><span class="chip s">✚</span>Healthspan home</h4>
+      <ul class="tight muted"><li>Prevention status at a glance; what's due now.</li>
+      <li>Lifestyle vitals &amp; a plain-language healthspan summary.</li></ul></div>
+    <div class="card"><h4><span class="chip">◷</span>Prevention &amp; screening schedule</h4>
+      <ul class="tight muted"><li>Age/sex-appropriate screening &amp; vaccines.</li>
+      <li>Each item carries an evidence card + real citation.</li>
+      <li>Framed as "why this matters," not "claim submitted."</li></ul></div>
+  </div>
+  <div class="grid2" style="margin-top:12px">
+    <div class="card"><h4><span class="chip a">↗</span>Longevity tracker</h4>
+      <ul class="tight muted"><li>Modifiable risks: BP, A1c, lipids, activity, sleep, tobacco.</li>
+      <li>Each tied to evidence-based guidance the care team set.</li></ul></div>
+    <div class="card"><h4><span class="chip k">✎</span>Structured, consistent counseling</h4>
+      <ul class="tight muted"><li>Guideline-consistent scripts prevent the contradictory,
+        "improvised" counseling shown to erode patient trust. <span class="pmid">PMID 25208096</span></li></ul></div>
+  </div>
+
+  <p style="margin-top:16px" class="muted">Prevention also lightens the clinician: the APEX model succeeded precisely because prevention (vaccination, cancer screening) was systematized by the team rather than improvised in the room — improving screening rates <i>and</i> cutting burnout at the same time. Patient healthspan and clinician sustainability reinforce each other. <span class="pmid">PMID 29365301</span></p>
+
+  <div class="quote" style="border-color:var(--sage); background:#EFF7F2; color:#20402f">Health maintenance is the theme — the portal answers "how do I stay well and live longer?" before it ever answers "what do I owe?"</div>
+
+  <div class="foot"><span>The hospital EHR built for <b>public health</b></span><span>LUMAEHR.com</span></div>
+</section>
+
+<!-- ============ PILLAR 3 — RESEARCH + THEMING ============ -->
+<section class="page">
+  <div class="runhead"><span>LumaChart · Planning Document</span><span class="r">06 · Pillar III + Interface</span></div>
+  <div class="kicker">Public-health research</div>
+  <h2 class="sec">Consented data that gives back to the population.</h2>
+  <p class="lead">The NAM explicitly calls for <b>prospective, longitudinal research</b> linking clinician well-being and care delivery to patient outcomes — and notes leaner documentation "would enable better use for research." LumaChart makes that a native capability. <span class="pmid">PMID 29801050</span></p>
+
+  <div class="grid2">
+    <div class="card"><h4><span class="chip">✔</span>Patient consent layer</h4>
+      <ul class="tight muted"><li>Explicit, revocable opt-in to contribute de-identified data.</li>
+      <li>Plain-language transparency on exactly what is shared.</li></ul></div>
+    <div class="card"><h4><span class="chip k">◫</span>Researcher console</h4>
+      <ul class="tight muted"><li>Consented cohort counts; an example prospective study.</li>
+      <li>Privacy guardrails; well-being ↔ outcomes linkage the NAM asks for.</li></ul></div>
+  </div>
+
+  <div style="margin-top:26px"></div>
+  <div class="kicker">Interface as clinical intervention</div>
+  <h2 class="sec" style="font-size:19pt">Restore Mode — eyestrain reduction as a feature.</h2>
+  <p class="lead">Physician strain includes <b>eye strain</b>. LumaChart ships a warm, low-glare dark interface — <b>"Restore Mode"</b> — as the default and names it as a wellbeing feature, with a one-tap switch to familiar looks for clinicians who want them.</p>
+  <div class="grid2">
+    <div class="card"><h4><span class="chip k">☾</span>Restore (default)</h4>
+      <p class="muted" style="margin:0">Dark, warm, low-glare; reduced motion; generous spacing to lower visual &amp; cognitive load on long shifts.</p></div>
+    <div class="card"><h4><span class="chip">☀</span>Classic &amp; Modern Clinical</h4>
+      <p class="muted" style="margin:0">Conventional light themes for clinicians who prefer the familiar Epic/Cerner density. The clinician stays in control.</p></div>
+  </div>
+
+  <div class="foot"><span>The hospital EHR built for <b>public health</b></span><span>LUMAEHR.com</span></div>
+</section>
+
+<!-- ============ TRACEABILITY MATRIX ============ -->
+<section class="page">
+  <div class="runhead"><span>LumaChart · Planning Document</span><span class="r">07 · Traceability</span></div>
+  <div class="kicker">Evidence → Feature</div>
+  <h2 class="sec">Every feature traces to a source.</h2>
+  <table class="matrix">
+    <tr><th>Finding in the literature</th><th>LumaChart feature</th><th>Source</th></tr>
+    <tr><td class="f">1.4 hr/day after-hours; ~2:1 desk-to-patient ratio</td><td>Canary early-warning; extended-login warning; Time Well Spent</td><td><span class="pmid">28893811</span> <span class="pmid">27595430</span></td></tr>
+    <tr><td class="f">Inbox = 24%, clerical = 44% of EHR time</td><td>Inbox-burden meter; shared/team inbox triage</td><td><span class="pmid">28893811</span></td></tr>
+    <tr><td class="f">U.S. notes 4× too long; billing is the real cause</td><td>Lean note decoupled from billing/compliance layer</td><td><span class="pmid">29801050</span> <span class="pmid">24842418</span></td></tr>
+    <tr><td class="f">Scribes ↑ satisfaction (RCT); APEX 53%→13%</td><td>Team choreography; MA/scribe-assisted documentation</td><td><span class="pmid">28893812</span> <span class="pmid">29365301</span></td></tr>
+    <tr><td class="f">Patients contributing to notes ↑ engagement</td><td>Pre-visit questionnaire feeding the chart</td><td><span class="pmid">29132154</span></td></tr>
+    <tr><td class="f">Care of the provider = the 4th aim</td><td>Well-being as a primary design constraint</td><td><span class="pmid">25384822</span></td></tr>
+    <tr><td class="f">"You manage what you measure"; MBI / ProQOL</td><td>Wellness Gauge; validated self-checks</td><td>NAM 2017 · <span class="pmid">28347144</span></td></tr>
+    <tr><td class="f">Loving-kindness &amp; 8-wk mindfulness change affect/brain</td><td>Wellness Center meditations &amp; micro-breaks</td><td><span class="pmid">18954193</span> <span class="pmid">21071182</span></td></tr>
+    <tr><td class="f">Org + individual interventions both reduce burnout</td><td>Combined workflow (org) + Wellness (individual) design</td><td><span class="pmid">27692469</span> <span class="pmid">27918798</span></td></tr>
+    <tr><td class="f">EHR clerical burden turns MDs into "data-entry clerks"</td><td>Reimagined workflow, not digitized paper</td><td><span class="pmid">29133547</span></td></tr>
+    <tr><td class="f">Leaner data "enables better use for research"; NAM call</td><td>Consented prospective research layer</td><td><span class="pmid">29801050</span> · NAM 2017</td></tr>
+    <tr><td class="f">Contradictory, improvised counseling erodes trust</td><td>Structured, guideline-consistent counseling module</td><td><span class="pmid">25208096</span></td></tr>
+    <tr><td class="f">Physician strain incl. eye strain; clinician control</td><td>Restore (dark) default + Classic/Modern toggle</td><td>Design principle</td></tr>
+  </table>
+  <div class="foot"><span>The hospital EHR built for <b>public health</b></span><span>LUMAEHR.com</span></div>
+</section>
+
+<!-- ============ RESPONSIBLE DESIGN ============ -->
+<section class="page">
+  <div class="runhead"><span>LumaChart · Planning Document</span><span class="r">08 · Responsible Design</span></div>
+  <div class="kicker">What this is — and what it is not</div>
+  <h2 class="sec">An honest path from prototype to production.</h2>
+  <p class="lead">LumaChart v1 is an <b>evidence-grounded vision and interactive prototype</b>. It demonstrates the concept end-to-end; it is not yet a certified, deployable hospital system. Naming that gap plainly is part of the design.</p>
+
+  <div class="grid2">
+    <div class="card"><h4><span class="chip s">✓</span>What the prototype delivers</h4>
+      <ul class="tight muted"><li>Clickable clinician, patient &amp; researcher experiences.</li>
+      <li>Working Canary demo (accelerated timer).</li>
+      <li>Every clinical claim cited to a verifiable source.</li></ul></div>
+    <div class="card"><h4><span class="chip a">→</span>Gates before real-world use</h4>
+      <ul class="tight muted"><li><b>ONC Health IT certification</b> &amp; interoperability (FHIR).</li>
+      <li><b>HIPAA</b> security review &amp; independent audit.</li>
+      <li><b>IRB approval</b> for the research layer.</li>
+      <li><b>Clinical validation</b> of any Canary predictive threshold.</li></ul></div>
+  </div>
+
+  <div class="note" style="margin-top:14px"><b>On Canary and monitoring.</b> Any system that reads clinician activity can be misused as surveillance. LumaChart's design commitments — clinician-owned data, private-by-default, aggregate-only for management, non-punitive framing, and no automated employment consequences — are load-bearing, not optional. They are what separate a wellbeing tool from a productivity dragnet.</div>
+
+  <div class="note" style="margin-top:10px; border-style:solid; border-color:var(--line)"><b>Evidence integrity.</b> This document cites 24 sources; 22 carry PubMed IDs verified directly against PubMed's E-utilities during preparation. No identifier here was fabricated or assumed. Two items (the NAM discussion paper and the author's MPH capstone) are not PubMed-indexed and are cited in full.</div>
+
+  <div class="foot"><span>The hospital EHR built for <b>public health</b></span><span>LUMAEHR.com</span></div>
+</section>
+
+<!-- ============ BUILD PLAN ============ -->
+<section class="page">
+  <div class="runhead"><span>LumaChart · Planning Document</span><span class="r">09 · Build</span></div>
+  <div class="kicker">Prototype scope &amp; sequence</div>
+  <h2 class="sec">What we build now.</h2>
+  <p class="lead">A single self-contained web application with a role switcher (Clinician · Patient · Researcher) and the three-theme system, delivered in six increments.</p>
+
+  <div class="two-col muted" style="font-size:10pt">
+    <p><b style="color:var(--ink2)">1 · App shell &amp; theming.</b> Role switcher, Restore/Classic/Modern themes, global session timer, LumaChart identity.</p>
+    <p><b style="color:var(--ink2)">2 · Canary engine.</b> Event-log signals vs baseline, escalating nudges, extended-login warning (accelerated demo clock).</p>
+    <p><b style="color:var(--ink2)">3 · Clinician workspace.</b> Dashboard (panel + inbox-burden), lean chart, Wellness Center, Time Well Spent, Wellness Gauge.</p>
+    <p><b style="color:var(--ink2)">4 · Patient portal.</b> Healthspan home, prevention/screening schedule with citations, longevity tracker, pre-visit questionnaire.</p>
+    <p><b style="color:var(--ink2)">5 · Research layer.</b> Patient consent panel; researcher console with cohort counts &amp; guardrails.</p>
+    <p><b style="color:var(--ink2)">6 · QA.</b> Verify rendering &amp; interaction across every screen and all three themes; confirm Canary fires and citations display.</p>
+  </div>
+
+  <div class="banner" style="margin-top:18px">
+    <h3>Definition of done (prototype)</h3>
+    <p>A reviewer can open one file, switch roles and themes, watch Canary escalate to an extended-login warning, read a patient healthspan plan with live citations, and see the consented-research console — all without a network connection.</p>
+  </div>
+
+  <p class="muted" style="margin-top:14px">Stack: dependency-free HTML/CSS/JavaScript — no build step, opens in any browser. This keeps the prototype inspectable, portable, and honest about being a front-end demonstration rather than a clinical back end.</p>
+
+  <div class="foot"><span>The hospital EHR built for <b>public health</b></span><span>LUMAEHR.com</span></div>
+</section>
+
+<!-- ============ REFERENCES ============ -->
+<section class="page" style="padding-top:0.6in; padding-bottom:0.65in">
+  <div class="runhead"><span>LumaChart · Planning Document</span><span class="r">10 · References</span></div>
+  <div class="kicker">Evidence base · 22 verified PubMed IDs</div>
+  <h2 class="sec" style="margin-bottom:8px">References</h2>
+  <div class="refs">
+    <p class="ref"><b>1.</b> Arndt BG, Beasley JW, Watkinson MD, et al. Tethered to the EHR: primary care physician workload assessment using EHR event log data and time-motion observations. <i>Ann Fam Med.</i> 2017;15(5):419–426. <span class="pmid">PMID 28893811</span></p>
+    <p class="ref"><b>2.</b> Sinsky C, Colligan L, Li L, et al. Allocation of physician time in ambulatory practice: a time and motion study in 4 specialties. <i>Ann Intern Med.</i> 2016;165(11):753–760. <span class="pmid">PMID 27595430</span></p>
+    <p class="ref"><b>3.</b> Tai-Seale M, Olson CW, Li J, et al. Electronic health record logs indicate that physicians split time evenly between seeing patients and desktop medicine. <i>Health Aff (Millwood).</i> 2017;36(4):655–662. <span class="pmid">PMID 28373331</span></p>
+    <p class="ref"><b>4.</b> Downing NL, Bates DW, Longhurst CA. Physician burnout in the electronic health record era: are we ignoring the real cause? <i>Ann Intern Med.</i> 2018;169(1):50–51. <span class="pmid">PMID 29801050</span></p>
+    <p class="ref"><b>5.</b> Collier R. Electronic health records contributing to physician burnout. <i>CMAJ.</i> 2017;189(45):E1405–E1406. <span class="pmid">PMID 29133547</span></p>
+    <p class="ref"><b>6.</b> Shanafelt TD, Dyrbye LN, Sinsky C, et al. Relationship between clerical burden and characteristics of the electronic environment with physician burnout and professional satisfaction. <i>Mayo Clin Proc.</i> 2016;91(7):836–848. <span class="pmid">PMID 27313121</span></p>
+    <p class="ref"><b>7.</b> Zulman DM, Shah NH, Verghese A. Evolutionary pressures on the electronic health record: caring for complexity. <i>JAMA.</i> 2016;316(9):923–924. <span class="pmid">PMID 27532804</span></p>
+    <p class="ref"><b>8.</b> Dyrbye LN, Shanafelt TD, Sinsky CA, et al. Burnout among health care professionals: a call to explore and address this underrecognized threat to safe, high-quality care. <i>NAM Perspectives.</i> Discussion Paper, National Academy of Medicine, Washington, DC; 2017. doi:10.31478/201707b</p>
+    <p class="ref"><b>9.</b> Shanafelt TD, Hasan O, Dyrbye LN, et al. Changes in burnout and satisfaction with work-life balance in physicians and the general US working population between 2011 and 2014. <i>Mayo Clin Proc.</i> 2015;90(12):1600–1613. <span class="pmid">PMID 26653297</span></p>
+    <p class="ref"><b>10.</b> Shanafelt TD, Boone S, Tan L, et al. Burnout and satisfaction with work-life balance among US physicians relative to the general US population. <i>Arch Intern Med.</i> 2012;172(18):1377–1385. <span class="pmid">PMID 22911330</span></p>
+    <p class="ref"><b>11.</b> Wright AA, Katz IT. Beyond burnout — redesigning care to restore meaning and sanity for physicians. <i>N Engl J Med.</i> 2018;378(4):309–311. <span class="pmid">PMID 29365301</span></p>
+    <p class="ref"><b>12.</b> Bodenheimer T, Sinsky C. From triple to quadruple aim: care of the patient requires care of the provider. <i>Ann Fam Med.</i> 2014;12(6):573–576. <span class="pmid">PMID 25384822</span></p>
+    <p class="ref"><b>13.</b> West CP, Dyrbye LN, Erwin PJ, Shanafelt TD. Interventions to prevent and reduce physician burnout: a systematic review and meta-analysis. <i>Lancet.</i> 2016;388(10057):2272–2281. <span class="pmid">PMID 27692469</span></p>
+    <p class="ref"><b>14.</b> Panagioti M, Panagopoulou E, Bower P, et al. Controlled interventions to reduce burnout in physicians: a systematic review and meta-analysis. <i>JAMA Intern Med.</i> 2017;177(2):195–205. <span class="pmid">PMID 27918798</span></p>
+    <p class="ref"><b>15.</b> Shanafelt TD, Noseworthy JH. Executive leadership and physician well-being: nine organizational strategies to promote engagement and reduce burnout. <i>Mayo Clin Proc.</i> 2017;92(1):129–146. <span class="pmid">PMID 27871627</span></p>
+    <p class="ref"><b>16.</b> Gidwani R, Nguyen C, Kofoed A, et al. Impact of scribes on physician satisfaction, patient satisfaction, and charting efficiency: a randomized controlled trial. <i>Ann Fam Med.</i> 2017;15(5):427–433. <span class="pmid">PMID 28893812</span></p>
+    <p class="ref"><b>17.</b> Mafi JN, Gerard M, Chimowitz H, et al. Patients contributing to their doctors' notes: insights from expert interviews. <i>Ann Intern Med.</i> 2018;168(4):302–305. <span class="pmid">PMID 29132154</span></p>
+    <p class="ref"><b>18.</b> Sinsky CA, Beasley JW, Simmons GE, Baron RJ. Electronic health records: design, implementation, and policy for higher-value primary care. <i>Ann Intern Med.</i> 2014;160(10):727–728. <span class="pmid">PMID 24842418</span></p>
+    <p class="ref"><b>19.</b> Fredrickson BL, Cohn MA, Coffey KA, Pek J, Finkel SM. Open hearts build lives: positive emotions, induced through loving-kindness meditation, build consequential personal resources. <i>J Pers Soc Psychol.</i> 2008;95(5):1045–1062. <span class="pmid">PMID 18954193</span></p>
+    <p class="ref"><b>20.</b> Hölzel BK, Carmody J, Vangel M, et al. Mindfulness practice leads to increases in regional brain gray matter density. <i>Psychiatry Res.</i> 2011;191(1):36–43. <span class="pmid">PMID 21071182</span></p>
+    <p class="ref"><b>21.</b> O'Mahony S, Ziadni M, Hoerger M, Levine S, Baron A, Gerhart J. Compassion fatigue among palliative care clinicians: findings on personality factors and years of service. <i>Am J Hosp Palliat Care.</i> 2018;35(2):343–347. <span class="pmid">PMID 28347144</span></p>
+    <p class="ref"><b>22.</b> Tuthill EL, Chan J, Butler LM. Challenges faced by healthcare providers offering infant feeding counseling to HIV-positive women in sub-Saharan Africa: a review of current research. <i>AIDS Care.</i> 2015;27(1):17–24. <span class="pmid">PMID 25208096</span></p>
+    <p class="ref"><b>23.</b> Sinsky CA, Willard-Grace R, Schutzbank AM, et al. In search of joy in practice: a report of 23 high-functioning primary care practices. <i>Ann Fam Med.</i> 2013;11(3):272–278. <span class="pmid">PMID 23690328</span></p>
+    <p class="ref"><b>24.</b> McAhren LG, McAneny BL, Padula WV. Toward an economy of resilience: rates of physician burnout &amp; rates of physician employment in the workforce. MPH Capstone, Johns Hopkins Bloomberg School of Public Health; 2018.</p>
+  </div>
+  <div class="foot"><span>The hospital EHR built for <b>public health</b> · LumaChart</span><span>LUMAEHR.com</span></div>
+</section>
+
+</body>
+</html>

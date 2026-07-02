@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="restore">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LumaChart — The hospital EHR built for public health</title>
+<link rel="stylesheet" href="luma.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo-dot" aria-hidden="true"></div>
+    <div class="brand-text">
+      <div class="wordmark">Luma<b>Chart</b></div>
+      <div class="tagline">The hospital EHR built for public health</div>
+    </div>
+  </div>
+
+  <nav class="role-switch" role="tablist" aria-label="Role">
+    <button class="role-btn active" data-role="clinician">Clinician</button>
+    <button class="role-btn" data-role="patient">Patient</button>
+    <button class="role-btn" data-role="researcher">Researcher</button>
+  </nav>
+
+  <div class="topbar-right">
+    <div id="canary-pill" class="canary-pill ok" title="Canary — your private early-warning companion">
+      <span class="canary-bird">🐦</span>
+      <span id="canary-pill-text">Session 0:00</span>
+    </div>
+    <div class="theme-switch" aria-label="Interface theme">
+      <button class="theme-btn active" data-themepick="restore" title="Restore — low-glare dark, designed to reduce eyestrain">☾ Restore</button>
+      <button class="theme-btn" data-themepick="classic" title="Classic — conventional light EHR look">☀ Classic</button>
+      <button class="theme-btn" data-themepick="modern" title="Modern Clinical — crisp light theme">◧ Modern</button>
+    </div>
+  </div>
+</header>
+
+<div class="frame">
+  <aside class="sidenav" id="sidenav"><!-- populated by app.js --></aside>
+  <main class="content" id="content"><!-- populated by app.js --></main>
+</div>
+
+<footer class="demo-banner">
+  <span><b>Demonstration prototype</b> · synthetic data only · not for clinical use</span>
+  <span>Evidence-linked design — every citation is a real, verified PubMed ID</span>
+  <span>LUMAEHR.com</span>
+</footer>
+
+<!-- Canary toast + modal layers -->
+<div id="toast-layer" aria-live="polite"></div>
+<div id="modal-layer" class="hidden"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
