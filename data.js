@@ -469,3 +469,42 @@ const SELFCARE_MAP = {
   gad7:{ 0:["mind"], 1:["mind"], 2:["mind"], 3:["mind"], 4:["exercise"], 5:["sleep"], 6:["mind","connect"] },
   auditc:{ 0:["alcohol"], 1:["alcohol"], 2:["alcohol"] },
 };
+
+/* ---------- Revenue cycle: coding & claim ----------
+   "State every condition — code it all or you get paid less." Complex patients
+   carry several diagnoses; each needs an ICD-10 code. The agent suggests CPT
+   codes for the visit; the clinician verifies/overrides; the biller submits to
+   the clearinghouse. ICD-10-CM / CPT are factual code sets. */
+const CODING = {
+  demographics: {
+    name:"Maria Alvarez", dob:"1968-03-14", sex:"F", mrn:"LC-0042-DEMO",
+    address:"128 Calle Luna, San Juan, PR 00901",
+    plan:"HealthFirst PPO", memberId:"HF-8842-0042", group:"GRP-5591",
+    idUploaded:false,
+  },
+  // Patient pre-loads these on the waiting-room iPad (confirm still-active).
+  preloaded: [
+    { icd:"E11.9",   dx:"Type 2 diabetes mellitus without complications", active:true },
+    { icd:"I10",     dx:"Essential (primary) hypertension", active:true },
+    { icd:"E78.5",   dx:"Hyperlipidemia, unspecified", active:true },
+    { icd:"E66.3",   dx:"Overweight", active:true },
+    { icd:"Z68.29",  dx:"Body mass index 29.0–29.9, adult", active:true },
+    { icd:"Z87.891", dx:"Personal history of nicotine dependence", active:true },
+    { icd:"Z79.84",  dx:"Long-term (current) use of oral hypoglycemic drugs", active:true },
+    { icd:"Z79.899", dx:"Other long-term (current) drug therapy (statin)", active:true },
+  ],
+  // The clinician adds the last two, discussed today.
+  discussed: [
+    { icd:"R20.2",   dx:"Paresthesia of skin (nocturnal foot tingling)" },
+    { icd:"Z12.11",  dx:"Encounter for screening for malignant neoplasm of colon" },
+  ],
+  // Agent-suggested CPT for the visit; provider verifies or overrides each.
+  cpt: [
+    { code:"99214", desc:"Established patient office visit, moderate complexity", why:"3 stable chronic illnesses + 1 new problem → moderate medical decision-making" },
+    { code:"96127", desc:"Brief emotional/behavioral assessment ×2 (PHQ-9, GAD-7)", why:"Two validated screening instruments administered and scored" },
+    { code:"36415", desc:"Collection of venous blood by venipuncture", why:"A1c and lipid panel drawn at visit" },
+    { code:"G0121", desc:"Colorectal cancer screening; referral placed", why:"USPSTF Grade A screening — colonoscopy ordered" },
+  ],
+  meds: ["Metformin 500 mg BID","Lisinopril 20 mg daily","Atorvastatin 20 mg nightly"],
+  clearinghouse: "HealthFirst PPO clearinghouse (837P professional claim)",
+};

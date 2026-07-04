@@ -23,6 +23,10 @@ const state = {
   screens:   store.get("screens", {}),   // completed patient-reported screening results
   activeInstrument: null,                // instrument currently being taken
   activeResult: null,                    // instrument result being shown
+  wellness:  store.get("wellness", true),// well-being features on/off (provider preference)
+  checkin:   store.get("checkin", null), // patient iPad pre-visit intake
+  claim:     { dxAdded:false, verified:{}, stage:"code" }, // encounter/claim workflow
+  _idUploaded: false,
 };
 
 /* ---------- evidence helpers — every PMID links straight to PubMed ---------- */
@@ -81,9 +85,9 @@ async function loadUSPSTF(announce){
 /* ==========================================================================
    THEME SWITCHING
    ========================================================================== */
-$$(".theme-btn").forEach(btn => btn.addEventListener("click", () => {
+$$(".theme-btn[data-themepick]").forEach(btn => btn.addEventListener("click", () => {
   document.documentElement.dataset.theme = btn.dataset.themepick;
-  $$(".theme-btn").forEach(b => b.classList.toggle("active", b === btn));
+  $$(".theme-btn[data-themepick]").forEach(b => b.classList.toggle("active", b === btn));
   if (btn.dataset.themepick !== "restore" && !state.canary.fired.themeNote) {
     state.canary.fired.themeNote = true;
     toast("Theme changed", "Restore Mode (low-glare dark) is LumaChart's default — designed to reduce eyestrain on long shifts. Switch back any time.", "green");
@@ -99,10 +103,11 @@ const NAVS = {
       { id:"dashboard", ic:"▦", t:"Today" },
       { id:"chart",     ic:"▤", t:"Patient chart" },
       { id:"inbox",     ic:"✉", t:"Inbox", badge:() => INBOX.length },
+      { id:"billing",   ic:"⛁", t:"Encounter & claim" },
     ]},
     { label:"You", items:[
-      { id:"wellness",  ic:"❦", t:"Wellness Center" },
-      { id:"canary",    ic:"🐦", t:"Canary" },
+      { id:"wellness",  ic:"❦", t:"Wellness Center", ph:true },
+      { id:"canary",    ic:"🐦", t:"Canary", ph:true },
     ]},
     { label:"Platform", items:[
       { id:"synthesis", ic:"◎", t:"Physician health × Interop" },
@@ -111,6 +116,7 @@ const NAVS = {
   ],
   patient: [
     { label:"My health", items:[
+      { id:"checkin",   ic:"▤", t:"Check-in" },
       { id:"home",      ic:"✚", t:"Healthspan home" },
       { id:"plan",      ic:"◷", t:"Prevention plan", badge:() => PREVENTION_PLAN.filter(p=>p.status==="due" && !state.scheduled[p.t]).length || null },
       { id:"screenings",ic:"✎", t:"Screenings & questionnaires" },
@@ -136,15 +142,16 @@ $$(".role-btn").forEach(btn => btn.addEventListener("click", () => {
 }));
 
 function renderNav(){
-  $("#sidenav").innerHTML = NAVS[state.role].map(group => `
-    <div class="nav-label">${group.label}</div>
-    ${group.items.map(i => {
+  $("#sidenav").innerHTML = NAVS[state.role].map(group => {
+    const items = group.items.filter(i => !(i.ph && !state.wellness));   // hide well-being items when off
+    if (!items.length) return "";
+    return `<div class="nav-label">${group.label}</div>` + items.map(i => {
       const b = i.badge ? i.badge() : null;
       return `<button class="nav-item ${state.view===i.id?"active":""}" data-nav="${i.id}">
         <span class="ic">${i.ic}</span>${i.t}${b ? `<span class="badge">${b}</span>` : ""}
       </button>`;
-    }).join("")}
-  `).join("");
+    }).join("");
+  }).join("");
   $$("[data-nav]").forEach(b => b.addEventListener("click", () => { state.view = b.dataset.nav; render(); }));
 }
 
@@ -189,12 +196,12 @@ function vDashboard(){
         ${pinned.length ? pinned.map(metricTile).join("") : `<div class="small muted">No metrics pinned — hit Customize.</div>`}
         <div class="tiny" style="margin-top:8px">You choose what matters most — LumaChart adapts to your practice, not the reverse.</div>
       </div>
-      <div class="card">
+      ${state.wellness?`<div class="card">
         <h3><span class="spark">🐦</span> Canary</h3>
         <div id="canary-mini" class="small muted">Watching over your session…</div>
         <div class="tiny" style="margin-top:8px">Private to you. Never used for productivity review.</div>
         <button class="btn ghost small" style="margin-top:10px" data-nav-inline="canary">Open Canary panel →</button>
-      </div>
+      </div>`:""}
     </div>
   </div>`;
 }
@@ -871,11 +878,117 @@ function vConsole(){
 }
 
 /* ==========================================================================
+   REVENUE CYCLE — patient check-in (iPad) + encounter/claim (clinician)
+   ========================================================================== */
+function vCheckin(){
+  const d = CODING.demographics, done = state.checkin;
+  if (done) return `
+  <h1 class="page-title">You're all set, Maria ✓</h1>
+  <p class="page-sub">Thanks — your check-in is done. The doctor will see you shortly.</p>
+  <div class="card"><h3>What you completed</h3>
+    <div class="small muted">✓ Confirmed ${done.conditions.length} active conditions<br>✓ Confirmed your medications<br>✓ ${done.idUploaded?"Photo ID uploaded":"Photo ID — skipped"}<br>✓ Verified your demographics &amp; insurance</div>
+    <div class="evidence">This pre-loaded your chart and today's claim, so the clinician only adds what you discuss now — less typing, fewer errors, a faster visit.</div>
+    <button class="btn ghost" data-checkin-redo="1" style="margin-top:10px">Redo check-in</button>
+  </div>`;
+  return `
+  <h1 class="page-title">Welcome back, Maria 👋</h1>
+  <p class="page-sub">Great to see you again! Most of your paperwork is already filled in — just confirm what's changed. (This is the waiting-room iPad.)</p>
+  <div class="card">
+    <h3>1 · Do you still have these conditions?</h3>
+    ${CODING.preloaded.map(p=>`<label class="rowitem" style="cursor:pointer"><input type="checkbox" class="task-check ci-cond" data-icd="${p.icd}" checked><div style="flex:1"><div class="t small">${p.dx}</div><div class="d">${p.icd}</div></div></label>`).join("")}
+    <div class="tiny">Uncheck anything that no longer applies.</div>
+  </div>
+  <div class="section-gap"></div>
+  <div class="card"><h3>2 · Still taking these medications?</h3>
+    ${CODING.meds.map((m,i)=>`<label class="rowitem" style="cursor:pointer"><input type="checkbox" class="task-check ci-med" data-i="${i}" checked><div style="flex:1"><div class="t small">${m}</div></div></label>`).join("")}
+  </div>
+  <div class="section-gap"></div>
+  <div class="grid g2">
+    <div class="card"><h3>3 · Anything new?</h3>
+      <textarea class="note-editor" id="ci-new" style="min-height:80px" placeholder="New conditions, medications, allergies, or concerns…"></textarea></div>
+    <div class="card"><h3>4 · Photo ID &amp; your details</h3>
+      <div class="rowitem"><div style="flex:1"><div class="t small">${d.name} · ${d.sex} · DOB ${d.dob}</div><div class="d">${d.address}</div><div class="d">${d.plan} · Member ${d.memberId}</div></div></div>
+      <button class="btn" id="ci-upload">📷 Upload photo ID</button> <span id="ci-upload-state" class="tiny"></span>
+    </div>
+  </div>
+  <div style="margin-top:18px"><button class="btn primary" id="ci-submit">Finish check-in</button>
+    <span class="tiny">&nbsp;You're completing the demographics &amp; history the front desk used to type for you.</span></div>`;
+}
+
+function claimPipeline(ready){
+  const c = state.claim;
+  const steps = [
+    { k:"code",      t:"Code the visit",  d:"ICD-10 for every condition + verified CPT" },
+    { k:"agent",     t:"🤖 Billing agent", d:"Assembles the 837P claim from codes + demographics" },
+    { k:"biller",    t:"Biller review",   d:"Double-checks demographics, codes, payer" },
+    { k:"submitted", t:"Clearinghouse",   d:CODING.clearinghouse },
+  ];
+  const idx = steps.findIndex(s=>s.k===c.stage);
+  const rows = steps.map((s,i)=>`<div class="rowitem"><span class="chip ${i<idx?'green':i===idx?'accent':'plain'}">${i<idx?'✓':i+1}</span>
+    <div style="flex:1"><div class="t small">${s.t}</div><div class="d">${s.d}</div></div></div>`).join("");
+  let action = "";
+  if (c.stage==="code") action = ready
+    ? `<button class="btn primary" id="claim-assemble">🤖 Agent: assemble 837P claim</button>`
+    : `<div class="tiny">Finish coding — every diagnosis added and every CPT verified — to let the agent assemble the claim.</div>`;
+  else if (c.stage==="agent")  action = `<div class="evidence">Agent assembled the claim — demographics + all ICD-10 diagnoses + verified CPT, formatted as an 837P professional claim. Handed to the biller.</div><button class="btn primary" id="claim-biller">Biller: review &amp; double-check</button>`;
+  else if (c.stage==="biller") action = `<div class="evidence">Biller verified patient demographics, diagnosis &amp; procedure codes, and payer eligibility. Ready to submit.</div><button class="btn primary" id="claim-submit">Submit to clearinghouse</button>`;
+  else if (c.stage==="submitted") action = `<div class="evidence" style="border-style:solid; border-color:var(--green)">✓ Submitted to ${CODING.clearinghouse}. Claim #LC-${String(Date.now()).slice(-6)}.</div>
+    <div class="note" style="border-style:solid"><b>Puerto Rico bridge:</b> this member's plan is a PR payer. Mainland EHR claim formats aren't natively accepted by PR clearinghouses, so LumaChart routed the claim through the PR bridge connector — the third-party layer described in <b>docs/BILLING-AND-CLEARINGHOUSE-PLAN.md</b>.</div>
+    <button class="btn ghost" id="claim-reset">Start a new claim</button>`;
+  return `<div class="rowlist">${rows}</div><div style="margin-top:12px">${action}</div>`;
+}
+
+function vBilling(){
+  const c = state.claim, d = CODING.demographics;
+  const activePre = CODING.preloaded.filter(p => state.checkin ? state.checkin.conditions.includes(p.icd) : p.active);
+  const dxCount = activePre.length + (c.dxAdded ? CODING.discussed.length : 0);
+  const totalDx = activePre.length + CODING.discussed.length;
+  const cptDone = CODING.cpt.filter((_,i)=>c.verified[i]).length;
+  const ready = dxCount===totalDx && cptDone===CODING.cpt.length;
+  return `
+  <h1 class="page-title">Encounter &amp; claim <span class="muted" style="font-size:15px">${d.name} · ${d.plan}</span></h1>
+  <p class="page-sub">Code every condition — complete coding reflects the true complexity of the visit. Undercoding leaves both care and revenue on the table.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="gauge-wrap">
+      <div class="metric"><div class="v">${dxCount}/${totalDx}</div><div class="l">diagnoses coded (ICD-10)</div></div>
+      <div class="metric"><div class="v" style="color:var(--accent)">${cptDone}/${CODING.cpt.length}</div><div class="l">CPT codes verified</div></div>
+      <div style="flex:1; min-width:180px"><div class="bar"><i class="${ready?'green':'amber'}" style="width:${Math.round((dxCount+cptDone)/(totalDx+CODING.cpt.length)*100)}%"></i></div>
+        <div class="tiny" style="margin-top:6px">${dxCount<totalDx?`${totalDx-dxCount} discussed diagnosis(es) not yet coded.`:cptDone<CODING.cpt.length?`${CODING.cpt.length-cptDone} CPT code(s) awaiting verification.`:"Full complexity captured — coded and verified."}</div></div>
+    </div>
+    ${state.checkin?`<div class="tiny" style="margin-top:8px">✓ Patient pre-loaded ${activePre.length} conditions and demographics at check-in — you only add what you discussed today.</div>`:`<div class="tiny" style="margin-top:8px">Patient hasn't checked in yet — the Patient role → Check-in pre-loads these conditions and demographics for you.</div>`}
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>Diagnoses — ICD-10 <span class="chip green">patient pre-loaded ${activePre.length}</span></h3>
+      ${activePre.map(p=>`<div class="rowitem"><span class="chip plain">${p.icd}</span><div style="flex:1"><div class="t small">${p.dx}</div></div><span class="chip green">✓</span></div>`).join("")}
+      <div class="divider"></div>
+      <div class="small muted" style="margin-bottom:6px">Discussed today — add the last two:</div>
+      ${c.dxAdded
+        ? CODING.discussed.map(p=>`<div class="rowitem"><span class="chip plain">${p.icd}</span><div style="flex:1"><div class="t small">${p.dx}</div></div><span class="chip accent">added</span></div>`).join("")
+        : `${CODING.discussed.map(p=>`<div class="rowitem"><span class="chip plain">${p.icd}</span><div style="flex:1"><div class="t small">${p.dx}</div></div></div>`).join("")}<button class="btn small" id="add-dx" style="margin-top:8px">+ Add both to the claim</button>`}
+    </div>
+
+    <div class="card">
+      <h3>CPT for this visit <span class="chip accent">🤖 agent-suggested</span></h3>
+      <p class="small muted" style="margin:0 0 6px">The agent proposes; you verify or override each — it never bills without your sign-off.</p>
+      ${CODING.cpt.map((p,i)=>`<div class="rowitem"><span class="chip plain">${p.code}</span>
+        <div style="flex:1"><div class="t small">${p.desc}</div><div class="d">${p.why}</div></div>
+        ${c.verified[i]?`<span class="chip green">✓ verified</span>`:`<button class="btn small" data-verify-cpt="${i}">Verify</button>`}</div>`).join("")}
+    </div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card"><h3>Claim → biller → clearinghouse</h3>${claimPipeline(ready)}</div>`;
+}
+
+/* ==========================================================================
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, roadmap:vRoadmap },
-  patient:{ home:vHome, plan:vPlan, screenings:vScreenings, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
+  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, billing:vBilling, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, roadmap:vRoadmap },
+  patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, synthesis:vSynthesis, roadmap:vRoadmap },
 };
 
@@ -906,6 +1019,25 @@ function wireView(){
   const rdn = $("[data-result-done]"); if (rdn) rdn.addEventListener("click", () => { state.activeResult = null; render(); });
   const usr = $("#uspstf-refresh"); if (usr) usr.addEventListener("click", () => loadUSPSTF(true));
   $$("[data-order-screen]").forEach(b => b.addEventListener("click", () => toast("Questionnaire sent", `${INSTRUMENTS[b.dataset.orderScreen].short} sent to the patient's portal to complete before or during the visit.`, "green")));
+
+  // --- encounter & claim ---
+  const adx = $("#add-dx"); if (adx) adx.addEventListener("click", () => { state.claim.dxAdded = true; render(); toast("Diagnoses added", "The two discussed diagnoses are coded — every condition is now captured.", "green"); });
+  $$("[data-verify-cpt]").forEach(b => b.addEventListener("click", () => { state.claim.verified[b.dataset.verifyCpt] = true; render(); }));
+  const ca = $("#claim-assemble"); if (ca) ca.addEventListener("click", () => { state.claim.stage = "agent"; render(); toast("🤖 Billing agent", "Claim assembled (837P) from your verified codes + demographics, and handed to the biller.", "green"); });
+  const cb = $("#claim-biller"); if (cb) cb.addEventListener("click", () => { state.claim.stage = "biller"; render(); });
+  const cs = $("#claim-submit"); if (cs) cs.addEventListener("click", () => { state.claim.stage = "submitted"; render(); toast("Claim submitted", "Routed to the clearinghouse through the Puerto Rico bridge connector.", "green"); });
+  const cre = $("#claim-reset"); if (cre) cre.addEventListener("click", () => { state.claim = { dxAdded:false, verified:{}, stage:"code" }; render(); });
+
+  // --- patient check-in (iPad) ---
+  const ciu = $("#ci-upload"); if (ciu) ciu.addEventListener("click", () => { state._idUploaded = true; ciu.textContent = "✓ Photo ID uploaded"; ciu.disabled = true; const s=$("#ci-upload-state"); if (s) s.textContent = "captured"; });
+  const cis = $("#ci-submit"); if (cis) cis.addEventListener("click", () => {
+    const conditions = $$(".ci-cond").filter(c => c.checked).map(c => c.dataset.icd);
+    state.checkin = { conditions, idUploaded: state._idUploaded, at: new Date().toISOString().slice(0,10) };
+    store.set("checkin", state.checkin);
+    render();
+    toast("Check-in complete 🎉", "Thanks, Maria! Your info pre-loaded the visit and the claim. The doctor will see you shortly.", "green");
+  });
+  const cir = $("[data-checkin-redo]"); if (cir) cir.addEventListener("click", () => { state.checkin = null; store.set("checkin", null); state._idUploaded = false; render(); });
   const note = $("#lean-note");
   if (note){
     const count = () => { $("#note-count").textContent = `${note.value.trim().split(/\s+/).length} words — lean and clinical`; };
@@ -1155,6 +1287,7 @@ function canaryTick(){
   updateCanaryPill();
   updateCanaryMini();
   if (state.role !== "clinician") return;
+  if (!state.wellness) return;                                     // well-being features turned off
   if (m < state.canary.snoozedUntil) return;
   if (state.activeInstrument || state.activeResult) return;        // don't interrupt a focused check-in
   if (!$("#modal-layer").classList.contains("hidden")) return;     // a dialog is already open — don't pile on
@@ -1232,7 +1365,23 @@ function toast(title, body, tone="accent", actions){
 /* ==========================================================================
    BOOT
    ========================================================================== */
+function updateWellnessUI(){
+  const wt = $("#wellness-toggle"); if (wt) wt.classList.toggle("active", state.wellness);
+  const pill = $("#canary-pill"); if (pill) pill.style.display = state.wellness ? "" : "none";
+}
+function toggleWellness(){
+  state.wellness = !state.wellness;
+  store.set("wellness", state.wellness);
+  if (!state.wellness && (state.view === "wellness" || state.view === "canary")) state.view = "dashboard";
+  updateWellnessUI();
+  render();
+  toast("Well-being features " + (state.wellness ? "on" : "hidden"),
+    state.wellness ? "Wellness Center and Canary are back." : "Lean clinical view — Wellness Center, Canary and its nudges are hidden. A preference, like the theme — toggle any time.", "green");
+}
+
 render();
 loadUSPSTF();                    // pull the latest Grade A/B recommendations (embedded fallback if offline)
+$("#wellness-toggle").addEventListener("click", toggleWellness);
+updateWellnessUI();
 setInterval(canaryTick, 1000);
 setTimeout(() => toast("Welcome to LumaChart", "Restore Mode (low-glare dark) is on by default to reduce eyestrain — switch themes any time, top right. Tap any notification to dismiss it.", "green"), 1200);
