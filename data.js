@@ -24,6 +24,12 @@ const EVIDENCE = {
   auditc:     { pmid:"9738608",  cite:"Bush et al., Arch Intern Med 1998 — the AUDIT-C, a brief screen for unhealthy alcohol use." },
   uspstfDep:  { pmid:"37338872", cite:"US Preventive Services Task Force, JAMA 2023 — Screening for Depression and Suicide Risk in Adults (Grade B)." },
   uspstfBreast:{pmid:"38687503", cite:"US Preventive Services Task Force, JAMA 2024 — Screening for Breast Cancer (Grade B)." },
+  scExercise: { pmid:"26978184", cite:"Schuch et al., J Psychiatr Res 2016 (meta-analysis) — exercise is an effective treatment for depression." },
+  scSleep:    { pmid:"26054060", cite:"Trauer et al., Ann Intern Med 2015 (meta-analysis) — cognitive behavioral therapy improves chronic insomnia." },
+  scMind:     { pmid:"24395196", cite:"Goyal et al., JAMA Intern Med 2014 (meta-analysis) — meditation programs reduce anxiety, depression and stress." },
+  scBA:       { pmid:"24936656", cite:"Ekers et al., PLoS One 2014 (meta-analysis) — behavioural activation is an effective treatment for depression." },
+  scConnect:  { pmid:"20668659", cite:"Holt-Lunstad et al., PLoS Med 2010 (meta-analysis) — stronger social relationships are linked to better health and survival." },
+  scAlcohol:  { pmid:"29476653", cite:"Kaner et al., Cochrane 2018 — brief interventions in primary care reduce unhealthy alcohol use." },
 };
 
 const SCHEDULE = [
@@ -298,7 +304,9 @@ const USPSTF_TOOLS_URL = "https://www.uspreventiveservicestaskforce.org/uspstf/r
 // postmenopausal, not pregnant. `applies` decides whether a rec surfaces for her.
 const PATIENT_CTX = { age:58, sex:"F", pregnant:false, diabetes:true, htn:true, formerSmoker:true, postmenopausal:true };
 
-const USPSTF = [
+// Embedded fallback used only if data/uspstf-ab.json can't be fetched (e.g. file://).
+// The live app loads the JSON so new A/B recommendations flow in without code changes.
+const USPSTF_FALLBACK = [
   { id:"depression", topic:"Depression & Suicide Risk in Adults", grade:"B", year:2023,
     pop:"Adults", cat:"Mental Health", ev:"uspstfDep", instrument:"phq9",
     clin:"Screen all adults; use a validated instrument and ensure systems for diagnosis, treatment and follow-up.",
@@ -416,24 +424,48 @@ const INSTRUMENTS = {
       { max:21, label:"Severe", tone:"red" },
     ],
   },
-  bdi:{
-    name:"BDI-style · Depression (demo)", short:"BDI-style", ev:"bdi", uspstf:"depression",
-    license:"The Beck Depression Inventory® is copyrighted (© Aaron T. Beck / Pearson). This demo shows the 21-construct structure and published score bands only — a real deployment must license the instrument. For a free, validated alternative, use the PHQ-9.",
-    intro:"For each area, choose how much it has affected you lately (0 = none, 3 = severe). Illustrative structure only.",
-    scale:SCALE_SEV,
-    items:["Sadness","Pessimism","Sense of failure","Dissatisfaction","Guilt","Expectation of punishment",
-      "Self-dislike","Self-accusations","Suicidal ideas","Crying","Irritability","Social withdrawal",
-      "Indecisiveness","Body-image change","Work difficulty","Insomnia","Fatigability","Loss of appetite",
-      "Weight loss","Somatic preoccupation","Loss of libido"],
-    safetyItem:8,
-    // Published interpretation bands (Beck) applied to the demo structure:
+  auditc:{
+    name:"AUDIT-C · Alcohol use", short:"AUDIT-C", ev:"auditc", uspstf:"alcohol",
+    intro:"Three quick, private questions about drinking over the past year — no judgment, just a way for your care team to support you.",
+    itemScales:[
+      ["Never (0)","Monthly or less (1)","2–4 times a month (2)","2–3 times a week (3)","4+ times a week (4)"],
+      ["1 or 2 (0)","3 or 4 (1)","5 or 6 (2)","7 to 9 (3)","10 or more (4)"],
+      ["Never (0)","Less than monthly (1)","Monthly (2)","Weekly (3)","Daily or almost daily (4)"],
+    ],
+    items:[
+      "How often did you have a drink containing alcohol?",
+      "How many standard drinks did you have on a typical day when you were drinking?",
+      "How often did you have 6 or more drinks on one occasion?",
+    ],
     bands:[
-      { max:10, label:"Normal ups and downs", tone:"green" },
-      { max:16, label:"Mild mood disturbance", tone:"green" },
-      { max:20, label:"Borderline clinical depression", tone:"amber" },
-      { max:30, label:"Moderate depression", tone:"amber" },
-      { max:40, label:"Severe depression", tone:"red" },
-      { max:63, label:"Extreme depression", tone:"red" },
+      { max:2,  label:"Lower risk", tone:"green" },
+      { max:4,  label:"At-risk (≥3 for women, ≥4 for men)", tone:"amber" },
+      { max:7,  label:"Increasing risk", tone:"amber" },
+      { max:12, label:"Higher risk — worth a conversation", tone:"red" },
     ],
   },
+};
+
+/* ---------- Evidence-based self-care domains (all citations verified on PubMed) ----------
+   Shown after a screening, targeted to the symptoms the patient endorsed most.
+   These COMPLEMENT clinical care; they never replace it. */
+const SELFCARE = {
+  exercise:{ label:"Move a little every day", ic:"🚶", ev:"scExercise",
+    tip:"Even a short daily walk measurably lifts mood. Start with 10 minutes and build up — motion is medicine." },
+  sleep:{ label:"Protect your sleep", ic:"😴", ev:"scSleep",
+    tip:"A steady wind-down and consistent sleep/wake times help. If sleep stays hard, ask about CBT for insomnia — it works." },
+  mind:{ label:"A few mindful minutes", ic:"🫁", ev:"scMind",
+    tip:"Brief daily breathing or meditation lowers anxiety and stress. Try one minute now; small doses add up." },
+  ba:{ label:"Small steps toward what matters", ic:"🌱", ev:"scBA",
+    tip:"Schedule one small, meaningful or pleasant activity each day — doing comes before feeling like it. This is behavioral activation." },
+  connect:{ label:"Reach out — you're not alone", ic:"💬", ev:"scConnect",
+    tip:"Connection protects health. Text one person you trust, or ask your care team about groups and support." },
+  alcohol:{ label:"Cutting back, if you choose", ic:"🍃", ev:"scAlcohol",
+    tip:"A brief conversation with your care team meaningfully helps many people drink less. Small changes count." },
+};
+// Which self-care domains an endorsed item points to, per instrument.
+const SELFCARE_MAP = {
+  phq9:{ 0:["ba","exercise"], 1:["connect","mind"], 2:["sleep"], 3:["exercise"], 4:["ba"], 5:["mind","connect"], 6:["mind"], 7:["exercise"], 8:[] },
+  gad7:{ 0:["mind"], 1:["mind"], 2:["mind"], 3:["mind"], 4:["exercise"], 5:["sleep"], 6:["mind","connect"] },
+  auditc:{ 0:["alcohol"], 1:["alcohol"], 2:["alcohol"] },
 };

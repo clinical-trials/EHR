@@ -22,6 +22,7 @@ const state = {
   interop:   {},   // synthesis view toggles (in-memory; start all off = "legacy" state)
   screens:   store.get("screens", {}),   // completed patient-reported screening results
   activeInstrument: null,                // instrument currently being taken
+  activeResult: null,                    // instrument result being shown
 };
 
 /* ---------- evidence helpers — every PMID links straight to PubMed ---------- */
@@ -37,12 +38,45 @@ const evidenceCard = key => {
   return `<div class="evidence"><b>Why we recommend this:</b> ${e.cite}${ev(key)}</div>`;
 };
 
-/* ---------- USPSTF helpers ---------- */
+/* ---------- USPSTF: dynamically loaded, refreshable ---------- */
+let USPSTF = USPSTF_FALLBACK;
+let USPSTF_META = { updated:null, source:"embedded fallback", sourceUrl:USPSTF_URL, toolsUrl:USPSTF_TOOLS_URL };
+
+function matchRule(rule, c){
+  if (!rule) return false;
+  if (rule.risk) return false;                        // risk-based handled separately
+  if (rule.sex && c.sex !== rule.sex) return false;
+  if (rule.pregnant != null && c.pregnant !== rule.pregnant) return false;
+  const ageOk = (rule.minAge == null || c.age >= rule.minAge) && (rule.maxAge == null || c.age <= rule.maxAge);
+  if (!ageOk && !(rule.orPostmenopausal && c.postmenopausal)) return false;
+  if (rule.requireAny && !rule.requireAny.some(k => c[k])) return false;
+  if (rule.requireAll && !rule.requireAll.every(k => c[k])) return false;
+  return true;
+}
+const recApplies = (r, c) => typeof r.applies === "function" ? r.applies(c) : matchRule(r.applies, c);
+const isRiskRec = r => r.risk === true || (r.applies && typeof r.applies === "object" && r.applies.risk === true);
+
 function uspstfApplicable(ctx){
-  const hits = USPSTF.filter(r => { try { return r.applies(ctx); } catch(e){ return false; } });
-  return { primary: hits.filter(r=>!r.risk), risk: USPSTF.filter(r=>r.risk) };
+  return {
+    primary: USPSTF.filter(r => !isRiskRec(r) && recApplies(r, ctx)),
+    risk:    USPSTF.filter(r => isRiskRec(r)),
+  };
 }
 const gradeChip = g => `<span class="chip ${g==="A"?"green":"accent"}">Grade ${g}</span>`;
+
+async function loadUSPSTF(announce){
+  try{
+    const res = await fetch("data/uspstf-ab.json", { cache:"no-store" });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    if (Array.isArray(data.recommendations) && data.recommendations.length){
+      USPSTF = data.recommendations;
+      USPSTF_META = { updated:data.updated, source:data.source, sourceUrl:data.sourceUrl||USPSTF_URL, toolsUrl:data.toolsUrl||USPSTF_TOOLS_URL };
+      if (["chart","plan"].includes(state.view)) render();
+      if (announce) toast("USPSTF recommendations synced", `Loaded ${USPSTF.length} Grade A/B recommendations (updated ${data.updated}). The EHR stays current as evidence changes.`, "green");
+    }
+  }catch(e){ if (announce) toast("Couldn't sync USPSTF", "Showing the embedded set. Live sync needs the app served over http.", "amber"); }
+}
 
 /* ==========================================================================
    THEME SWITCHING
@@ -230,8 +264,12 @@ function vChart(){
 
   <div class="card">
     <h3>USPSTF preventive care <span class="chip accent">${c.age}${c.sex}</span>
-      <a class="pmid" href="${USPSTF_URL}" target="_blank" rel="noopener" style="margin-left:auto; text-indent:0">USPSTF ↗</a></h3>
-    <p class="small muted" style="margin:0 0 6px">Grade A/B recommendations that apply to this patient. Screening is not diagnosis — a positive screen routes to clinical assessment.</p>
+      <span style="margin-left:auto; display:flex; gap:8px; align-items:center">
+        <span class="tiny">${USPSTF_META.updated?`updated ${USPSTF_META.updated}`:"embedded set"}</span>
+        <button class="btn ghost small" id="uspstf-refresh" title="Re-sync the latest Grade A/B recommendations">⟳ Refresh</button>
+        <a class="pmid" href="${USPSTF_META.sourceUrl}" target="_blank" rel="noopener" style="text-indent:0">USPSTF ↗</a>
+      </span></h3>
+    <p class="small muted" style="margin:0 0 6px">Grade A/B recommendations that apply to this patient, loaded from a refreshable feed so the EHR stays current as evidence changes. Screening is not diagnosis — a positive screen routes to clinical assessment.</p>
     ${uspstfApplicable(PATIENT_CTX).primary.map(r=>`
       <div class="plan-item">
         ${gradeChip(r.grade)}
@@ -569,6 +607,12 @@ function vHome(){
     <div class="card"><div class="metric"><div class="v" style="color:var(--green)">6.9%</div><div class="l">A1c — down from 7.4. Your work is paying off.</div></div></div>
     <div class="card"><div class="metric"><div class="v">132/81</div><div class="l">Blood pressure — close to your &lt;130 goal${ev("sprint")}</div></div></div>
     <div class="card"><div class="metric"><div class="v" style="color:var(--accent)">95<span style="font-size:15px"> min/wk</span></div><div class="l">Activity — every 15 min/day adds up${ev("activity")}</div></div></div>
+  </div>
+  <div class="section-gap"></div>
+  <div class="card" style="display:flex; align-items:center; gap:16px; flex-wrap:wrap">
+    <div style="flex:1; min-width:220px"><h3 style="margin-bottom:4px">💚 Mental health is health</h3>
+      <p class="small muted" style="margin:0">A 2-minute private check-in on mood, worry, or drinking — with evidence-based steps that help. Recommended for all adults by the USPSTF.</p></div>
+    <button class="btn primary" data-nav-inline="screenings">Check in</button>
   </div>`;
 }
 
@@ -631,19 +675,23 @@ function vMyPlan(){
 
 function vScreenings(){
   if (state.activeInstrument) return vInstrument(state.activeInstrument);
+  if (state.activeResult) return vResultView(state.activeResult);
   return `
-  <h1 class="page-title">Screenings &amp; questionnaires</h1>
-  <p class="page-sub">Private, validated check-ins recommended by the USPSTF. You fill them out; your care team reviews the results with you.</p>
+  <h1 class="page-title">Mental health is health</h1>
+  <p class="page-sub">Private, validated check-ins recommended by the USPSTF — all free, public-domain instruments. You fill them out; your care team reviews the results, and you get evidence-based steps that help.</p>
   <div class="note">These are <b>screening tools, not diagnoses.</b> If you're ever in crisis, call or text <b>988</b> (Suicide &amp; Crisis Lifeline, US) — free, confidential, any time.</div>
-  <div class="grid g2" style="margin-top:16px">
-    ${["phq9","gad7","bdi"].map(id=>{
+  <div class="grid g3" style="margin-top:16px">
+    ${["phq9","gad7","auditc"].map(id=>{
       const ins = INSTRUMENTS[id], done = state.screens[id];
       const rec = USPSTF.find(r=>r.id===ins.uspstf);
       return `<div class="card">
         <h3>${ins.name}</h3>
-        <div class="small muted">${ins.items.length} questions${rec?` · maps to USPSTF ${rec.topic.split(":")[0]} (Grade ${rec.grade})`:""}${ev(ins.ev)}</div>
-        ${done?`<div class="evidence" style="margin-top:10px">Last completed ${done.date}: <b>${done.band}</b> (score ${done.score}/${done.max}). Shared with your care team.</div>`:""}
-        <div style="margin-top:12px"><button class="btn primary" data-start-screen="${id}">${done?"Take again":"Start"}</button></div>
+        <div class="small muted">${ins.items.length} questions${rec?` · USPSTF ${rec.topic.split(":")[0]} (Grade ${rec.grade})`:""}${ev(ins.ev)}</div>
+        ${done?`<div class="evidence" style="margin-top:10px">${done.date}: <b>${done.band}</b> (${done.score}/${done.max})</div>`:""}
+        <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap">
+          <button class="btn primary" data-start-screen="${id}">${done?"Retake":"Start"}</button>
+          ${done?`<button class="btn ghost" data-view-result="${id}">See result &amp; tips</button>`:""}
+        </div>
       </div>`;
     }).join("")}
   </div>`;
@@ -659,7 +707,7 @@ function vInstrument(id){
     ${ins.items.map((it,i)=>`
       <div class="q-item">
         <div class="q-text">${i+1}. ${it}</div>
-        <div class="q-opts">${ins.scale.map((s,v)=>`<label class="q-opt"><input type="radio" name="q_${i}" value="${v}"><span>${s}</span></label>`).join("")}</div>
+        <div class="q-opts">${(ins.itemScales?ins.itemScales[i]:ins.scale).map((s,v)=>`<label class="q-opt"><input type="radio" name="q_${i}" value="${v}"><span>${s}</span></label>`).join("")}</div>
       </div>`).join("")}
     <div class="modal-actions" style="justify-content:space-between; margin-top:6px">
       <button class="btn" data-screen-cancel="1">← Back</button>
@@ -669,6 +717,8 @@ function vInstrument(id){
   </div>`;
 }
 
+const instrumentMax = ins => ins.itemScales ? ins.itemScales.reduce((a,s)=>a+(s.length-1),0) : ins.items.length*3;
+
 function scoreInstrument(id){
   const ins = INSTRUMENTS[id];
   const vals = ins.items.map((_,i)=>{ const el = $(`input[name="q_${i}"]:checked`); return el ? +el.value : null; });
@@ -676,12 +726,52 @@ function scoreInstrument(id){
   const score = vals.reduce((a,b)=>a+b,0);
   const band = ins.bands.find(b=>score<=b.max) || ins.bands[ins.bands.length-1];
   const safety = ins.safetyItem!=null && vals[ins.safetyItem]>0;
-  state.screens[id] = { score, band:band.label, tone:band.tone, date:new Date().toISOString().slice(0,10), safety, max:ins.items.length*3 };
+  // targeted self-care: tally endorsed items toward domains, keep the top 3
+  const map = SELFCARE_MAP[id] || {};
+  const tally = {};
+  vals.forEach((v,i)=>{ const thr = ins.itemScales ? 1 : 2; if (v>=thr) (map[i]||[]).forEach(d=>{ tally[d]=(tally[d]||0)+v; }); });
+  const domains = Object.keys(tally).sort((a,b)=>tally[b]-tally[a]).slice(0,3);
+  state.screens[id] = { score, band:band.label, tone:band.tone, date:new Date().toISOString().slice(0,10), safety, max:instrumentMax(ins), domains };
   store.set("screens", state.screens);
   state.activeInstrument = null;
+  state.activeResult = id;
   render();
-  toast(`${ins.short} scored`, `Result: <b>${band.label}</b> (score ${score}/${ins.items.length*3}). Shared with your care team.`, band.tone==="red"?"amber":"green");
   if (safety) safetyModal();
+}
+
+function vResultView(id){
+  const ins = INSTRUMENTS[id], r = state.screens[id];
+  if (!r){ state.activeResult = null; return vScreenings(); }
+  const pct = Math.round(r.score / r.max * 100);
+  const ringColor = r.tone==="red" ? "var(--red)" : r.tone==="amber" ? "var(--amber)" : "var(--green)";
+  const domains = (r.domains||[]).map(d=>SELFCARE[d]).filter(Boolean);
+  return `
+  <h1 class="page-title">${ins.short} — your result</h1>
+  <p class="page-sub">Mental health is health. Thank you for checking in — here's what your answers suggest, and small, evidence-based steps that help.</p>
+
+  <div class="grid g32">
+    <div class="card" style="display:flex; align-items:center; gap:20px">
+      <div class="ring" style="--p:${pct}; --ring-color:${ringColor}"><div><b>${r.score}</b><span>of ${r.max}</span></div></div>
+      <div>
+        <div class="chip ${r.tone}" style="font-size:14px">${r.band}</div>
+        <p class="small muted" style="margin:8px 0 0">A screening result, not a diagnosis. Your care team can see it and will follow up with you.${ins.ev?ev(ins.ev):""}</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>What happens next</h3>
+      <div class="small muted">✓ Saved to your record<br>✓ Shared with your care team<br>✓ Retake it any time to see how you're doing</div>
+    </div>
+  </div>
+  ${r.safety?`<div class="note" style="border-style:solid; border-color:var(--red)"><b>You matter.</b> Because you mentioned thoughts of self-harm, please reach out now — call or text <b>988</b> (Suicide &amp; Crisis Lifeline, US), any time. Your care team has been alerted.</div>`:""}
+  <div class="section-gap"></div>
+
+  <h3 style="margin:0 0 10px">Evidence-based steps for what you're feeling most</h3>
+  ${domains.length ? `<div class="grid g2">${domains.map(d=>`
+    <div class="card"><h3><span class="chip accent" style="font-size:15px">${d.ic}</span> ${d.label}</h3>
+    <p class="small muted" style="margin:0">${d.tip}${ev(d.ev)}</p></div>`).join("")}</div>`
+    : `<div class="card"><p class="small muted" style="margin:0">Your answers didn't point to specific concerns today — keep up what's working. General supports always help: regular movement, steady sleep, and staying connected.${ev("scConnect")}</p></div>`}
+  <div class="tiny" style="margin-top:10px">These are self-care ideas that <b>complement</b> professional care — never a replacement. Talk with your care team about what fits you.</div>
+  <div style="margin-top:16px; display:flex; gap:10px"><button class="btn primary" data-result-done="1">Done</button><button class="btn ghost" data-start-screen="${id}">Retake</button></div>`;
 }
 
 function safetyModal(){
@@ -809,9 +899,12 @@ function wireView(){
     state.interop[c.dataset.feed] = c.checked;
     updateSynth();
   }));
-  $$("[data-start-screen]").forEach(b => b.addEventListener("click", () => { state.activeInstrument = b.dataset.startScreen; render(); }));
+  $$("[data-start-screen]").forEach(b => b.addEventListener("click", () => { state.activeResult = null; state.activeInstrument = b.dataset.startScreen; render(); }));
   const scx = $("[data-screen-cancel]"); if (scx) scx.addEventListener("click", () => { state.activeInstrument = null; render(); });
   $$("[data-screen-submit]").forEach(b => b.addEventListener("click", () => scoreInstrument(b.dataset.screenSubmit)));
+  $$("[data-view-result]").forEach(b => b.addEventListener("click", () => { state.activeResult = b.dataset.viewResult; render(); }));
+  const rdn = $("[data-result-done]"); if (rdn) rdn.addEventListener("click", () => { state.activeResult = null; render(); });
+  const usr = $("#uspstf-refresh"); if (usr) usr.addEventListener("click", () => loadUSPSTF(true));
   $$("[data-order-screen]").forEach(b => b.addEventListener("click", () => toast("Questionnaire sent", `${INSTRUMENTS[b.dataset.orderScreen].short} sent to the patient's portal to complete before or during the visit.`, "green")));
   const note = $("#lean-note");
   if (note){
@@ -1063,6 +1156,8 @@ function canaryTick(){
   updateCanaryMini();
   if (state.role !== "clinician") return;
   if (m < state.canary.snoozedUntil) return;
+  if (state.activeInstrument || state.activeResult) return;        // don't interrupt a focused check-in
+  if (!$("#modal-layer").classList.contains("hidden")) return;     // a dialog is already open — don't pile on
 
   if (m >= 25 && !state.canary.fired.micro){
     state.canary.fired.micro = true;
@@ -1112,9 +1207,12 @@ function extendedLoginModal(){
    ========================================================================== */
 function toast(title, body, tone="accent", actions){
   const layer = $("#toast-layer");
+  while (layer.children.length >= 2) layer.removeChild(layer.firstChild);   // never let notifications stack up
   const el = document.createElement("div");
   el.className = `toast ${tone==="green"?"green":tone==="amber"?"amber":""}`;
   el.innerHTML = `<b>${title}</b>${body}`;
+  el.title = "Tap to dismiss";
+  el.addEventListener("click", e => { if (e.target.tagName !== "BUTTON") el.remove(); });
   if (actions){
     const row = document.createElement("div");
     row.className = "toast-actions";
@@ -1135,5 +1233,6 @@ function toast(title, body, tone="accent", actions){
    BOOT
    ========================================================================== */
 render();
+loadUSPSTF();                    // pull the latest Grade A/B recommendations (embedded fallback if offline)
 setInterval(canaryTick, 1000);
-setTimeout(() => toast("Welcome to LumaChart", "Restore Mode (low-glare dark) is on by default to reduce eyestrain — switch themes any time, top right. Canary is watching over your session, privately. Click any PMID to read the source on PubMed.", "green"), 1200);
+setTimeout(() => toast("Welcome to LumaChart", "Restore Mode (low-glare dark) is on by default to reduce eyestrain — switch themes any time, top right. Tap any notification to dismiss it.", "green"), 1200);
