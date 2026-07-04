@@ -257,6 +257,17 @@ a.pmid:hover{ text-decoration:underline; filter:brightness(1.15); }
 .plan-meta{ display:flex; gap:6px; flex-wrap:wrap; margin-top:4px; }
 .task-check{ width:19px; height:19px; accent-color:var(--green); flex:none; margin-top:2px; cursor:pointer; }
 
+/* questionnaire items */
+.q-item{ padding:12px 0; border-bottom:1px solid var(--line); }
+.q-item:last-of-type{ border-bottom:none; }
+.q-text{ font-size:14px; font-weight:600; margin-bottom:8px; }
+.q-opts{ display:flex; flex-wrap:wrap; gap:8px; }
+.q-opt{ display:flex; align-items:center; gap:7px; padding:7px 12px; border:1px solid var(--line-strong);
+  border-radius:9px; font-size:12.5px; cursor:pointer; color:var(--text-2); }
+.q-opt:hover{ border-color:var(--accent); }
+.q-opt input{ accent-color:var(--accent); }
+.q-opt input:checked ~ span{ color:var(--text); font-weight:700; }
+
 /* ==================== ROADMAP / COMPLIANCE ==================== */
 .gate{ display:flex; gap:12px; align-items:flex-start; padding:11px 4px; border-bottom:1px solid var(--line); }
 .gate:last-child{ border-bottom:none; }

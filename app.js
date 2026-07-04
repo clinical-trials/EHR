@@ -20,6 +20,8 @@ const state = {
   tasksDone: store.get("tasksDone", {}),
   metrics:   store.get("metrics", ["facetime","afterhrs","prevgaps"]),
   interop:   {},   // synthesis view toggles (in-memory; start all off = "legacy" state)
+  screens:   store.get("screens", {}),   // completed patient-reported screening results
+  activeInstrument: null,                // instrument currently being taken
 };
 
 /* ---------- evidence helpers — every PMID links straight to PubMed ---------- */
@@ -34,6 +36,13 @@ const evidenceCard = key => {
   const e = EVIDENCE[key];
   return `<div class="evidence"><b>Why we recommend this:</b> ${e.cite}${ev(key)}</div>`;
 };
+
+/* ---------- USPSTF helpers ---------- */
+function uspstfApplicable(ctx){
+  const hits = USPSTF.filter(r => { try { return r.applies(ctx); } catch(e){ return false; } });
+  return { primary: hits.filter(r=>!r.risk), risk: USPSTF.filter(r=>r.risk) };
+}
+const gradeChip = g => `<span class="chip ${g==="A"?"green":"accent"}">Grade ${g}</span>`;
 
 /* ==========================================================================
    THEME SWITCHING
@@ -70,6 +79,7 @@ const NAVS = {
     { label:"My health", items:[
       { id:"home",      ic:"✚", t:"Healthspan home" },
       { id:"plan",      ic:"◷", t:"Prevention plan", badge:() => PREVENTION_PLAN.filter(p=>p.status==="due" && !state.scheduled[p.t]).length || null },
+      { id:"screenings",ic:"✎", t:"Screenings & questionnaires" },
       { id:"myplan",    ic:"☑", t:"My care plan" },
       { id:"longevity", ic:"↗", t:"Longevity tracker" },
       { id:"consent",   ic:"✔", t:"Research & consent" },
@@ -215,6 +225,36 @@ function vChart(){
       <button class="btn primary" id="gen-patient-plan">Publish patient-friendly plan → portal</button>
       <span class="tiny">Exports as FHIR <b>CarePlan</b> resources over the §170.315(g)(10) standardized API, with companion <b>Task</b> resources. See docs/INTEROPERABILITY-PLAN.md.</span>
     </div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card">
+    <h3>USPSTF preventive care <span class="chip accent">${c.age}${c.sex}</span>
+      <a class="pmid" href="${USPSTF_URL}" target="_blank" rel="noopener" style="margin-left:auto; text-indent:0">USPSTF ↗</a></h3>
+    <p class="small muted" style="margin:0 0 6px">Grade A/B recommendations that apply to this patient. Screening is not diagnosis — a positive screen routes to clinical assessment.</p>
+    ${uspstfApplicable(PATIENT_CTX).primary.map(r=>`
+      <div class="plan-item">
+        ${gradeChip(r.grade)}
+        <div class="pi-body">
+          <div class="pi-what">${r.topic} <span class="tiny">· USPSTF ${r.year}</span></div>
+          <div class="pi-why">${r.clin}${r.ev?ev(r.ev):""}</div>
+        </div>
+        ${r.instrument?`<button class="btn small" data-order-screen="${r.instrument}">Send ${INSTRUMENTS[r.instrument].short}</button>`:`<button class="btn small">Order</button>`}
+      </div>`).join("")}
+    <div class="divider"></div>
+    <div class="tiny">Also offer per individual risk: ${uspstfApplicable(PATIENT_CTX).risk.map(r=>r.topic.split(":")[0].split("(")[0].trim()).join(" · ")}. <a class="pmid" href="${USPSTF_TOOLS_URL}" target="_blank" rel="noopener" style="text-indent:0">Clinician tools &amp; resources ↗</a></div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card">
+    <h3>Patient-reported screenings <span class="chip plain">inbound</span></h3>
+    ${Object.keys(state.screens).length ? Object.entries(state.screens).map(([id,r])=>{
+      const ins = INSTRUMENTS[id];
+      return `<div class="rowitem">
+        <div style="flex:1"><div class="t small">${ins.short} — ${r.date}</div>
+        <div class="d">Score ${r.score}/${r.max}${ins.ev?ev(ins.ev):""}${r.safety?` · <span style="color:var(--red); font-weight:700">⚠ self-harm item endorsed — review urgently</span>`:""}</div></div>
+        <span class="chip ${r.tone}">${r.band}</span></div>`;
+    }).join("") : `<div class="small muted">None returned yet. Send a questionnaire above, or the patient completes one in their portal (Screenings & questionnaires).</div>`}
   </div>`;
 }
 
@@ -536,6 +576,19 @@ function vPlan(){
   return `
   <h1 class="page-title">Your prevention plan</h1>
   <p class="page-sub">Every recommendation comes with the actual evidence — click any PMID to read the study on PubMed.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Backed by the USPSTF — recommended for you
+      <a class="pmid" href="${USPSTF_URL}" target="_blank" rel="noopener" style="margin-left:auto; text-indent:0">Learn more ↗</a></h3>
+    <p class="small muted" style="margin:0 0 4px">National experts review the evidence and grade what actually helps prevent illness. These apply to you:</p>
+    ${uspstfApplicable(PATIENT_CTX).primary.map(r=>`
+      <div class="rowitem">
+        ${gradeChip(r.grade)}
+        <div style="flex:1"><div class="t small">${r.topic.split(":")[0]}</div><div class="d">${r.pt}${r.ev?ev(r.ev):""}</div></div>
+        ${r.instrument?`<button class="btn small" data-nav-inline="screenings">Take questionnaire</button>`:""}
+      </div>`).join("")}
+  </div>
+
   ${PREVENTION_PLAN.map(p=>{
     const s = state.scheduled[p.t];
     return `
@@ -574,6 +627,73 @@ function vMyPlan(){
     <div class="divider"></div>
     <div class="tiny">Your progress is visible to your care team. Questions? Message us — or ask Luma ✨ below.</div>
   </div>`;
+}
+
+function vScreenings(){
+  if (state.activeInstrument) return vInstrument(state.activeInstrument);
+  return `
+  <h1 class="page-title">Screenings &amp; questionnaires</h1>
+  <p class="page-sub">Private, validated check-ins recommended by the USPSTF. You fill them out; your care team reviews the results with you.</p>
+  <div class="note">These are <b>screening tools, not diagnoses.</b> If you're ever in crisis, call or text <b>988</b> (Suicide &amp; Crisis Lifeline, US) — free, confidential, any time.</div>
+  <div class="grid g2" style="margin-top:16px">
+    ${["phq9","gad7","bdi"].map(id=>{
+      const ins = INSTRUMENTS[id], done = state.screens[id];
+      const rec = USPSTF.find(r=>r.id===ins.uspstf);
+      return `<div class="card">
+        <h3>${ins.name}</h3>
+        <div class="small muted">${ins.items.length} questions${rec?` · maps to USPSTF ${rec.topic.split(":")[0]} (Grade ${rec.grade})`:""}${ev(ins.ev)}</div>
+        ${done?`<div class="evidence" style="margin-top:10px">Last completed ${done.date}: <b>${done.band}</b> (score ${done.score}/${done.max}). Shared with your care team.</div>`:""}
+        <div style="margin-top:12px"><button class="btn primary" data-start-screen="${id}">${done?"Take again":"Start"}</button></div>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+
+function vInstrument(id){
+  const ins = INSTRUMENTS[id];
+  return `
+  <h1 class="page-title">${ins.name}</h1>
+  <p class="page-sub">${ins.intro}</p>
+  ${ins.license?`<div class="note">⚠️ ${ins.license}</div>`:""}
+  <div class="card">
+    ${ins.items.map((it,i)=>`
+      <div class="q-item">
+        <div class="q-text">${i+1}. ${it}</div>
+        <div class="q-opts">${ins.scale.map((s,v)=>`<label class="q-opt"><input type="radio" name="q_${i}" value="${v}"><span>${s}</span></label>`).join("")}</div>
+      </div>`).join("")}
+    <div class="modal-actions" style="justify-content:space-between; margin-top:6px">
+      <button class="btn" data-screen-cancel="1">← Back</button>
+      <button class="btn primary" data-screen-submit="${id}">Score &amp; share with my care team</button>
+    </div>
+    <div class="tiny" style="margin-top:8px">A screening tool, not a diagnosis — your care team reviews it with you. In crisis? Call or text <b>988</b> (US), any time.${ev(ins.ev)}</div>
+  </div>`;
+}
+
+function scoreInstrument(id){
+  const ins = INSTRUMENTS[id];
+  const vals = ins.items.map((_,i)=>{ const el = $(`input[name="q_${i}"]:checked`); return el ? +el.value : null; });
+  if (vals.some(v=>v===null)){ toast("Almost there", "Please answer every item before scoring.", "amber"); return; }
+  const score = vals.reduce((a,b)=>a+b,0);
+  const band = ins.bands.find(b=>score<=b.max) || ins.bands[ins.bands.length-1];
+  const safety = ins.safetyItem!=null && vals[ins.safetyItem]>0;
+  state.screens[id] = { score, band:band.label, tone:band.tone, date:new Date().toISOString().slice(0,10), safety, max:ins.items.length*3 };
+  store.set("screens", state.screens);
+  state.activeInstrument = null;
+  render();
+  toast(`${ins.short} scored`, `Result: <b>${band.label}</b> (score ${score}/${ins.items.length*3}). Shared with your care team.`, band.tone==="red"?"amber":"green");
+  if (safety) safetyModal();
+}
+
+function safetyModal(){
+  const layer = $("#modal-layer"); layer.classList.remove("hidden");
+  layer.innerHTML = `<div class="modal">
+    <h2>💛 You're not alone</h2>
+    <p class="small">Your answers mention thoughts of self-harm — thank you for being honest. Please reach out right now; it's free, confidential, and available 24/7:</p>
+    <p class="small"><b>Call or text 988</b> — Suicide &amp; Crisis Lifeline (US)<br><b>Text HOME to 741741</b> — Crisis Text Line</p>
+    <p class="small muted">Your care team has been alerted and will follow up. If you are in immediate danger, call 911.</p>
+    <div class="modal-actions"><button class="btn primary" id="safety-ok">I understand</button></div>
+  </div>`;
+  $("#safety-ok").addEventListener("click", ()=>layer.classList.add("hidden"));
 }
 
 function vLongevity(){
@@ -665,7 +785,7 @@ function vConsole(){
    ========================================================================== */
 const VIEWS = {
   clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, roadmap:vRoadmap },
-  patient:{ home:vHome, plan:vPlan, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
+  patient:{ home:vHome, plan:vPlan, screenings:vScreenings, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, synthesis:vSynthesis, roadmap:vRoadmap },
 };
 
@@ -689,6 +809,10 @@ function wireView(){
     state.interop[c.dataset.feed] = c.checked;
     updateSynth();
   }));
+  $$("[data-start-screen]").forEach(b => b.addEventListener("click", () => { state.activeInstrument = b.dataset.startScreen; render(); }));
+  const scx = $("[data-screen-cancel]"); if (scx) scx.addEventListener("click", () => { state.activeInstrument = null; render(); });
+  $$("[data-screen-submit]").forEach(b => b.addEventListener("click", () => scoreInstrument(b.dataset.screenSubmit)));
+  $$("[data-order-screen]").forEach(b => b.addEventListener("click", () => toast("Questionnaire sent", `${INSTRUMENTS[b.dataset.orderScreen].short} sent to the patient's portal to complete before or during the visit.`, "green")));
   const note = $("#lean-note");
   if (note){
     const count = () => { $("#note-count").textContent = `${note.value.trim().split(/\s+/).length} words — lean and clinical`; };

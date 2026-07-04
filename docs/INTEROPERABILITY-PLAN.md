@@ -70,6 +70,27 @@ Status legend: **prototype-modeled** = surfaced in the demo UI with synthetic da
 - **Research layer → Bulk Data + Provenance + de-identification.** Consented cohort export maps to Bulk Data `group-export` (v1.0.0 required; v2.0.0 SVAP-approved). Small-cell suppression and de-identification are **HIPAA Privacy Rule matters (Safe Harbor / Expert Determination), not ONC certification criteria** — they ride alongside this plan, not inside it [HIPAA methods not covered by the sources fetched here].
 - **Canary → §170.315(b)(11) DSI**, as `ONC_CRITERIA` already records: source, evidence, and logic disclosed.
 
+### 3b. USCDI v6 uplift mapping (the 2026 build target)
+
+USCDI **v6 was published July 24, 2025** and is the SVAP-approved version for 2026 (voluntary use from **August 29, 2026**); **v3.1 remains the regulatory floor.** LumaChart builds toward v6. The classes below are those most changed since v3.1 or most load-bearing for LumaChart's features; elements are summarized from the USCDI v6 data-class list (ASTP/ONC, public domain).
+
+| USCDI v6 class (notable elements) | Since v3.1 | LumaChart feature | US Core (FHIR R4) | Status |
+|---|---|---|---|---|
+| **Health Status Assessments** — Mental/Cognitive Status, Alcohol Use, Substance Use, Physical Activity, SDOH Assessment, Smoking Status | expanded | **Validated instruments (PHQ-9, GAD-7, BDI-style) + pre-visit lifestyle/SDOH capture** | Observation (survey) / QuestionnaireResponse | **prototype-modeled — NEW this pass** |
+| **Goals and Preferences** — Patient Goals, SDOH Goals, Treatment Intervention Preference, Care Experience Preference, **Advance Directive** | new grouping | Patient goals in pre-visit voice; structured Care Plan | Goal, CarePlan; Advance Directive → gap | partial |
+| **Orders** — Medication, Laboratory, Diagnostic Imaging, Clinical Test, Procedure, Portable Medical Order | **new class** | USPSTF "Order" / "Send questionnaire" actions; lean CPOE build | ServiceRequest, MedicationRequest | planned (CPOE, Phase 2) |
+| **Procedures** — + SDOH Interventions, Reason for Referral | expanded | Prevention referrals (colonoscopy, mammography) with reason | Procedure, ServiceRequest | prototype-modeled |
+| **Immunizations** — + Lot Number | expanded | Prevention portal + scheduling; IIS registry link | Immunization | prototype-modeled (registry = gap) |
+| **Care Team Members** — Name, Identifier, Role, Location, Telecom | expanded | Plan item "who" owners | CareTeam, Practitioner(Role) | partial (free-text) |
+| **Health Insurance Information** | (v3.1 draft → v6) | Eligibility partner surface | Coverage | partner-planned (Stedi/Availity) |
+| **Encounter Information** — Type, Diagnosis, Time, Location, Disposition | expanded | Day schedule | Encounter | prototype-modeled |
+| **Facility Information** — Identifier, Type, Name, Address | **new class** | — | Location, Organization | gap |
+| **Family Health History** | **new class** | — | FamilyMemberHistory | gap |
+| **Provenance** — Author, Role, Time Stamp, Organization | same | — (load-bearing for research audit) | Provenance | gap — emit from first backend commit |
+| **Vital Signs** — + Average BP, Inhaled O₂ Concentration, pediatric percentiles | expanded | Vitals & trends table | Observation (vitals) | prototype-modeled |
+
+**Headline for this pass:** the new **screening-instrument engine is LumaChart's first concrete USCDI v6 *Health Status Assessments* coverage** — each result is a scored Observation, evidence-linked to both the instrument's validation paper and the USPSTF recommendation it satisfies. That is the interoperability thesis in miniature: a patient-completed questionnaire becomes structured, coded, exchangeable data *and* closes a graded preventive-care gap.
+
 ---
 
 ## 4. Gap analysis & sequencing

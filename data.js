@@ -18,6 +18,12 @@ const EVIDENCE = {
   smoking:    { pmid:"23343063", cite:"Jha et al., NEJM 2013 — quitting smoking before age 40 regains ~9–10 years of life expectancy." },
   medDiet:    { pmid:"29897866", cite:"PREDIMED, NEJM 2018 (RCT) — Mediterranean diet + olive oil/nuts reduced major cardiovascular events ~30%." },
   activity:   { pmid:"21846575", cite:"Wen et al., Lancet 2011 — 15 min/day of moderate activity added ~3 years of life expectancy." },
+  phq9:       { pmid:"11556941", cite:"Kroenke, Spitzer & Williams, J Gen Intern Med 2001 — the PHQ-9, a validated brief depression severity measure." },
+  gad7:       { pmid:"16717171", cite:"Spitzer, Kroenke, Williams & Löwe, Arch Intern Med 2006 — the GAD-7, a validated brief generalized-anxiety measure." },
+  bdi:        { pmid:"13688369", cite:"Beck, Ward, Mendelson, Mock & Erbaugh, Arch Gen Psychiatry 1961 — the original Beck Depression Inventory." },
+  auditc:     { pmid:"9738608",  cite:"Bush et al., Arch Intern Med 1998 — the AUDIT-C, a brief screen for unhealthy alcohol use." },
+  uspstfDep:  { pmid:"37338872", cite:"US Preventive Services Task Force, JAMA 2023 — Screening for Depression and Suicide Risk in Adults (Grade B)." },
+  uspstfBreast:{pmid:"38687503", cite:"US Preventive Services Task Force, JAMA 2024 — Screening for Breast Cancer (Grade B)." },
 };
 
 const SCHEDULE = [
@@ -281,3 +287,153 @@ const THREE_WINS = [
   { win:"Public health", ic:"◫", tone:"amber",
     d:"The same lean, coded, structured data — consented and de-identified — becomes research-grade. Interoperability is what makes the learning health system possible." },
 ];
+
+/* ---------- USPSTF preventive care (Grade A/B recommendations) ----------
+   Authoritative source: US Preventive Services Task Force. Each row is USPSTF's
+   own published metadata; verified PubMed IDs attached where confirmed. */
+const USPSTF_URL = "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation-topics";
+const USPSTF_TOOLS_URL = "https://www.uspreventiveservicestaskforce.org/uspstf/recommendation-topics/tools-and-resources-for-better-preventive-care";
+
+// ctx for the demo patient (Maria Alvarez): 58F, T2DM + HTN, former smoker (quit 2019),
+// postmenopausal, not pregnant. `applies` decides whether a rec surfaces for her.
+const PATIENT_CTX = { age:58, sex:"F", pregnant:false, diabetes:true, htn:true, formerSmoker:true, postmenopausal:true };
+
+const USPSTF = [
+  { id:"depression", topic:"Depression & Suicide Risk in Adults", grade:"B", year:2023,
+    pop:"Adults", cat:"Mental Health", ev:"uspstfDep", instrument:"phq9",
+    clin:"Screen all adults; use a validated instrument and ensure systems for diagnosis, treatment and follow-up.",
+    pt:"A quick, confidential check-in on mood — because feeling well mentally is part of staying well.",
+    applies:c=>c.age>=18 },
+  { id:"anxiety", topic:"Anxiety Disorders in Adults", grade:"B", year:2023,
+    pop:"Adults ≤64", cat:"Mental Health", instrument:"gad7",
+    clin:"Screen adults 64 and younger, including pregnant/postpartum, when systems for accurate diagnosis and care are in place.",
+    pt:"A short questionnaire about worry and stress that you can complete privately.",
+    applies:c=>c.age>=18 && c.age<=64 },
+  { id:"statin", topic:"Statin Use for Primary Prevention of CVD", grade:"B", year:2022,
+    pop:"Adults 40–75", cat:"Cardiovascular", ev:"sprint",
+    clin:"Offer a statin to adults 40–75 with ≥1 CVD risk factor and an estimated 10-year risk ≥10% (Grade B).",
+    pt:"A daily pill that lowers the chance of a heart attack or stroke — worth discussing given your numbers.",
+    applies:c=>c.age>=40 && c.age<=75 && (c.diabetes||c.htn) },
+  { id:"breast", topic:"Breast Cancer: Screening", grade:"B", year:2024,
+    pop:"Women 40–74", cat:"Cancer", ev:"uspstfBreast",
+    clin:"Biennial screening mammography for women 40–74 (Grade B).",
+    pt:"A mammogram every 2 years — the best tool we have to catch breast cancer early.",
+    applies:c=>c.sex==="F" && c.age>=40 && c.age<=74 },
+  { id:"osteo", topic:"Osteoporosis to Prevent Fractures: Screening", grade:"B", year:2025,
+    pop:"Women 65+ / postmenopausal at risk", cat:"Musculoskeletal",
+    clin:"Screen women ≥65, and postmenopausal women <65 at increased fracture risk, with bone density testing.",
+    pt:"A painless bone-density scan that helps prevent fractures as you age.",
+    applies:c=>c.sex==="F" && (c.age>=65 || c.postmenopausal) },
+  { id:"ipv", topic:"Intimate Partner Violence & Caregiver Abuse of Older/Vulnerable Adults: Screening", grade:"B", year:2025,
+    pop:"Adolescents, Adults, Seniors", cat:"Mental Health / Safety",
+    clin:"Screen women of reproductive age for IPV; provide or refer to support services.",
+    pt:"A private, judgment-free check on your safety at home — you can always ask to speak alone.",
+    applies:c=>c.sex==="F" && c.age>=18 },
+  { id:"colorectal", topic:"Colorectal Cancer: Screening", grade:"A", year:2021,
+    pop:"Adults 45–75", cat:"Cancer", ev:"uspstfCrc",
+    clin:"Screen all adults 45–75 (Grade A 50–75, Grade B 45–49). Colonoscopy, FIT, or other approved modality.",
+    pt:"Colon cancer screening — you're due; several easy options exist.",
+    applies:c=>c.age>=45 && c.age<=75 },
+  { id:"hypertension", topic:"Hypertension in Adults: Screening", grade:"A", year:2021,
+    pop:"Adults 18+", cat:"Cardiovascular",
+    clin:"Screen adults ≥18 with office BP, confirmed outside the clinical setting before diagnosis (Grade A).",
+    pt:"Regular blood-pressure checks — you're already managing this well.",
+    applies:c=>c.age>=18 },
+  { id:"lung", topic:"Lung Cancer: Screening", grade:"B", year:2021,
+    pop:"Adults 50–80, ≥20 pack-years", cat:"Cancer", risk:true,
+    clin:"Annual low-dose CT for adults 50–80 with ≥20 pack-year history who smoke now or quit within 15 years.",
+    pt:"If your past smoking qualifies, a yearly low-dose CT scan can catch lung cancer early.",
+    applies:c=>c.age>=50 && c.age<=80 && c.formerSmoker },
+  { id:"prediabetes", topic:"Prediabetes & Type 2 Diabetes: Screening", grade:"B", year:2021,
+    pop:"Adults 35–70 w/ overweight", cat:"Metabolic",
+    clin:"Screen adults 35–70 who are overweight/obese; offer or refer to preventive interventions (Grade B).",
+    pt:"Blood-sugar monitoring — central to your care and already underway.",
+    applies:c=>c.age>=35 && c.age<=70 },
+  // Risk- or population-specific A/B recs (offered based on individual risk / life stage)
+  { id:"prep", topic:"HIV Preexposure Prophylaxis (PrEP)", grade:"A", year:2023, pop:"Adolescents & adults at risk", cat:"Infectious Disease", risk:true,
+    clin:"Offer PrEP to persons at increased risk of HIV acquisition (Grade A).", pt:"A medicine that prevents HIV, for anyone at risk.", applies:()=>false },
+  { id:"tb", topic:"Latent Tuberculosis Infection in Adults: Screening", grade:"B", year:2023, pop:"At-risk adults", cat:"Infectious Disease", risk:true,
+    clin:"Screen adults at increased risk for latent TB infection (Grade B).", pt:"A simple test if you have TB risk factors.", applies:()=>false },
+  { id:"syphilis", topic:"Syphilis in Nonpregnant Adolescents & Adults: Screening", grade:"A", year:2022, pop:"At increased risk", cat:"Infectious Disease", risk:true,
+    clin:"Screen persons at increased risk for syphilis infection (Grade A).", pt:"An STI screen recommended when there's increased risk.", applies:()=>false },
+  { id:"chlamydia", topic:"Chlamydia & Gonorrhea: Screening", grade:"B", year:2021, pop:"Sexually active women at risk", cat:"Infectious Disease", risk:true,
+    clin:"Screen sexually active women ≤24, and older women at increased risk (Grade B).", pt:"A routine STI screen when risk factors are present.", applies:()=>false },
+  { id:"folic", topic:"Folic Acid to Prevent Neural Tube Defects", grade:"A", year:2023, pop:"Persons planning/capable of pregnancy", cat:"Perinatal", risk:true,
+    clin:"Recommend 0.4–0.8 mg folic acid daily for those planning or capable of pregnancy (Grade A).", pt:"A daily vitamin before and during early pregnancy.", applies:c=>c.pregnant },
+  { id:"aspirinpre", topic:"Aspirin to Prevent Preeclampsia", grade:"B", year:2021, pop:"Pregnant at risk", cat:"Perinatal", risk:true,
+    clin:"Low-dose aspirin after 12 weeks for pregnant persons at high risk of preeclampsia (Grade B).", pt:"A low-dose aspirin in pregnancy if you're at higher risk.", applies:c=>c.pregnant },
+];
+
+/* ---------- Validated screening instruments (patient-facing, self-report) ----------
+   PHQ-9 and GAD-7 are in the public domain (no permission required to reproduce).
+   The BDI is © Aaron T. Beck / Pearson — reproduced here only as a STRUCTURE
+   (construct labels + generic severity anchors + published score bands); a real
+   deployment must license the true instrument. See `license` field. */
+const SCALE_0_3 = ["Not at all (0)","Several days (1)","More than half the days (2)","Nearly every day (3)"];
+const SCALE_SEV = ["None (0)","Mild (1)","Moderate (2)","Severe (3)"];
+
+const INSTRUMENTS = {
+  phq9:{
+    name:"PHQ-9 · Depression", short:"PHQ-9", ev:"phq9", uspstf:"depression",
+    intro:"Over the last 2 weeks, how often have you been bothered by any of the following problems?",
+    scale:SCALE_0_3, safetyItem:8,
+    items:[
+      "Little interest or pleasure in doing things",
+      "Feeling down, depressed, or hopeless",
+      "Trouble falling or staying asleep, or sleeping too much",
+      "Feeling tired or having little energy",
+      "Poor appetite or overeating",
+      "Feeling bad about yourself — or that you are a failure or have let yourself or your family down",
+      "Trouble concentrating on things, such as reading the newspaper or watching television",
+      "Moving or speaking so slowly that other people could have noticed — or being so fidgety or restless that you have been moving around a lot more than usual",
+      "Thoughts that you would be better off dead, or of hurting yourself in some way",
+    ],
+    bands:[
+      { max:4,  label:"Minimal", tone:"green" },
+      { max:9,  label:"Mild", tone:"green" },
+      { max:14, label:"Moderate", tone:"amber" },
+      { max:19, label:"Moderately severe", tone:"amber" },
+      { max:27, label:"Severe", tone:"red" },
+    ],
+  },
+  gad7:{
+    name:"GAD-7 · Anxiety", short:"GAD-7", ev:"gad7", uspstf:"anxiety",
+    intro:"Over the last 2 weeks, how often have you been bothered by the following problems?",
+    scale:SCALE_0_3,
+    items:[
+      "Feeling nervous, anxious, or on edge",
+      "Not being able to stop or control worrying",
+      "Worrying too much about different things",
+      "Trouble relaxing",
+      "Being so restless that it is hard to sit still",
+      "Becoming easily annoyed or irritable",
+      "Feeling afraid, as if something awful might happen",
+    ],
+    bands:[
+      { max:4,  label:"Minimal", tone:"green" },
+      { max:9,  label:"Mild", tone:"green" },
+      { max:14, label:"Moderate", tone:"amber" },
+      { max:21, label:"Severe", tone:"red" },
+    ],
+  },
+  bdi:{
+    name:"BDI-style · Depression (demo)", short:"BDI-style", ev:"bdi", uspstf:"depression",
+    license:"The Beck Depression Inventory® is copyrighted (© Aaron T. Beck / Pearson). This demo shows the 21-construct structure and published score bands only — a real deployment must license the instrument. For a free, validated alternative, use the PHQ-9.",
+    intro:"For each area, choose how much it has affected you lately (0 = none, 3 = severe). Illustrative structure only.",
+    scale:SCALE_SEV,
+    items:["Sadness","Pessimism","Sense of failure","Dissatisfaction","Guilt","Expectation of punishment",
+      "Self-dislike","Self-accusations","Suicidal ideas","Crying","Irritability","Social withdrawal",
+      "Indecisiveness","Body-image change","Work difficulty","Insomnia","Fatigability","Loss of appetite",
+      "Weight loss","Somatic preoccupation","Loss of libido"],
+    safetyItem:8,
+    // Published interpretation bands (Beck) applied to the demo structure:
+    bands:[
+      { max:10, label:"Normal ups and downs", tone:"green" },
+      { max:16, label:"Mild mood disturbance", tone:"green" },
+      { max:20, label:"Borderline clinical depression", tone:"amber" },
+      { max:30, label:"Moderate depression", tone:"amber" },
+      { max:40, label:"Severe depression", tone:"red" },
+      { max:63, label:"Extreme depression", tone:"red" },
+    ],
+  },
+};
