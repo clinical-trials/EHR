@@ -210,7 +210,7 @@ function vChart(){
     <div class="divider"></div>
     <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
       <button class="btn primary" id="gen-patient-plan">Publish patient-friendly plan → portal</button>
-      <span class="tiny">Exports as FHIR <b>CarePlan</b> + <b>Task</b> resources over the §170.315(g)(10) standardized API.</span>
+      <span class="tiny">Exports as FHIR <b>CarePlan</b> resources over the §170.315(g)(10) standardized API, with companion <b>Task</b> resources. See docs/INTEROPERABILITY-PLAN.md.</span>
     </div>
   </div>`;
 }
