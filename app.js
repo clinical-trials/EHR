@@ -1,28 +1,41 @@
 /* ==========================================================================
-   LumaChart prototype — app logic
+   LumaChart prototype v2 — app logic
    Roles: clinician / patient / researcher · Themes: restore / classic / modern
-   Canary: burnout early-warning engine on an accelerated demo clock (1s = 1min)
+   Canary early-warning engine · structured CarePlan · scheduling · roadmap ·
+   customizable metrics · Luma assistant · clickable PMIDs · mobile-friendly
    ========================================================================== */
 
 const $ = (s, el=document) => el.querySelector(s);
 const $$ = (s, el=document) => [...el.querySelectorAll(s)];
 
-const state = { role:"clinician", view:"dashboard", canary:{ sessionMin:0, snoozedUntil:0, fired:{} } };
+const store = {
+  get(k, fallback){ try{ const v = localStorage.getItem("luma."+k); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } },
+  set(k, v){ try{ localStorage.setItem("luma."+k, JSON.stringify(v)); }catch(e){} },
+};
 
-/* ---------- evidence helper ---------- */
+const state = {
+  role:"clinician", view:"dashboard",
+  canary:{ sessionMin:0, snoozedUntil:0, fired:{} },
+  scheduled: store.get("scheduled", {}),
+  tasksDone: store.get("tasksDone", {}),
+  metrics:   store.get("metrics", ["facetime","afterhrs","prevgaps"]),
+};
+
+/* ---------- evidence helpers — every PMID links straight to PubMed ---------- */
+const pubmed = pmid => `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`;
 const ev = key => {
   if (!key || !EVIDENCE[key]) return "";
   const e = EVIDENCE[key];
-  return ` <span class="pmid" title="${e.cite}">PMID ${e.pmid}</span>`;
+  return ` <a class="pmid" href="${pubmed(e.pmid)}" target="_blank" rel="noopener" title="${e.cite} — click to open on PubMed">PMID ${e.pmid}</a>`;
 };
 const evidenceCard = key => {
   if (!key || !EVIDENCE[key]) return "";
   const e = EVIDENCE[key];
-  return `<div class="evidence"><b>Why we recommend this:</b> ${e.cite} <span class="pmid" title="Verified against PubMed">PMID ${e.pmid}</span></div>`;
+  return `<div class="evidence"><b>Why we recommend this:</b> ${e.cite}${ev(key)}</div>`;
 };
 
 /* ==========================================================================
-   THEME SWITCHING — Restore Mode is the default, called out as a feature
+   THEME SWITCHING
    ========================================================================== */
 $$(".theme-btn").forEach(btn => btn.addEventListener("click", () => {
   document.documentElement.dataset.theme = btn.dataset.themepick;
@@ -34,7 +47,7 @@ $$(".theme-btn").forEach(btn => btn.addEventListener("click", () => {
 }));
 
 /* ==========================================================================
-   ROLE SWITCHING + NAVIGATION
+   ROLES + NAVIGATION
    ========================================================================== */
 const NAVS = {
   clinician: [
@@ -47,11 +60,15 @@ const NAVS = {
       { id:"wellness",  ic:"❦", t:"Wellness Center" },
       { id:"canary",    ic:"🐦", t:"Canary" },
     ]},
+    { label:"Platform", items:[
+      { id:"roadmap",   ic:"⛭", t:"Roadmap & gates" },
+    ]},
   ],
   patient: [
     { label:"My health", items:[
       { id:"home",      ic:"✚", t:"Healthspan home" },
-      { id:"plan",      ic:"◷", t:"Prevention plan", badge:() => PREVENTION_PLAN.filter(p=>p.status==="due").length },
+      { id:"plan",      ic:"◷", t:"Prevention plan", badge:() => PREVENTION_PLAN.filter(p=>p.status==="due" && !state.scheduled[p.t]).length || null },
+      { id:"myplan",    ic:"☑", t:"My care plan" },
       { id:"longevity", ic:"↗", t:"Longevity tracker" },
       { id:"consent",   ic:"✔", t:"Research & consent" },
     ]},
@@ -59,6 +76,7 @@ const NAVS = {
   researcher: [
     { label:"Public health", items:[
       { id:"console",   ic:"◫", t:"Research console" },
+      { id:"roadmap",   ic:"⛭", t:"Roadmap & gates" },
     ]},
   ],
 };
@@ -73,23 +91,32 @@ $$(".role-btn").forEach(btn => btn.addEventListener("click", () => {
 function renderNav(){
   $("#sidenav").innerHTML = NAVS[state.role].map(group => `
     <div class="nav-label">${group.label}</div>
-    ${group.items.map(i => `
-      <button class="nav-item ${state.view===i.id?"active":""}" data-nav="${i.id}">
-        <span class="ic">${i.ic}</span>${i.t}
-        ${i.badge ? `<span class="badge">${i.badge()}</span>` : ""}
-      </button>`).join("")}
+    ${group.items.map(i => {
+      const b = i.badge ? i.badge() : null;
+      return `<button class="nav-item ${state.view===i.id?"active":""}" data-nav="${i.id}">
+        <span class="ic">${i.ic}</span>${i.t}${b ? `<span class="badge">${b}</span>` : ""}
+      </button>`;
+    }).join("")}
   `).join("");
   $$("[data-nav]").forEach(b => b.addEventListener("click", () => { state.view = b.dataset.nav; render(); }));
 }
 
 /* ==========================================================================
-   VIEWS — CLINICIAN
+   CLINICIAN VIEWS
    ========================================================================== */
+function metricTile(m){
+  return `<div class="rowitem"><div style="flex:1">
+    <div class="t small">${m.t} — <span style="color:var(--${m.tone==="green"?"green":"amber"})">${m.v}</span></div>
+    <div class="d">${m.d}</div>
+    <div class="bar" style="margin-top:5px"><i class="${m.tone}" style="width:${m.bar}%"></i></div>
+  </div></div>`;
+}
+
 function vDashboard(){
-  const face = 3.2, desk = 2.9;
+  const pinned = METRIC_LIBRARY.filter(m => state.metrics.includes(m.id));
   return `
   <h1 class="page-title">Good morning, Dr. Chen</h1>
-  <p class="page-sub">Tuesday · 6 visits scheduled · your day is designed to end on time.</p>
+  <p class="page-sub">Thursday · 6 visits scheduled · your day is designed to end on time.</p>
 
   <div class="grid g23">
     <div class="card">
@@ -100,7 +127,7 @@ function vDashboard(){
             <div class="avatar">${p.initials}</div>
             <div style="flex:1">
               <div class="t">${p.time} — ${p.name} <span class="tiny">(${p.age}${p.sex})</span></div>
-              <div class="d">${p.reason} ${p.preVisit ? `· <span class="chip accent">pre-visit ✓${""}</span>` : ""}</div>
+              <div class="d">${p.reason} ${p.preVisit ? `· <span class="chip accent">pre-visit ✓</span>` : ""}</div>
             </div>
             <span class="chip ${p.status==="roomed"?"green":p.status==="arrived"?"amber":"plain"}">${p.status}</span>
           </div>`).join("")}
@@ -110,13 +137,10 @@ function vDashboard(){
 
     <div style="display:flex; flex-direction:column; gap:16px">
       <div class="card">
-        <h3><span class="spark">⏱</span> Time well spent</h3>
-        <div class="small muted" style="margin-bottom:6px">Face time vs. desktop time (today)</div>
-        <div class="small">With patients — <b>${face} h</b></div>
-        <div class="bar" style="margin:4px 0 10px"><i class="green" style="width:${face/(face+desk)*100}%"></i></div>
-        <div class="small">In the EHR — <b>${desk} h</b></div>
-        <div class="bar" style="margin:4px 0 6px"><i class="amber" style="width:${desk/(face+desk)*100}%"></i></div>
-        <div class="tiny">National benchmark: ~2 h of EHR/desk work per 1 h of care.${ev("sinskyTM")} LumaChart's goal is to flip that ratio.</div>
+        <h3><span class="spark">◈</span> Your pinned metrics
+          <button class="btn ghost small" id="customize-metrics" style="margin-left:auto">⚙ Customize</button></h3>
+        ${pinned.length ? pinned.map(metricTile).join("") : `<div class="small muted">No metrics pinned — hit Customize.</div>`}
+        <div class="tiny" style="margin-top:8px">You choose what matters most — LumaChart adapts to your practice, not the reverse.</div>
       </div>
       <div class="card">
         <h3><span class="spark">🐦</span> Canary</h3>
@@ -162,9 +186,32 @@ function vChart(){
   <div class="section-gap"></div>
 
   <div class="card">
-    <h3>Progress note <span class="chip green">billing decoupled — handled automatically</span></h3>
-    <textarea class="note-editor" id="lean-note">58F with T2DM and HTN, both improving. A1c 6.9 (from 7.4), BP 132/81 on lisinopril 20. Reports nocturnal foot tingling — monofilament exam today. Asked about Mediterranean diet; counseled and shared evidence card. Goal: dancing at daughter's wedding in October. Plan: continue current meds; colonoscopy referral placed; follow-up 3 months.</textarea>
+    <h3>Assessment <span class="chip green">billing decoupled — handled automatically</span></h3>
+    <textarea class="note-editor" id="lean-note" style="min-height:110px">${CARE_PLAN.assessment}</textarea>
     <div class="tiny" style="margin-top:8px"><span id="note-count"></span> — U.S. notes average ~4× the length of the same EHR abroad because billing data bloats them. LumaChart keeps the note clinical.${ev("downing")}</div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card">
+    <h3>Plan — the record's future tense <span class="chip accent">FHIR CarePlan + Task</span></h3>
+    <p class="small muted" style="margin:0 0 6px">Every item is specific, time-bound and owned: <b>what · why · when · who</b>. The plan is what <i>should</i> happen next — the most valuable structure in the record.</p>
+    ${CARE_PLAN.plan.map(p=>`
+      <div class="plan-item">
+        <div class="pi-body">
+          <div class="pi-what">${p.what}</div>
+          <div class="pi-why">${p.why}${p.ev?ev(p.ev):""}</div>
+          <div class="plan-meta">
+            <span class="chip plain">⏱ ${p.when}</span>
+            <span class="chip plain">👤 ${p.who}</span>
+            <span class="chip ${p.status==="ordered"?"amber":p.status==="active"?"accent":"plain"}">${p.status}</span>
+          </div>
+        </div>
+      </div>`).join("")}
+    <div class="divider"></div>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center">
+      <button class="btn primary" id="gen-patient-plan">Publish patient-friendly plan → portal</button>
+      <span class="tiny">Exports as FHIR <b>CarePlan</b> + <b>Task</b> resources over the §170.315(g)(10) standardized API.</span>
+    </div>
   </div>`;
 }
 
@@ -284,17 +331,71 @@ function vCanary(){
       <div class="rowitem"><div class="d">✅ Private to you by default — managers see only de-identified aggregates</div></div>
       <div class="rowitem"><div class="d">✅ Non-punitive — never wired to productivity or employment decisions</div></div>
       <div class="rowitem"><div class="d">✅ Evidence-grounded — signals come from the measured drivers of burnout${ev("arndt")}</div></div>
-      <div class="rowitem"><div class="d">✅ Snoozable — you stay in control, always</div></div>
+      <div class="rowitem"><div class="d">✅ Thresholds ship as demo defaults — production values require prospective clinical validation (see Roadmap)</div></div>
     </div>
   </div>`;
 }
 
 /* ==========================================================================
-   VIEWS — PATIENT (Maria Alvarez persona)
+   ROADMAP — gates, ONC §170.315 tracker, build-vs-buy, plan thesis
    ========================================================================== */
+function vRoadmap(){
+  return `
+  <h1 class="page-title">Roadmap — gates before real-world use</h1>
+  <p class="page-sub">An honest path from prototype to production. Naming the gap is part of the design.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>The four gates</h3>
+    ${GATES.map((g,i)=>`
+      <div class="gate"><div class="g-num">${i+1}</div>
+        <div style="flex:1"><div class="t small" style="font-weight:700">${g.t}
+          <span class="chip ${g.status==="in design"?"accent":g.status==="study designed"?"green":"plain"}">${g.status}</span></div>
+        <div class="d">${g.d}</div></div>
+      </div>`).join("")}
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>ONC Base EHR certification tracker <span class="chip plain">§170.315 · CY2026</span></h3>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Base EHR capability</th><th>Certification criteria</th><th>Timing</th><th>LumaChart strategy</th></tr>
+      ${ONC_CRITERIA.map(c=>`
+        <tr><td class="cap">${c.cap}</td><td>${c.crit}</td><td>${c.timing}</td>
+        <td>${c.strategy} <span class="chip ${c.kind==="buy"?"amber":c.kind==="build-on"?"accent":"green"}">${c.kind}</span></td></tr>`).join("")}
+    </table></div>
+    <div class="tiny" style="margin-top:8px">Base EHR Definition may be met by one Certified Health IT Module or a combination. Criteria timing per ONC (updated May 2026).</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Buy the certified pieces, build the difference</h3>
+    <p class="small muted" style="margin:0 0 8px">LumaChart's differentiators are the workflow, Canary, and the prevention/research layers — not X12 plumbing. Everything else is partnered:</p>
+    ${BUY_BUILD.map(b=>`
+      <div class="rowitem"><div style="flex:1">
+        <div class="t small">${b.area} — <span style="color:var(--accent)">${b.partner}</span></div>
+        <div class="d">${b.why}</div></div>
+        <span class="chip ${b.kind==="buy"?"amber":"accent"}">${b.kind}</span>
+      </div>`).join("")}
+  </div>
+
+  <div class="card">
+    <h3>Why the Plan is the most valuable structure in the record</h3>
+    <p class="small muted" style="margin:0 0 8px">The Assessment justifies and motivates the Plan — who/what/why, therefore how/what next/when/with whom. A structured, time-bound Plan (FHIR CarePlan as the start) serves every HHS jurisdiction at once:</p>
+    ${PLAN_THESIS.map(p=>`
+      <div class="rowitem"><span class="chip accent" style="min-width:132px; text-align:center">${p.who}</span>
+      <div class="d" style="flex:1">${p.d}</div></div>`).join("")}
+    <div class="evidence">The 21st Century Cures Act begins: "To <b>accelerate the discovery, development, and delivery</b> of 21st century cures…" — a record that speaks Plan natively serves discovery and development, not delivery alone. See the structured Plan in the patient chart.</div>
+  </div>`;
+}
+
+/* ==========================================================================
+   PATIENT VIEWS
+   ========================================================================== */
+function dueCount(){ return PREVENTION_PLAN.filter(p=>p.status==="due" && !state.scheduled[p.t]).length; }
+
 function vHome(){
-  const done = PREVENTION_PLAN.filter(p=>p.status!=="due").length;
+  const done = PREVENTION_PLAN.filter(p=>p.status!=="due" || state.scheduled[p.t]).length;
   const pct = Math.round(done/PREVENTION_PLAN.length*100);
+  const tasks = CARE_PLAN.plan;
+  const doneCountTasks = tasks.filter((t,i)=>state.tasksDone[i]).length;
   return `
   <h1 class="page-title">Welcome back, Maria</h1>
   <p class="page-sub">Your record is organized around one question: <b>how do you stay well and live longer?</b></p>
@@ -304,44 +405,84 @@ function vHome(){
       <div class="ring" style="--p:${pct}; --ring-color:var(--green)"><div><b>${done}/${PREVENTION_PLAN.length}</b><span>prevention</span></div></div>
       <div>
         <h3 style="margin-bottom:6px">Health maintenance</h3>
-        <p class="small muted" style="margin:0 0 10px">You're up to date on ${done} of ${PREVENTION_PLAN.length} evidence-based prevention items. Two are ready to schedule.</p>
+        <p class="small muted" style="margin:0 0 10px">You're covered on ${done} of ${PREVENTION_PLAN.length} evidence-based prevention items${dueCount()?` — ${dueCount()} ready to schedule`:""}.</p>
         <button class="btn primary" data-nav-inline="plan">See my prevention plan →</button>
       </div>
     </div>
     <div class="card">
       <h3>What's due now</h3>
-      ${PREVENTION_PLAN.filter(p=>p.status==="due").map(p=>`
-        <div class="rowitem"><div style="flex:1"><div class="t small">${p.t}</div></div><button class="btn small">Schedule</button></div>`).join("")}
+      ${PREVENTION_PLAN.filter(p=>p.status==="due").map(p=>{
+        const s = state.scheduled[p.t];
+        return `<div class="rowitem"><div style="flex:1"><div class="t small">${p.t}</div>
+          ${s?`<div class="d" style="color:var(--green)">scheduled — ${s.d}, ${s.t}</div>`:""}</div>
+          ${s?`<span class="chip green">✓</span>`:`<button class="btn small" data-schedule="${p.t}">Schedule</button>`}</div>`;
+      }).join("")}
     </div>
   </div>
   <div class="section-gap"></div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>☑ Your plan from today's visit <span class="chip accent">${doneCountTasks}/${tasks.length} done</span></h3>
+    <p class="small muted" style="margin:0 0 4px">Not just a summary of what happened — a plan for what happens <b>next</b>, and why.</p>
+    ${tasks.map((t,i)=>`
+      <div class="plan-item">
+        <input type="checkbox" class="task-check" data-task="${i}" ${state.tasksDone[i]?"checked":""}>
+        <div class="pi-body">
+          <div class="pi-what" style="${state.tasksDone[i]?"opacity:.55; text-decoration:line-through":""}">${t.patient}</div>
+          <div class="plan-meta"><span class="chip plain">⏱ ${t.due}</span>${t.ev?`<span class="chip plain">evidence${ev(t.ev)}</span>`:""}</div>
+        </div>
+      </div>`).join("")}
+  </div>
 
   <div class="grid g3">
     <div class="card"><div class="metric"><div class="v" style="color:var(--green)">6.9%</div><div class="l">A1c — down from 7.4. Your work is paying off.</div></div></div>
     <div class="card"><div class="metric"><div class="v">132/81</div><div class="l">Blood pressure — close to your &lt;130 goal${ev("sprint")}</div></div></div>
     <div class="card"><div class="metric"><div class="v" style="color:var(--accent)">95<span style="font-size:15px"> min/wk</span></div><div class="l">Activity — every 15 min/day adds up${ev("activity")}</div></div></div>
-  </div>
-  <div class="section-gap"></div>
-
-  <div class="card">
-    <h3>A note from your care team</h3>
-    <p class="small muted" style="margin:0">"Maria — your A1c improvement is real progress. We read your question about olive oil: yes, the evidence is strong. See your prevention plan for the study behind it. — Dr. Chen"</p>
   </div>`;
 }
 
 function vPlan(){
   return `
   <h1 class="page-title">Your prevention plan</h1>
-  <p class="page-sub">Every recommendation comes with the actual evidence — you deserve to know <i>why</i>.</p>
-  ${PREVENTION_PLAN.map(p=>`
+  <p class="page-sub">Every recommendation comes with the actual evidence — click any PMID to read the study on PubMed.</p>
+  ${PREVENTION_PLAN.map(p=>{
+    const s = state.scheduled[p.t];
+    return `
     <div class="card" style="margin-bottom:14px">
       <h3>${p.t}
-        ${p.status==="due"?`<span class="chip amber">due — schedule now</span>`:p.status==="done"?`<span class="chip green">complete</span>`:`<span class="chip accent">active</span>`}
+        ${s?`<span class="chip green">scheduled — ${s.d}, ${s.t}</span>`
+          :p.status==="due"?`<span class="chip amber">due — schedule now</span>`
+          :p.status==="done"?`<span class="chip green">complete</span>`:`<span class="chip accent">active</span>`}
       </h3>
       <p class="small" style="margin:0 0 4px">${p.detail}</p>
       <p class="small muted" style="margin:0"><b>What it buys you:</b> ${p.benefit}</p>
       ${p.ev ? evidenceCard(p.ev) : `<div class="evidence"><b>Basis:</b> national guideline recommendation (USPSTF / CDC-ACIP).</div>`}
-    </div>`).join("")}`;
+      ${p.status==="due" ? `<div style="margin-top:11px; display:flex; gap:9px; flex-wrap:wrap">
+          ${s?`<button class="btn" data-ics="${p.t}">📅 Add to calendar (.ics)</button>
+               <button class="btn ghost" data-schedule="${p.t}">Change time</button>`
+            :`<button class="btn primary" data-schedule="${p.t}">Schedule this</button>`}
+        </div>`:""}
+    </div>`;}).join("")}`;
+}
+
+function vMyPlan(){
+  const tasks = CARE_PLAN.plan;
+  return `
+  <h1 class="page-title">My care plan</h1>
+  <p class="page-sub">From your visit with Dr. Chen — each step says what to do, by when, and the reason behind it.</p>
+  <div class="card">
+    ${tasks.map((t,i)=>`
+      <div class="plan-item">
+        <input type="checkbox" class="task-check" data-task="${i}" ${state.tasksDone[i]?"checked":""}>
+        <div class="pi-body">
+          <div class="pi-what" style="${state.tasksDone[i]?"opacity:.55; text-decoration:line-through":""}">${t.patient}</div>
+          <div class="pi-why">${t.why}${t.ev?ev(t.ev):""}</div>
+          <div class="plan-meta"><span class="chip plain">⏱ ${t.due}</span><span class="chip plain">with: ${t.who}</span></div>
+        </div>
+      </div>`).join("")}
+    <div class="divider"></div>
+    <div class="tiny">Your progress is visible to your care team. Questions? Message us — or ask Luma ✨ below.</div>
+  </div>`;
 }
 
 function vLongevity(){
@@ -350,10 +491,10 @@ function vLongevity(){
   <p class="page-sub">Five modifiable numbers, one goal: more healthy years. Small moves on these compound.</p>
   ${LONGEVITY.map(l=>`
     <div class="card" style="margin-bottom:13px">
-      <div style="display:flex; align-items:center; gap:14px">
-        <div style="flex:1"><b>${l.m}</b>
+      <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap">
+        <div style="flex:1; min-width:200px"><b>${l.m}</b>
           <div class="small muted">now <b>${l.now}</b> · target <b>${l.target}</b>${l.ev?ev(l.ev):""}</div></div>
-        <div style="width:220px"><div class="bar"><i class="${l.pct>=90?"green":l.pct>=65?"":"amber"}" style="width:${l.pct}%"></i></div></div>
+        <div style="width:220px; max-width:100%"><div class="bar"><i class="${l.pct>=90?"green":l.pct>=65?"":"amber"}" style="width:${l.pct}%"></i></div></div>
         <div class="chip ${l.pct>=90?"green":l.pct>=65?"accent":"amber"}">${l.pct}%</div>
       </div>
     </div>`).join("")}
@@ -392,7 +533,7 @@ function vConsent(){
 }
 
 /* ==========================================================================
-   VIEWS — RESEARCHER
+   RESEARCHER VIEW
    ========================================================================== */
 function vConsole(){
   const r = RESEARCH;
@@ -429,18 +570,18 @@ function vConsole(){
 }
 
 /* ==========================================================================
-   RENDER
+   RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, wellness:vWellness, canary:vCanary },
-  patient:{ home:vHome, plan:vPlan, longevity:vLongevity, consent:vConsent },
-  researcher:{ console:vConsole },
+  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, wellness:vWellness, canary:vCanary, roadmap:vRoadmap },
+  patient:{ home:vHome, plan:vPlan, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
+  researcher:{ console:vConsole, roadmap:vRoadmap },
 };
 
 function render(){
   renderNav();
   $("#content").innerHTML = VIEWS[state.role][state.view]();
-  $("#content").scrollTop = 0;
+  window.scrollTo(0,0);
   wireView();
 }
 
@@ -459,6 +600,12 @@ function wireView(){
   });
   const bb = $("#breath-btn");
   if (bb) bb.addEventListener("click", startBreathing);
+  const gp = $("#gen-patient-plan");
+  if (gp) gp.addEventListener("click", () => {
+    gp.textContent = "Published ✓ — live in Maria's portal";
+    gp.disabled = true;
+    toast("Plan published", "A patient-friendly translation of today's plan — tasks, timing, and reasons — is now in Maria's portal. Switch to the Patient role to see it.", "green");
+  });
   const ct = $("#consent-toggle");
   if (ct) ct.addEventListener("change", () => {
     const s = $("#consent-state");
@@ -466,11 +613,167 @@ function wireView(){
     s.style.color = ct.checked ? "var(--green)" : "var(--red)";
     toast("Consent updated", ct.checked ? "Thank you — your de-identified data will help public-health research." : "You've opted out. Your data is excluded from all future extracts, effective immediately.", ct.checked ? "green" : "amber");
   });
+  const cm = $("#customize-metrics");
+  if (cm) cm.addEventListener("click", metricsModal);
+  $$("[data-schedule]").forEach(b => b.addEventListener("click", () => scheduleModal(b.dataset.schedule)));
+  $$("[data-ics]").forEach(b => b.addEventListener("click", () => {
+    const t = b.dataset.ics, s = state.scheduled[t];
+    if (s) downloadICS(t, s);
+  }));
+  $$(".task-check").forEach(c => c.addEventListener("change", () => {
+    state.tasksDone[c.dataset.task] = c.checked;
+    store.set("tasksDone", state.tasksDone);
+    if (c.checked) toast("Nice work 💛", "Marked done — your care team can see your progress.", "green");
+    render();
+  }));
   updateCanaryMini();
 }
 
 /* ==========================================================================
-   BREATHING EXERCISE (box breathing, 1 minute)
+   SCHEDULING — help booking the prevention plan, with .ics export
+   ========================================================================== */
+function scheduleModal(title){
+  const offers = SLOTS[title] || [
+    { d:"Mon, Jul 13", t:"9:00 AM", loc:"Main clinic", ics:"20260713T090000" },
+    { d:"Wed, Jul 15", t:"2:30 PM", loc:"Main clinic", ics:"20260715T143000" },
+  ];
+  const layer = $("#modal-layer");
+  layer.classList.remove("hidden");
+  layer.innerHTML = `
+    <div class="modal">
+      <h2>📅 Schedule: ${title}</h2>
+      <p class="small muted" style="margin-top:0">Pick a time that works — prep instructions follow automatically. Transportation help is available if you need it: just ask.</p>
+      <div id="slot-list">
+        ${offers.map((s,i)=>`
+          <label class="slot" data-slot="${i}">
+            <input type="radio" name="slot" value="${i}">
+            <div><div class="s-when">${s.d} · ${s.t}</div><div class="s-loc">${s.loc}</div></div>
+          </label>`).join("")}
+      </div>
+      <div class="modal-actions">
+        <button class="btn" id="slot-cancel">Cancel</button>
+        <button class="btn primary" id="slot-confirm" disabled>Confirm appointment</button>
+      </div>
+    </div>`;
+  let picked = null;
+  $$(".slot", layer).forEach(el => el.addEventListener("click", () => {
+    picked = offers[+el.dataset.slot];
+    $$(".slot", layer).forEach(x => x.classList.toggle("picked", x === el));
+    $("#slot-confirm").disabled = false;
+  }));
+  $("#slot-cancel").addEventListener("click", () => layer.classList.add("hidden"));
+  $("#slot-confirm").addEventListener("click", () => {
+    state.scheduled[title] = picked;
+    store.set("scheduled", state.scheduled);
+    layer.innerHTML = `
+      <div class="modal">
+        <h2>✅ You're booked</h2>
+        <p class="small"><b>${title}</b><br>${picked.d} · ${picked.t}<br><span class="muted">${picked.loc}</span></p>
+        <p class="small muted">We'll send prep instructions and a reminder. Your care team has been notified.</p>
+        <div class="modal-actions">
+          <button class="btn" id="slot-ics">📅 Add to calendar (.ics)</button>
+          <button class="btn primary" id="slot-done">Done</button>
+        </div>
+      </div>`;
+    $("#slot-ics").addEventListener("click", () => downloadICS(title, picked));
+    $("#slot-done").addEventListener("click", () => { layer.classList.add("hidden"); render(); });
+  });
+}
+
+function downloadICS(title, slot){
+  const stamp = new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d+Z/,"Z");
+  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//LumaChart//Demo//EN","BEGIN:VEVENT",
+    `UID:${Date.now()}@lumaehr.demo`, `DTSTAMP:${stamp}`, `DTSTART:${slot.ics}`, "DURATION:PT1H",
+    `SUMMARY:${title} — LumaChart`, `LOCATION:${slot.loc}`,
+    "DESCRIPTION:Scheduled from your LumaChart prevention plan (demonstration).",
+    "END:VEVENT","END:VCALENDAR"].join("\r\n");
+  const url = URL.createObjectURL(new Blob([ics], { type:"text/calendar" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = title.replace(/\W+/g,"-") + ".ics"; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  toast("Calendar file ready", "Open the downloaded .ics to add this appointment to Apple/Google/Outlook calendar.", "green");
+}
+
+/* ==========================================================================
+   CUSTOMIZABLE METRICS
+   ========================================================================== */
+function metricsModal(){
+  const layer = $("#modal-layer");
+  layer.classList.remove("hidden");
+  layer.innerHTML = `
+    <div class="modal">
+      <h2>⚙ Customize your metrics</h2>
+      <p class="small muted" style="margin-top:0">Pin what matters most to <i>your</i> practice — LumaChart adapts to you.</p>
+      ${METRIC_LIBRARY.map(m=>`
+        <label class="rowitem" style="cursor:pointer">
+          <input type="checkbox" class="task-check metric-pick" value="${m.id}" ${state.metrics.includes(m.id)?"checked":""}>
+          <div style="flex:1"><div class="t small">${m.t}</div><div class="d">${m.d}</div></div>
+        </label>`).join("")}
+      <div class="modal-actions">
+        <button class="btn" id="metrics-cancel">Cancel</button>
+        <button class="btn primary" id="metrics-save">Save</button>
+      </div>
+    </div>`;
+  $("#metrics-cancel").addEventListener("click", () => layer.classList.add("hidden"));
+  $("#metrics-save").addEventListener("click", () => {
+    state.metrics = $$(".metric-pick", layer).filter(c=>c.checked).map(c=>c.value);
+    store.set("metrics", state.metrics);
+    layer.classList.add("hidden");
+    render();
+    toast("Metrics updated", "Your dashboard now shows what you chose to watch.", "green");
+  });
+}
+
+/* ==========================================================================
+   LUMA ASSISTANT — scripted demo helper
+   ========================================================================== */
+function assistantSay(html, actions){
+  const box = $("#assistant-msgs");
+  const el = document.createElement("div");
+  el.className = "a-msg";
+  el.innerHTML = html;
+  if (actions && actions.length){
+    const row = document.createElement("div");
+    row.className = "a-actions";
+    actions.forEach(a => {
+      const b = document.createElement("button");
+      b.className = "btn small";
+      b.textContent = a.label;
+      b.addEventListener("click", () => {
+        if (a.go){
+          state.role = a.go.role; state.view = a.go.view;
+          $$(".role-btn").forEach(x => x.classList.toggle("active", x.dataset.role === state.role));
+          render();
+        }
+      });
+      row.appendChild(b);
+    });
+    el.appendChild(row);
+  }
+  box.appendChild(el);
+  box.scrollTop = box.scrollHeight;
+}
+function assistantAsk(text){
+  const box = $("#assistant-msgs");
+  const u = document.createElement("div");
+  u.className = "a-msg user";
+  u.textContent = text;
+  box.appendChild(u);
+  box.scrollTop = box.scrollHeight;
+  const rule = ASSISTANT_RULES.find(r => r.match.test(text));
+  setTimeout(() => rule ? assistantSay(rule.a, rule.actions) : assistantSay(ASSISTANT_FALLBACK), 350);
+}
+$("#assistant-fab").addEventListener("click", () => $("#assistant-drawer").classList.toggle("hidden"));
+$("#assistant-close").addEventListener("click", () => $("#assistant-drawer").classList.add("hidden"));
+$$(".a-chip").forEach(c => c.addEventListener("click", () => assistantAsk(c.textContent)));
+$("#assistant-send").addEventListener("click", () => {
+  const inp = $("#assistant-input");
+  if (inp.value.trim()){ assistantAsk(inp.value.trim()); inp.value = ""; }
+});
+$("#assistant-input").addEventListener("keydown", e => { if (e.key === "Enter") $("#assistant-send").click(); });
+
+/* ==========================================================================
+   BREATHING EXERCISE
    ========================================================================== */
 let breathTimer = null;
 function startBreathing(){
@@ -485,8 +788,7 @@ function startBreathing(){
     const [label, grow] = phases[phase % 4];
     circle.textContent = label;
     circle.classList.toggle("inhale", grow);
-    phase++;
-    elapsed += 4;
+    phase++; elapsed += 4;
     if (elapsed >= 60){
       clearInterval(breathTimer);
       circle.textContent = "Well done 💛";
@@ -533,7 +835,7 @@ function canaryTick(){
   const m = state.canary.sessionMin;
   updateCanaryPill();
   updateCanaryMini();
-  if (state.role !== "clinician") return;              // Canary watches clinicians
+  if (state.role !== "clinician") return;
   if (m < state.canary.snoozedUntil) return;
 
   if (m >= 25 && !state.canary.fired.micro){
@@ -558,7 +860,7 @@ function extendedLoginModal(){
   layer.innerHTML = `
     <div class="modal">
       <h2>🐦 Extended session — Canary is chirping</h2>
-      <p class="small">You've been logged in for <b>${fmtMin(state.canary.sessionMin)}</b> continuously. Long uninterrupted EHR sessions are one of the measured drivers of burnout — primary-care physicians average 5.9 hr/day in the EHR, with 1.4 hr after hours. <span class="pmid" title="${EVIDENCE.arndt.cite}">PMID 28893811</span></p>
+      <p class="small">You've been logged in for <b>${fmtMin(state.canary.sessionMin)}</b> continuously. Long uninterrupted EHR sessions are one of the measured drivers of burnout — primary-care physicians average 5.9 hr/day in the EHR, with 1.4 hr after hours. <a class="pmid" href="${pubmed("28893811")}" target="_blank" rel="noopener" title="${EVIDENCE.arndt.cite}">PMID 28893811</a></p>
       <p class="small muted">This is a nudge, not a lock. Your session, your call — Canary never reports individuals.</p>
       <div class="modal-actions">
         <button class="btn" id="canary-snooze">Snooze 30 min</button>
@@ -607,5 +909,5 @@ function toast(title, body, tone="accent", actions){
    BOOT
    ========================================================================== */
 render();
-setInterval(canaryTick, 1000);   // 1 real second = 1 demo minute
-setTimeout(() => toast("Welcome to LumaChart", "Restore Mode (low-glare dark) is on by default to reduce eyestrain — switch themes any time, top right. Canary is watching over your session, privately.", "green"), 1200);
+setInterval(canaryTick, 1000);
+setTimeout(() => toast("Welcome to LumaChart", "Restore Mode (low-glare dark) is on by default to reduce eyestrain — switch themes any time, top right. Canary is watching over your session, privately. Click any PMID to read the source on PubMed.", "green"), 1200);

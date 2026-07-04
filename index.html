@@ -10,7 +10,36 @@
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo-dot" aria-hidden="true"></div>
+    <!-- Morphing logo: EHR monitor → happy doctor → caduceus, on a slow-spinning ring.
+         Animated SVG (not a GIF): crisp at any size, theme-aware, honors reduced-motion. -->
+    <div class="logo-morph" title="LumaChart — the record, the healer, the medicine" aria-hidden="true">
+      <div class="lm-ring"></div>
+      <svg viewBox="0 0 48 48" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <!-- 1 · EHR monitor with heartbeat -->
+        <g class="lm lm-ehr" stroke="var(--accent)" stroke-width="2.4">
+          <rect x="9" y="11" width="30" height="21" rx="3.5"/>
+          <path d="M19 38h10M24 32v6" />
+          <path d="M13 22h5l2.5-6 4 11 3-7.5 1.8 2.5H35" stroke="var(--amber)"/>
+        </g>
+        <!-- 2 · Happy doctor with head mirror -->
+        <g class="lm lm-doc" stroke="var(--accent)" stroke-width="2.4">
+          <circle cx="24" cy="26" r="11.5"/>
+          <path d="M18.5 29c1.6 2.4 3.4 3.6 5.5 3.6s3.9-1.2 5.5-3.6" stroke="var(--amber)"/>
+          <circle cx="20" cy="24" r="0.6" fill="var(--accent)"/>
+          <circle cx="28" cy="24" r="0.6" fill="var(--accent)"/>
+          <path d="M14 20a11.5 11.5 0 0 1 20 0"/>
+          <circle cx="24" cy="11.5" r="3.4" stroke="var(--amber)"/>
+          <circle cx="24" cy="11.5" r="1" fill="var(--amber)" stroke="none"/>
+        </g>
+        <!-- 3 · Caduceus -->
+        <g class="lm lm-cad" stroke="var(--accent)" stroke-width="2.2">
+          <path d="M24 12v28"/>
+          <circle cx="24" cy="8.5" r="2.6" stroke="var(--amber)"/>
+          <path d="M17 12c3-3.5 5-3.5 7-1.5 2-2 4-2 7 1.5" stroke="var(--amber)"/>
+          <path d="M17.5 18c0 3 13 3 13 7s-13 4-13 8 13 4 13 7" />
+        </g>
+      </svg>
+    </div>
     <div class="brand-text">
       <div class="wordmark">Luma<b>Chart</b></div>
       <div class="tagline">The hospital EHR built for public health</div>
@@ -43,9 +72,32 @@
 
 <footer class="demo-banner">
   <span><b>Demonstration prototype</b> · synthetic data only · not for clinical use</span>
-  <span>Evidence-linked design — every citation is a real, verified PubMed ID</span>
+  <span>Evidence-linked design — click any PMID to read the source on PubMed</span>
   <span>LUMAEHR.com</span>
 </footer>
+
+<!-- Luma assistant -->
+<button id="assistant-fab" title="Luma — your side-by-side helper">✨</button>
+<div id="assistant-drawer" class="hidden">
+  <div class="assistant-head">
+    <b>✨ Luma</b><span class="tiny">your side-by-side helper · demo</span>
+    <button id="assistant-close" class="btn ghost small">✕</button>
+  </div>
+  <div id="assistant-msgs" class="assistant-msgs">
+    <div class="a-msg">Hi — I can help with tasks, questions and considerations while you work. Try a chip below, or type anything.</div>
+  </div>
+  <div class="assistant-chips">
+    <button class="chip accent a-chip">What's due for Maria?</button>
+    <button class="chip accent a-chip">Summarize my inbox</button>
+    <button class="chip accent a-chip">Help me schedule prevention</button>
+    <button class="chip accent a-chip">Show the roadmap</button>
+  </div>
+  <div class="assistant-inputrow">
+    <input id="assistant-input" type="text" placeholder="Ask Luma…" autocomplete="off">
+    <button id="assistant-send" class="btn primary">Send</button>
+  </div>
+  <div class="tiny assistant-foot">Scripted demo. A production assistant is a decision-support intervention under §170.315(b)(11) — with source &amp; logic transparency.</div>
+</div>
 
 <!-- Canary toast + modal layers -->
 <div id="toast-layer" aria-live="polite"></div>
