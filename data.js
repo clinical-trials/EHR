@@ -230,8 +230,54 @@ const ASSISTANT_RULES = [
   { match:/burnout|canary|tired|break/i,
     a:"Canary is watching your session privately. You can take a one-minute breathing break any time — evidence says it helps. Your after-hours trend is falling. 🐦",
     actions:[{ label:"Open Wellness Center", go:{ role:"clinician", view:"wellness" } }] },
+  { match:/interoperab|physician health|together|synthesis|burden|reduce.*work|pajama/i,
+    a:"Here's the thesis that ties it all together: <b>clinician-centered interoperability IS physician-health infrastructure.</b> Every USCDI feed that flows in — labs, meds, transitions of care, eligibility — is documentation the clinician doesn't re-type after dinner. The same lean, structured data also powers the public-health research layer. One architecture, the whole Quadruple Aim.",
+    actions:[{ label:"Open Physician health × Interop", go:{ role:"clinician", view:"synthesis" } }] },
   { match:/fhir|onc|certif|hipaa|irb|compliance|roadmap/i,
     a:"The path to production runs through 4 gates: ONC §170.315 certification (FHIR R4 via Medplum/Aidbox), HIPAA security audit, IRB approval for research, and clinical validation of Canary. The Roadmap view tracks all Base-EHR criteria.",
     actions:[{ label:"Open roadmap", go:{ role:"clinician", view:"roadmap" } }] },
 ];
-const ASSISTANT_FALLBACK = "I'm a scripted demo assistant — in production I'd be a certified decision-support intervention with full source-and-logic transparency (§170.315(b)(11)). Try asking about <i>what's due</i>, <i>my inbox</i>, <i>scheduling</i>, <i>the evidence</i>, or <i>the roadmap</i>.";
+const ASSISTANT_FALLBACK = "I'm a scripted demo assistant — in production I'd be a certified decision-support intervention with full source-and-logic transparency (§170.315(b)(11)). Try asking about <i>what's due</i>, <i>my inbox</i>, <i>scheduling</i>, <i>the evidence</i>, the <i>roadmap</i>, or <i>physician health &amp; interoperability</i>.";
+
+/* ---------- The synthesis: interoperability AS physician-health infrastructure ----------
+   Each interoperable feed replaces documentation the clinician would otherwise
+   re-enter by hand. Minute values are ILLUSTRATIVE demo estimates (not from the
+   literature); the PMID supports the burnout DRIVER, not the specific minutes. */
+const AH_BASELINE = 84;   // after-hours "pajama-time" minutes/day (Arndt: ~1.4 hr) — real
+const AH_FLOOR = 18;      // irreducible minimum in this demo model
+
+const INTEROP_RELIEF = [
+  { cap:"Lab results", how:"Health Gorilla → US Core Observation", uscdi:"Laboratory",
+    flows:"Results, reference ranges & trend history land pre-filed",
+    saves:"Manual result entry and hunting across portals",
+    mins:16, driver:"Inbox / results ≈ 24% of EHR time", ev:"arndt" },
+  { cap:"Medications", how:"DrFirst → FHIR MedicationRequest / Dispense", uscdi:"Medications",
+    flows:"Active meds, fill status, reconciliation candidates",
+    saves:"Re-typing med lists and manual reconciliation",
+    mins:12, driver:"Clerical order & med burden", ev:"arndt" },
+  { cap:"Transitions of care", how:"C-CDA § 170.315(b)(1)", uscdi:"Multiple classes",
+    flows:"Outside problems, meds, allergies and notes, structured",
+    saves:"Re-charting from faxes and PDFs",
+    mins:14, driver:'"Desktop medicine" re-entry', ev:"downing" },
+  { cap:"Eligibility & coverage", how:"Stedi / Availity → US Core Coverage", uscdi:"Health Insurance Info",
+    flows:"Insurance, benefits and prior-auth status",
+    saves:"Manual coverage lookups and prior-auth chasing",
+    mins:9, driver:"Regulatory / billing burden", ev:"downing" },
+  { cap:"Real-time prescription benefit", how:"§ 170.315(b)(4) via e-Rx partner", uscdi:"—",
+    flows:"Formulary and patient cost at the point of care",
+    saves:"Pharmacy callbacks and prescription resubmissions",
+    mins:7, driver:'After-hours "pajama time"', ev:"arndt" },
+  { cap:"Immunizations", how:"State IIS registry → US Core Immunization", uscdi:"Immunizations",
+    flows:"Full vaccine history from the state registry",
+    saves:"Hunting vaccine records; avoiding duplicate doses",
+    mins:5, driver:"Prevention gaps surfacing in the room", ev:"wright" },
+];
+
+const THREE_WINS = [
+  { win:"Physician health", ic:"🩺", tone:"accent",
+    d:"Every field that flows in is a field the clinician doesn't re-type after dinner. Interoperability is the burden-reduction lever — and Canary watches the after-hours trend fall." },
+  { win:"Patient healthspan", ic:"✚", tone:"green",
+    d:"Clean inbound labs, meds and immunizations mean prevention is accurate and nothing is missed in the room. The record organizes around staying well." },
+  { win:"Public health", ic:"◫", tone:"amber",
+    d:"The same lean, coded, structured data — consented and de-identified — becomes research-grade. Interoperability is what makes the learning health system possible." },
+];

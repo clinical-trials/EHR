@@ -19,6 +19,7 @@ const state = {
   scheduled: store.get("scheduled", {}),
   tasksDone: store.get("tasksDone", {}),
   metrics:   store.get("metrics", ["facetime","afterhrs","prevgaps"]),
+  interop:   {},   // synthesis view toggles (in-memory; start all off = "legacy" state)
 };
 
 /* ---------- evidence helpers — every PMID links straight to PubMed ---------- */
@@ -61,6 +62,7 @@ const NAVS = {
       { id:"canary",    ic:"🐦", t:"Canary" },
     ]},
     { label:"Platform", items:[
+      { id:"synthesis", ic:"◎", t:"Physician health × Interop" },
       { id:"roadmap",   ic:"⛭", t:"Roadmap & gates" },
     ]},
   ],
@@ -76,6 +78,7 @@ const NAVS = {
   researcher: [
     { label:"Public health", items:[
       { id:"console",   ic:"◫", t:"Research console" },
+      { id:"synthesis", ic:"◎", t:"Physician health × Interop" },
       { id:"roadmap",   ic:"⛭", t:"Roadmap & gates" },
     ]},
   ],
@@ -387,6 +390,94 @@ function vRoadmap(){
 }
 
 /* ==========================================================================
+   SYNTHESIS — physician health × interoperability (the unifying thesis)
+   ========================================================================== */
+function synthProjection(){
+  const saved = INTEROP_RELIEF.reduce((s,r,i)=> s + (state.interop[i] ? r.mins : 0), 0);
+  const projected = Math.max(AH_BASELINE - saved, AH_FLOOR);
+  return { saved, projected };
+}
+function synthCanaryMsg(saved){
+  return saved>=50 ? "🐦 Canary's after-hours trend falls sharply — fewer late nights in the record."
+       : saved>0  ? "🐦 Canary registers the after-hours load starting to ease."
+       : "🐦 Legacy state: the full after-hours burden lands on the clinician.";
+}
+function updateSynth(){
+  const el = $("#synth-projected"); if (!el) return;
+  const { saved, projected } = synthProjection();
+  el.textContent = projected;
+  const bar = $("#synth-bar");
+  bar.style.width = (projected/AH_BASELINE*100) + "%";
+  bar.className = projected>60 ? "red" : projected>36 ? "amber" : "green";
+  $("#synth-saved").textContent = saved;
+  $("#synth-canary").textContent = synthCanaryMsg(saved);
+}
+function vSynthesis(){
+  const { saved, projected } = synthProjection();
+  return `
+  <h1 class="page-title">Physician health × Interoperability</h1>
+  <p class="page-sub">The whole project in one idea — and it's interactive.</p>
+
+  <div class="banner" style="background:linear-gradient(100deg,var(--accent-soft),var(--surface2)); border:1px solid var(--line-strong); color:var(--text)">
+    <h3 style="color:var(--text)">Clinician-centered interoperability <i>is</i> physician-health infrastructure.</h3>
+    <p style="color:var(--text-2)">Burnout traces to EHR <b>burden</b>; burden traces to documentation the clinician re-enters by hand. Every USCDI data class that flows in cleanly is a task they don't do at 9pm — and the same lean, structured data is what makes the public-health research layer possible. One architecture, the whole Quadruple Aim.${ev("quadAim")}</p>
+  </div>
+
+  <div class="grid g32" style="align-items:start">
+    <div class="card">
+      <h3>Turn on the interoperable feeds ↓</h3>
+      <p class="small muted" style="margin:0 0 6px">Each feed replaces re-entry. Watch the projected after-hours "pajama time" fall.</p>
+      ${INTEROP_RELIEF.map((r,i)=>`
+        <label class="plan-item" style="cursor:pointer; align-items:flex-start">
+          <input type="checkbox" class="task-check synth-toggle" data-feed="${i}" ${state.interop[i]?"checked":""}>
+          <div class="pi-body">
+            <div class="pi-what">${r.cap} <span class="chip green" style="font-weight:800">−${r.mins} min</span></div>
+            <div class="pi-why"><b>Flows in:</b> ${r.flows} <span class="tiny">· ${r.how}${r.uscdi!=="—"?` · USCDI: ${r.uscdi}`:""}</span></div>
+            <div class="pi-why" style="color:var(--text-3)"><b>Eliminates:</b> ${r.saves}</div>
+            <div class="plan-meta"><span class="chip plain">driver: ${r.driver}${ev(r.ev)}</span></div>
+          </div>
+        </label>`).join("")}
+      <div class="tiny" style="margin-top:8px">Minute values are <b>illustrative</b> demo estimates. The PMIDs support the burnout <i>driver</i> (e.g., inbox ≈ 24% of EHR time), not the specific minutes.</div>
+    </div>
+
+    <div style="position:sticky; top:80px; display:flex; flex-direction:column; gap:16px">
+      <div class="card" style="text-align:center">
+        <h3 style="justify-content:center">Projected after-hours EHR</h3>
+        <div style="font-size:44px; font-weight:800; letter-spacing:-.03em; color:var(--accent)"><span id="synth-projected">${projected}</span> <span style="font-size:18px">min/day</span></div>
+        <div class="bar" style="margin:10px 0 6px"><i id="synth-bar" class="${projected>60?"red":projected>36?"amber":"green"}" style="width:${projected/AH_BASELINE*100}%"></i></div>
+        <div class="tiny">Legacy baseline: <b>${AH_BASELINE} min/day</b> of after-hours work${ev("arndt")}</div>
+        <div class="divider"></div>
+        <div class="metric" style="align-items:center"><div class="v" style="color:var(--green)"><span id="synth-saved">${saved}</span> min</div><div class="l">reclaimed from the clinician's day</div></div>
+        <div class="small muted" id="synth-canary" style="margin-top:8px">${synthCanaryMsg(saved)}</div>
+      </div>
+      <div class="card">
+        <h3>The pivot: the Assessment &amp; Plan</h3>
+        <p class="small muted" style="margin:0">The structured A&amp;P (FHIR CarePlan) is the hinge — simultaneously the <b>least-bloated way to document</b> (physician health) and the <b>highest-value interoperable artifact</b> (public health): the record's future tense, serving CMS, FDA, NIH, CDC and the patient at once.${ev("downing")}</p>
+      </div>
+    </div>
+  </div>
+  <div class="section-gap"></div>
+
+  <h3 style="margin:0 0 10px">One architecture, three wins</h3>
+  <div class="grid g3">
+    ${THREE_WINS.map(w=>`
+      <div class="card"><h3><span class="chip ${w.tone}" style="font-size:15px">${w.ic}</span> ${w.win}</h3>
+      <p class="small muted" style="margin:0">${w.d}</p></div>`).join("")}
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card">
+    <h3>Where this lives</h3>
+    <div class="rowitem"><div style="flex:1"><div class="t small">Roadmap &amp; gates</div><div class="d">ONC §170.315 Base-EHR tracker + build-vs-buy map</div></div>
+      <button class="btn small" data-nav-inline="roadmap">Open</button></div>
+    <div class="rowitem"><div style="flex:1"><div class="t small">🐦 Canary</div><div class="d">Watches the after-hours trend these feeds move</div></div>
+      <button class="btn small" data-nav-inline="canary">Open</button></div>
+    <div class="rowitem"><div style="flex:1"><div class="t small">docs/INTEROPERABILITY-PLAN.md</div><div class="d">USCDI v3.1 mapping · US Core · phased gap plan</div></div>
+      <span class="chip plain">in repo</span></div>
+  </div>`;
+}
+
+/* ==========================================================================
    PATIENT VIEWS
    ========================================================================== */
 function dueCount(){ return PREVENTION_PLAN.filter(p=>p.status==="due" && !state.scheduled[p.t]).length; }
@@ -573,9 +664,9 @@ function vConsole(){
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, wellness:vWellness, canary:vCanary, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, roadmap:vRoadmap },
   patient:{ home:vHome, plan:vPlan, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
-  researcher:{ console:vConsole, roadmap:vRoadmap },
+  researcher:{ console:vConsole, synthesis:vSynthesis, roadmap:vRoadmap },
 };
 
 function render(){
@@ -586,7 +677,18 @@ function render(){
 }
 
 function wireView(){
-  $$("[data-nav-inline]").forEach(b => b.addEventListener("click", () => { state.view = b.dataset.navInline; render(); }));
+  $$("[data-nav-inline]").forEach(b => b.addEventListener("click", () => {
+    const v = b.dataset.navInline;
+    if (!VIEWS[state.role][v]){                                   // cross-role link → switch role
+      const r = Object.keys(VIEWS).find(role => VIEWS[role][v]);
+      if (r){ state.role = r; $$(".role-btn").forEach(x => x.classList.toggle("active", x.dataset.role === r)); }
+    }
+    state.view = v; render();
+  }));
+  $$(".synth-toggle").forEach(c => c.addEventListener("change", () => {
+    state.interop[c.dataset.feed] = c.checked;
+    updateSynth();
+  }));
   const note = $("#lean-note");
   if (note){
     const count = () => { $("#note-count").textContent = `${note.value.trim().split(/\s+/).length} words — lean and clinical`; };
