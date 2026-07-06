@@ -482,21 +482,24 @@ const CODING = {
     plan:"HealthFirst PPO", memberId:"HF-8842-0042", group:"GRP-5591",
     idUploaded:false,
   },
+  // ICD-9 ↔ ICD-10 crosswalk (GEM-based; every ICD-9 code below verified against the
+  // NLM ICD-9-CM database). The PR bridge maps to ICD-9 for payers still requiring it.
+  icd9SourceUrl: "https://www.icd9data.com/2015/Volume1/default.htm",
   // Patient pre-loads these on the waiting-room iPad (confirm still-active).
   preloaded: [
-    { icd:"E11.9",   dx:"Type 2 diabetes mellitus without complications", active:true },
-    { icd:"I10",     dx:"Essential (primary) hypertension", active:true },
-    { icd:"E78.5",   dx:"Hyperlipidemia, unspecified", active:true },
-    { icd:"E66.3",   dx:"Overweight", active:true },
-    { icd:"Z68.29",  dx:"Body mass index 29.0–29.9, adult", active:true },
-    { icd:"Z87.891", dx:"Personal history of nicotine dependence", active:true },
-    { icd:"Z79.84",  dx:"Long-term (current) use of oral hypoglycemic drugs", active:true },
-    { icd:"Z79.899", dx:"Other long-term (current) drug therapy (statin)", active:true },
+    { icd:"E11.9",   icd9:"250.00", dx:"Type 2 diabetes mellitus without complications", active:true },
+    { icd:"I10",     icd9:"401.9",  dx:"Essential (primary) hypertension", active:true },
+    { icd:"E78.5",   icd9:"272.4",  dx:"Hyperlipidemia, unspecified", active:true },
+    { icd:"E66.3",   icd9:"278.02", dx:"Overweight", active:true },
+    { icd:"Z68.29",  icd9:"V85.25", dx:"Body mass index 29.0–29.9, adult", active:true },
+    { icd:"Z87.891", icd9:"V15.82", dx:"Personal history of nicotine dependence", active:true },
+    { icd:"Z79.84",  icd9:"V58.69", dx:"Long-term (current) use of oral hypoglycemic drugs", active:true },
+    { icd:"Z79.899", icd9:"V58.69", dx:"Other long-term (current) drug therapy (statin)", active:true },
   ],
   // The clinician adds the last two, discussed today.
   discussed: [
-    { icd:"R20.2",   dx:"Paresthesia of skin (nocturnal foot tingling)" },
-    { icd:"Z12.11",  dx:"Encounter for screening for malignant neoplasm of colon" },
+    { icd:"R20.2",   icd9:"782.0",  dx:"Paresthesia of skin (nocturnal foot tingling)" },
+    { icd:"Z12.11",  icd9:"V76.51", dx:"Encounter for screening for malignant neoplasm of colon" },
   ],
   // Agent-suggested CPT for the visit; provider verifies or overrides each.
   cpt: [

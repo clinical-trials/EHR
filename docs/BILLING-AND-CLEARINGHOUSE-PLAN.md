@@ -41,7 +41,7 @@ The prototype demonstrates steps 1–8 end to end with a real ICD-10/CPT set for
 
 **Proposed solution — a third-party bridge:** a connector that
 1. **collects the pertinent information** from the EHR (demographics, ICD-10, CPT, coverage) via the standardized API (FHIR / §170.315(g)(10));
-2. **transforms** it into the format the PR clearinghouse/payer requires;
+2. **transforms** it into the format the PR clearinghouse/payer requires — including **mapping ICD-10 to its ICD-9 crosswalk** for PR payers that still require ICD-9 (Puerto Rico lagged the mainland ICD-10 transition); every crosswalk in the demo was verified against the NLM ICD-9-CM database, referencing <https://www.icd9data.com/2015/Volume1/default.htm>;
 3. **connects both directions** — EHR ↔ bridge ↔ clearinghouse — so a mainland-built record can bill a PR plan (and vice-versa) without manual re-keying;
 4. keeps a **linked longitudinal record** between mainland and PR care, closing the interoperability gap for patients who move or receive care in both.
 

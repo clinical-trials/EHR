@@ -933,7 +933,7 @@ function claimPipeline(ready){
   else if (c.stage==="agent")  action = `<div class="evidence">Agent assembled the claim — demographics + all ICD-10 diagnoses + verified CPT, formatted as an 837P professional claim. Handed to the biller.</div><button class="btn primary" id="claim-biller">Biller: review &amp; double-check</button>`;
   else if (c.stage==="biller") action = `<div class="evidence">Biller verified patient demographics, diagnosis &amp; procedure codes, and payer eligibility. Ready to submit.</div><button class="btn primary" id="claim-submit">Submit to clearinghouse</button>`;
   else if (c.stage==="submitted") action = `<div class="evidence" style="border-style:solid; border-color:var(--green)">✓ Submitted to ${CODING.clearinghouse}. Claim #LC-${String(Date.now()).slice(-6)}.</div>
-    <div class="note" style="border-style:solid"><b>Puerto Rico bridge:</b> this member's plan is a PR payer. Mainland EHR claim formats aren't natively accepted by PR clearinghouses, so LumaChart routed the claim through the PR bridge connector — the third-party layer described in <b>docs/BILLING-AND-CLEARINGHOUSE-PLAN.md</b>.</div>
+    <div class="note" style="border-style:solid"><b>Puerto Rico bridge:</b> this member's plan is a PR payer. Mainland EHR claim formats aren't natively accepted by PR clearinghouses — and some PR payers still require <b>ICD-9</b> — so LumaChart routed the claim through the PR bridge connector, mapping each ICD-10 diagnosis to its ICD-9 crosswalk. See <b>docs/BILLING-AND-CLEARINGHOUSE-PLAN.md</b>.</div>
     <button class="btn ghost" id="claim-reset">Start a new claim</button>`;
   return `<div class="rowlist">${rows}</div><div style="margin-top:12px">${action}</div>`;
 }
@@ -962,12 +962,13 @@ function vBilling(){
   <div class="grid g2">
     <div class="card">
       <h3>Diagnoses — ICD-10 <span class="chip green">patient pre-loaded ${activePre.length}</span></h3>
-      ${activePre.map(p=>`<div class="rowitem"><span class="chip plain">${p.icd}</span><div style="flex:1"><div class="t small">${p.dx}</div></div><span class="chip green">✓</span></div>`).join("")}
+      ${activePre.map(p=>`<div class="rowitem"><span class="chip plain">${p.icd}</span>${p.icd9?`<span class="chip plain" style="opacity:.65" title="ICD-9 crosswalk (for PR payers still on ICD-9)">≈ ${p.icd9}</span>`:""}<div style="flex:1"><div class="t small">${p.dx}</div></div><span class="chip green">✓</span></div>`).join("")}
       <div class="divider"></div>
       <div class="small muted" style="margin-bottom:6px">Discussed today — add the last two:</div>
       ${c.dxAdded
-        ? CODING.discussed.map(p=>`<div class="rowitem"><span class="chip plain">${p.icd}</span><div style="flex:1"><div class="t small">${p.dx}</div></div><span class="chip accent">added</span></div>`).join("")
-        : `${CODING.discussed.map(p=>`<div class="rowitem"><span class="chip plain">${p.icd}</span><div style="flex:1"><div class="t small">${p.dx}</div></div></div>`).join("")}<button class="btn small" id="add-dx" style="margin-top:8px">+ Add both to the claim</button>`}
+        ? CODING.discussed.map(p=>`<div class="rowitem"><span class="chip plain">${p.icd}</span>${p.icd9?`<span class="chip plain" style="opacity:.65" title="ICD-9 crosswalk">≈ ${p.icd9}</span>`:""}<div style="flex:1"><div class="t small">${p.dx}</div></div><span class="chip accent">added</span></div>`).join("")
+        : `${CODING.discussed.map(p=>`<div class="rowitem"><span class="chip plain">${p.icd}</span>${p.icd9?`<span class="chip plain" style="opacity:.65" title="ICD-9 crosswalk">≈ ${p.icd9}</span>`:""}<div style="flex:1"><div class="t small">${p.dx}</div></div></div>`).join("")}<button class="btn small" id="add-dx" style="margin-top:8px">+ Add both to the claim</button>`}
+      <div class="tiny" style="margin-top:10px">Each diagnosis carries its <b>ICD-9 crosswalk</b> (≈) — the Puerto Rico bridge maps to ICD-9 for payers still requiring it. <a class="pmid" href="${CODING.icd9SourceUrl}" target="_blank" rel="noopener" style="text-indent:0">ICD-9 reference ↗</a></div>
     </div>
 
     <div class="card">
