@@ -27,6 +27,8 @@ const state = {
   checkin:   store.get("checkin", null), // patient iPad pre-visit intake
   claim:     { dxAdded:false, verified:{}, stage:"code" }, // encounter/claim workflow
   _idUploaded: false,
+  cmeReqIdx: store.get("cmeReqIdx", 0),  // selected state requirement (default Puerto Rico)
+  cmeBooked: store.get("cmeBooked", {}), // booked CME programs
 };
 
 /* ---------- evidence helpers — every PMID links straight to PubMed ---------- */
@@ -104,6 +106,9 @@ const NAVS = {
       { id:"chart",     ic:"▤", t:"Patient chart" },
       { id:"inbox",     ic:"✉", t:"Inbox", badge:() => INBOX.length },
       { id:"billing",   ic:"⛁", t:"Encounter & claim" },
+    ]},
+    { label:"Professional", items:[
+      { id:"cme",       ic:"🎓", t:"CME & licensure", badge:() => cmeDueBadge() },
     ]},
     { label:"You", items:[
       { id:"wellness",  ic:"❦", t:"Wellness Center", ph:true },
@@ -985,10 +990,68 @@ function vBilling(){
 }
 
 /* ==========================================================================
+   CME & LICENSURE
+   ========================================================================== */
+function cmeBookedCredits(){ return CME.catalog.filter(c=>state.cmeBooked[c.id]).reduce((a,c)=>a+c.credits,0); }
+function cmeDueBadge(){
+  const req = CME.requirements[state.cmeReqIdx] || {};
+  const earned = CME.earnedBase + cmeBookedCredits();
+  return (req.credits>0 && earned<req.credits && CME.cycleEndsDays<=120) ? "due" : null;
+}
+function cmeCard(c){
+  const booked = state.cmeBooked[c.id];
+  return `<div class="card">
+    <h3 style="font-size:14px">${c.title}</h3>
+    <div class="small muted">${c.format} · ${c.location}<br>${c.dates}</div>
+    <div style="margin:8px 0"><span class="chip accent">${c.credits} credits</span> <span class="chip plain">${c.cost===0?"Free":"$"+c.cost}</span> ${c.tag?`<span class="chip plain">${c.tag}</span>`:""}</div>
+    ${booked?`<button class="btn" disabled style="opacity:.6">✓ Booked</button>`:`<button class="btn primary" data-cme-book="${c.id}">Book — 1 tap</button>`}
+  </div>`;
+}
+function vCME(){
+  const req = CME.requirements[state.cmeReqIdx];
+  const booked = CME.catalog.filter(c=>state.cmeBooked[c.id]);
+  const bookedCredits = booked.reduce((a,c)=>a+c.credits,0);
+  const bookedCost = booked.reduce((a,c)=>a+c.cost,0);
+  const earned = CME.earnedBase + bookedCredits;
+  const required = req.credits;
+  const pct = required>0 ? Math.min(Math.round(earned/required*100),100) : 100;
+  const remaining = Math.max(required - earned, 0);
+  const ring = pct>=100 ? "var(--green)" : pct>=60 ? "var(--amber)" : "var(--red)";
+  const section = (kind, label) => `<h3 style="margin:18px 0 8px">${label}</h3><div class="grid g3">${CME.catalog.filter(c=>c.kind===kind).map(cmeCard).join("")}</div>`;
+  return `
+  <h1 class="page-title">CME &amp; licensure</h1>
+  <p class="page-sub">Stay ahead of your credits, and book CME as easily as a weekend away — not a bureaucratic chore.</p>
+
+  <div class="grid g32">
+    <div class="card" style="display:flex; align-items:center; gap:20px">
+      <div class="ring" style="--p:${pct}; --ring-color:${ring}"><div><b>${earned}</b><span>of ${required||"—"}</span></div></div>
+      <div>
+        <div class="chip ${pct>=100?'green':remaining>0&&CME.cycleEndsDays<=120?'amber':'accent'}" style="font-size:14px">${pct>=100?"Requirement met":remaining+" credits to go"}</div>
+        <p class="small muted" style="margin:8px 0 0">Cycle ends in <b>${CME.cycleEndsDays} days</b> · ${CME.specialty} · ${CME.boardMOC}.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Your requirement</h3>
+      <div class="small" style="margin-bottom:6px">State: <select id="cme-state" class="cme-select">${CME.requirements.map((r,i)=>`<option value="${i}" ${i===state.cmeReqIdx?"selected":""}>${r.state}</option>`).join("")}</select></div>
+      <div class="small muted">${required>0?`<b>${required}</b> credits every <b>${req.years}</b> years`:"No general hour requirement"}${req.note?` — ${req.note}`:""}</div>
+      <div class="tiny" style="margin-top:8px">${CME.boardNote}</div>
+    </div>
+  </div>
+
+  ${booked.length?`<div class="section-gap"></div><div class="card"><h3>Booked <span class="chip green">${bookedCredits} credits · $${bookedCost}</span></h3>
+    ${booked.map(c=>`<div class="rowitem"><span class="chip green">✓</span><div style="flex:1"><div class="t small">${c.title}</div><div class="d">${c.location} · ${c.dates} · ${c.credits} credits</div></div><button class="btn ghost small" data-cme-cancel="${c.id}">Cancel</button></div>`).join("")}</div>`:""}
+
+  ${section("online","💻 Look up online CME")}
+  ${section("local","📍 Live CME near you")}
+  ${section("destination","✈️ Destination CME — restorative &amp; cost-effective")}
+  <div class="tiny" style="margin-top:12px">One tap books the program, holds the dates, logs the credits, and — for a destination program — starts the travel plan. Easier than booking a family trip.</div>`;
+}
+
+/* ==========================================================================
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, billing:vBilling, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, billing:vBilling, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, synthesis:vSynthesis, roadmap:vRoadmap },
 };
@@ -1039,6 +1102,15 @@ function wireView(){
     toast("Check-in complete 🎉", "Thanks, Maria! Your info pre-loaded the visit and the claim. The doctor will see you shortly.", "green");
   });
   const cir = $("[data-checkin-redo]"); if (cir) cir.addEventListener("click", () => { state.checkin = null; store.set("checkin", null); state._idUploaded = false; render(); });
+
+  // --- CME ---
+  const cst = $("#cme-state"); if (cst) cst.addEventListener("change", () => { state.cmeReqIdx = +cst.value; store.set("cmeReqIdx", state.cmeReqIdx); render(); });
+  $$("[data-cme-book]").forEach(b => b.addEventListener("click", () => {
+    const c = CME.catalog.find(x => x.id === b.dataset.cmeBook);
+    state.cmeBooked[c.id] = true; store.set("cmeBooked", state.cmeBooked); render();
+    toast("CME booked 🎓", `${c.title} — ${c.credits} credits${c.cost?`, $${c.cost}`:""}. Dates held and credits logged.${c.kind==="destination"?" Travel plan started.":""}`, "green");
+  }));
+  $$("[data-cme-cancel]").forEach(b => b.addEventListener("click", () => { delete state.cmeBooked[b.dataset.cmeCancel]; store.set("cmeBooked", state.cmeBooked); render(); }));
   const note = $("#lean-note");
   if (note){
     const count = () => { $("#note-count").textContent = `${note.value.trim().split(/\s+/).length} words — lean and clinical`; };
@@ -1385,4 +1457,4 @@ loadUSPSTF();                    // pull the latest Grade A/B recommendations (e
 $("#wellness-toggle").addEventListener("click", toggleWellness);
 updateWellnessUI();
 setInterval(canaryTick, 1000);
-setTimeout(() => toast("Welcome to LumaChart", "Restore Mode (low-glare dark) is on by default to reduce eyestrain — switch themes any time, top right. Tap any notification to dismiss it.", "green"), 1200);
+setTimeout(() => toast("Welcome to LumaChart", "Restore Mode (low-glare dark) is on to reduce eyestrain. Tap any notification to dismiss it — they stay gentle and out of your way.", "green"), 4500);

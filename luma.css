@@ -185,11 +185,14 @@ table.vitals td{ padding:8px; border-bottom:1px solid var(--line); }
   flex-direction:column; gap:10px; max-width:340px; }
 .toast{ background:var(--surface); border:1px solid var(--line-strong); border-left:4px solid var(--accent);
   border-radius:12px; padding:13px 16px; box-shadow:var(--shadow); font-size:13.5px;
-  animation:slidein .35s ease; cursor:pointer; }
+  animation:slidein .6s cubic-bezier(.22,.61,.36,1); cursor:pointer; }
 .toast.amber{ border-left-color:var(--amber); } .toast.green{ border-left-color:var(--green); }
 .toast b{ display:block; margin-bottom:2px; }
 .toast .toast-actions{ margin-top:9px; display:flex; gap:8px; }
-@keyframes slidein{ from{ transform:translateX(40px); opacity:0;} }
+@keyframes slidein{ from{ transform:translateY(12px); opacity:0;} to{ transform:translateY(0); opacity:1;} }
+.cme-select{ background:var(--surface2); color:var(--text); border:1px solid var(--line-strong);
+  border-radius:8px; padding:5px 10px; font-family:var(--font); font-size:13px; font-weight:600; }
+.cme-select:focus{ outline:2px solid var(--accent); border-color:transparent; }
 
 /* modal */
 #modal-layer{ position:fixed; inset:0; background:rgba(8,14,19,.62); z-index:300;

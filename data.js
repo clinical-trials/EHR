@@ -511,3 +511,35 @@ const CODING = {
   meds: ["Metformin 500 mg BID","Lisinopril 20 mg daily","Atorvastatin 20 mg nightly"],
   clearinghouse: "HealthFirst PPO clearinghouse (837P professional claim)",
 };
+
+/* ---------- CME & licensure ----------
+   Requirements vary by state and specialty and change often — the figures below
+   are REPRESENTATIVE and must be confirmed with the licensing / specialty board.
+   The catalog is a demonstration set of programs (not real course listings). */
+const CME = {
+  boardNote: "CME requirements vary by state and specialty and change often — these are representative figures. Always confirm with your state medical board and specialty board.",
+  specialty: "Family Medicine (ABFM)",
+  earnedBase: 22,        // credits already earned this renewal cycle
+  cycleEndsDays: 96,     // days remaining in the current cycle
+  boardMOC: "ABFM continuous certification — activity due 2027",
+  requirements: [        // credits per cycle (years), representative
+    { state:"Puerto Rico", credits:40, years:3 },
+    { state:"California",  credits:50, years:2 },
+    { state:"Florida",     credits:40, years:2 },
+    { state:"Texas",       credits:48, years:2, note:"≥24 formal Category 1" },
+    { state:"New York",    credits:0,  years:2, note:"No general hour requirement; specific topics (e.g., infection control) required." },
+    { state:"Other / not listed", credits:50, years:2 },
+  ],
+  catalog: [
+    { id:"cme-online-1", title:"Evidence-Based Primary Care Update", format:"Online · on-demand", provider:"ACCME-accredited online provider",
+      credits:8, cost:0, location:"Anywhere", dates:"Self-paced", kind:"online", tag:"Free" },
+    { id:"cme-online-2", title:"Diabetes & Cardiometabolic Care", format:"Online · live webinar", provider:"Accredited online",
+      credits:6, cost:99, location:"Virtual", dates:"Aug 20", kind:"online", tag:"Online" },
+    { id:"cme-local-1", title:"Regional Family Medicine Conference", format:"Live · local", provider:"State AFP chapter",
+      credits:14, cost:295, location:"San Juan, PR", dates:"Sep 12–13", kind:"local", tag:"Local · no travel" },
+    { id:"cme-dest-1", title:"Coastal CME Retreat: Primary Care by the Sea", format:"Destination · restorative", provider:"Accredited",
+      credits:20, cost:850, location:"Rincón, PR", dates:"Oct 6–10", kind:"destination", tag:"Restorative · family-friendly" },
+    { id:"cme-dest-2", title:"Mountain Wellness & Medicine", format:"Destination · cost-effective", provider:"Accredited",
+      credits:18, cost:720, location:"Asheville, NC", dates:"Nov 3–6", kind:"destination", tag:"Cost-effective" },
+  ],
+};
