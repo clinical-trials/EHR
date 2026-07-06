@@ -137,6 +137,12 @@ const NAVS = {
       { id:"roadmap",   ic:"⛭", t:"Roadmap & gates" },
     ]},
   ],
+  cwo: [
+    { label:"Well-being program", items:[
+      { id:"joy",  ic:"🏅", t:"Joy in Medicine" },
+      { id:"ehr8", ic:"⏱", t:"EHR8 & WOW8" },
+    ]},
+  ],
 };
 
 $$(".role-btn").forEach(btn => btn.addEventListener("click", () => {
@@ -1048,12 +1054,73 @@ function vCME(){
 }
 
 /* ==========================================================================
+   CHIEF WELLNESS OFFICER — AMA Joy in Medicine
+   ========================================================================== */
+function vJoy(){
+  const a = AMA, cur = a.tiers.indexOf(a.currentTier);
+  return `
+  <h1 class="page-title">Joy in Medicine <span class="muted" style="font-size:15px">organizational well-being</span></h1>
+  <p class="page-sub">${a.program} — the system-level program a Chief Wellness Officer runs. LumaChart supplies the measurement.</p>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>Recognition level</h3>
+      <div style="display:flex; gap:8px; align-items:center; margin:10px 0">
+        ${a.tiers.map((t,i)=>`<span class="chip ${i===cur?(t==='Gold'?'amber':t==='Silver'?'accent':'plain'):'plain'}" style="font-size:14px; ${i===cur?'font-weight:800':'opacity:.55'}">${i<cur?'✓ ':''}${t}</span>`).join('<span style="color:var(--text-3)">→</span>')}
+      </div>
+      <div class="small muted">Current: <b>${a.currentTier}</b>. ${a.nextTierNeeds}</div>
+      <div class="tiny" style="margin-top:8px">Based on the AMA Joy in Medicine framework. <a class="pmid" href="${a.sourceUrl}" target="_blank" rel="noopener" style="text-indent:0">AMA guidelines ↗</a></div>
+    </div>
+    <div class="card">
+      <h3>Leadership line</h3>
+      <div class="rowitem"><div style="flex:1"><div class="t small">${a.cwo.title}</div><div class="d">reports to ${a.cwo.reportsTo}</div></div></div>
+      <div class="tiny" style="margin-top:6px">A dedicated wellness executive with a direct line to the C-suite is itself a recognition criterion — and the administrator who runs this tool at each health system.</div>
+    </div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card">
+    <h3>Program competencies</h3>
+    ${a.pillars.map(p=>`<div class="rowitem"><span class="chip accent" style="min-width:160px; text-align:center">${p.t}</span><div class="d" style="flex:1">${p.d}</div></div>`).join('')}
+    <div class="evidence">"Efficiency of practice" is where LumaChart is strongest: the EHR8 and WOW8 metrics quantify documentation burden, and Canary + team choreography reduce it. Open <b>EHR8 &amp; WOW8</b> for the numbers.</div>
+  </div>`;
+}
+
+function vEhr8(){
+  const m = AMA.metrics;
+  const maxE = Math.max(...m.map(x=>x.ehr8)), maxW = Math.max(...m.map(x=>x.wow8));
+  return `
+  <h1 class="page-title">EHR8 &amp; WOW8</h1>
+  <p class="page-sub">The two numbers the AMA program watches: time in the record, and work that follows clinicians home.</p>
+
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="card"><h3>EHR8</h3><p class="small muted" style="margin:0">Total <b>EHR time</b> per 8 hours of scheduled patient time. Higher = more of the day spent in the record.</p></div>
+    <div class="card"><h3>WOW8 — Work Outside of Work</h3><p class="small muted" style="margin:0">Documentation &amp; inbox time <b>outside scheduled hours</b> ("pajama time") per 8 hours scheduled. Higher = more spillover into personal life.</p></div>
+  </div>
+
+  <div class="card">
+    <h3>By specialty <span class="chip plain">minutes per 8 hrs scheduled</span></h3>
+    ${m.map(x=>`
+      <div class="rowitem" style="align-items:flex-start">
+        <div style="flex:1">
+          <div class="t small">${x.specialty} <span class="tiny">· N=${x.n}</span></div>
+          <div class="small muted" style="margin:4px 0 2px">EHR8 <b>${x.ehr8}</b> min<div class="bar" style="margin-top:3px"><i class="${x.ehr8>=150?'red':x.ehr8>=100?'amber':'green'}" style="width:${Math.round(x.ehr8/maxE*100)}%"></i></div></div>
+          <div class="small muted">WOW8 <b>${x.wow8}</b> min<div class="bar" style="margin-top:3px"><i class="${x.wow8>=80?'red':x.wow8>=50?'amber':'green'}" style="width:${Math.round(x.wow8/maxW*100)}%"></i></div></div>
+        </div>
+        ${x.ehr8===maxE?'<span class="chip red">highest EHR burden</span>':''}
+      </div>`).join('')}
+    <div class="evidence">OB-GYN and Internal Medicine carry the heaviest load — the specialties to target first. These org figures <b>aggregate the same per-clinician signals Canary tracks privately</b>, de-identified: no individual is singled out, and nothing feeds productivity or employment decisions.</div>
+  </div>`;
+}
+
+/* ==========================================================================
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
   clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, billing:vBilling, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, synthesis:vSynthesis, roadmap:vRoadmap },
+  cwo:{ joy:vJoy, ehr8:vEhr8 },
 };
 
 function render(){

@@ -543,3 +543,30 @@ const CME = {
       credits:18, cost:720, location:"Asheville, NC", dates:"Nov 3–6", kind:"destination", tag:"Cost-effective" },
   ],
 };
+
+/* ---------- AMA Joy in Medicine — organizational well-being (Chief Wellness Officer) ----------
+   Summarized from the AMA Joy in Medicine Health System Recognition Program. EHR8 =
+   total EHR time per 8 hours of scheduled patient time; WOW8 = "Work Outside of Work"
+   per 8 hours scheduled. Specialty figures are the AMA methodology's example values. */
+const AMA = {
+  program: "AMA Joy in Medicine™ Health System Recognition Program",
+  sourceUrl: "https://www.ama-assn.org/system/files/joy-in-medicine-guidelines.pdf",
+  tiers: ["Bronze","Silver","Gold"],
+  currentTier: "Silver",
+  nextTierNeeds: "Sustained EHR8/WOW8 reduction + documented action in all competencies earns Gold.",
+  cwo: { title:"Chief Wellness Officer / Director, Resiliency Center", reportsTo:"SVP & Chief Medical Officer" },
+  // minutes per 8 hours of scheduled patient time
+  metrics: [
+    { specialty:"Internal Medicine", n:78, ehr8:134, wow8:87 },
+    { specialty:"OB-GYN",            n:32, ehr8:178, wow8:65 },
+    { specialty:"Cardiology",        n:30, ehr8:78,  wow8:34 },
+    { specialty:"Surgery",           n:67, ehr8:65,  wow8:21 },
+  ],
+  pillars: [
+    { t:"Commitment", d:"Leadership names clinician well-being a system priority." },
+    { t:"Assessment", d:"Measure burnout & professional fulfillment with validated tools." },
+    { t:"Leadership", d:"A Chief Wellness Officer with a direct line to the C-suite." },
+    { t:"Efficiency of practice", d:"Reduce documentation burden — EHR8 & WOW8 — and clerical load." },
+    { t:"Teamwork & support", d:"Team-based care, peer support, and a just culture." },
+  ],
+};
