@@ -139,8 +139,9 @@ const NAVS = {
   ],
   cwo: [
     { label:"Well-being program", items:[
-      { id:"joy",  ic:"🏅", t:"Joy in Medicine" },
-      { id:"ehr8", ic:"⏱", t:"EHR8 & WOW8" },
+      { id:"joy",    ic:"🏅", t:"Joy in Medicine" },
+      { id:"ehr8",   ic:"⏱", t:"EHR8 · WOW8 · Inbox" },
+      { id:"report", ic:"📄", t:"Data extract report" },
     ]},
   ],
 };
@@ -1080,37 +1081,105 @@ function vJoy(){
   <div class="section-gap"></div>
 
   <div class="card">
-    <h3>Program competencies</h3>
-    ${a.pillars.map(p=>`<div class="rowitem"><span class="chip accent" style="min-width:160px; text-align:center">${p.t}</span><div class="d" style="flex:1">${p.d}</div></div>`).join('')}
-    <div class="evidence">"Efficiency of practice" is where LumaChart is strongest: the EHR8 and WOW8 metrics quantify documentation burden, and Canary + team choreography reduce it. Open <b>EHR8 &amp; WOW8</b> for the numbers.</div>
+    <h3>Recognition domains <span class="chip ${a.domains.filter(d=>d.met).length>=5?'green':'amber'}">${a.domains.filter(d=>d.met).length} of 6 met · need 5</span></h3>
+    ${a.domains.map(d=>`<div class="rowitem"><span class="chip ${d.met?'green':'plain'}" style="min-width:26px; text-align:center">${d.met?'✓':'…'}</span><div style="flex:1"><div class="t small">${d.key}</div><div class="d">${d.evidence}</div></div></div>`).join('')}
+    <div class="evidence">Efficiency of Practice Environment is where LumaChart is strongest — EHR8, WOW8 and IB-Time8 quantify documentation burden, and Canary + team choreography reduce it. The report auto-populates domain evidence from LumaChart activity.</div>
+    <button class="btn primary" data-nav-inline="report" style="margin-top:10px">Request Joy in Medicine data extract report →</button>
   </div>`;
 }
 
 function vEhr8(){
   const m = AMA.metrics;
-  const maxE = Math.max(...m.map(x=>x.ehr8)), maxW = Math.max(...m.map(x=>x.wow8));
+  const maxE = Math.max(...m.map(x=>x.ehr8)), maxW = Math.max(...m.map(x=>x.wow8)), maxI = Math.max(...m.map(x=>x.ibt8));
   return `
-  <h1 class="page-title">EHR8 &amp; WOW8</h1>
-  <p class="page-sub">The two numbers the AMA program watches: time in the record, and work that follows clinicians home.</p>
+  <h1 class="page-title">EHR8 · WOW8 · IB-Time8</h1>
+  <p class="page-sub">The AMA program's efficiency metrics: time in the record, work that follows clinicians home, and time buried in the inbox.</p>
 
-  <div class="grid g2" style="margin-bottom:16px">
-    <div class="card"><h3>EHR8</h3><p class="small muted" style="margin:0">Total <b>EHR time</b> per 8 hours of scheduled patient time. Higher = more of the day spent in the record.</p></div>
-    <div class="card"><h3>WOW8 — Work Outside of Work</h3><p class="small muted" style="margin:0">Documentation &amp; inbox time <b>outside scheduled hours</b> ("pajama time") per 8 hours scheduled. Higher = more spillover into personal life.</p></div>
+  <div class="grid g3" style="margin-bottom:16px">
+    <div class="card"><h3>EHR8</h3><p class="small muted" style="margin:0">Total <b>EHR time</b> per 8 hours of scheduled patient time.</p></div>
+    <div class="card"><h3>WOW8</h3><p class="small muted" style="margin:0"><b>Work Outside of Work</b> ("pajama time") per 8 hours scheduled.</p></div>
+    <div class="card"><h3>IB-Time8</h3><p class="small muted" style="margin:0">Time on the <b>inbox</b> per 8 hours scheduled.</p></div>
   </div>
 
   <div class="card">
-    <h3>By specialty <span class="chip plain">minutes per 8 hrs scheduled</span></h3>
+    <h3>By specialty <span class="chip plain">minutes per 8 hrs scheduled · not clock time</span></h3>
     ${m.map(x=>`
       <div class="rowitem" style="align-items:flex-start">
         <div style="flex:1">
           <div class="t small">${x.specialty} <span class="tiny">· N=${x.n}</span></div>
-          <div class="small muted" style="margin:4px 0 2px">EHR8 <b>${x.ehr8}</b> min<div class="bar" style="margin-top:3px"><i class="${x.ehr8>=150?'red':x.ehr8>=100?'amber':'green'}" style="width:${Math.round(x.ehr8/maxE*100)}%"></i></div></div>
-          <div class="small muted">WOW8 <b>${x.wow8}</b> min<div class="bar" style="margin-top:3px"><i class="${x.wow8>=80?'red':x.wow8>=50?'amber':'green'}" style="width:${Math.round(x.wow8/maxW*100)}%"></i></div></div>
+          <div class="small muted" style="margin:4px 0 2px">EHR8 <b>${x.ehr8}</b><div class="bar" style="margin-top:3px"><i class="${x.ehr8>=150?'red':x.ehr8>=100?'amber':'green'}" style="width:${Math.round(x.ehr8/maxE*100)}%"></i></div></div>
+          <div class="small muted" style="margin-bottom:2px">WOW8 <b>${x.wow8}</b><div class="bar" style="margin-top:3px"><i class="${x.wow8>=80?'red':x.wow8>=50?'amber':'green'}" style="width:${Math.round(x.wow8/maxW*100)}%"></i></div></div>
+          <div class="small muted">IB-Time8 <b>${x.ibt8}</b><div class="bar" style="margin-top:3px"><i class="accent" style="width:${Math.round(x.ibt8/maxI*100)}%"></i></div></div>
         </div>
         ${x.ehr8===maxE?'<span class="chip red">highest EHR burden</span>':''}
       </div>`).join('')}
-    <div class="evidence">OB-GYN and Internal Medicine carry the heaviest load — the specialties to target first. These org figures <b>aggregate the same per-clinician signals Canary tracks privately</b>, de-identified: no individual is singled out, and nothing feeds productivity or employment decisions.</div>
+    <div class="tiny" style="margin-top:8px">Normalized for part-time FTE; measured against scheduled patient time. IB-Time8 illustrative (~24% of EHR8). Extraction methods (Epic / Oracle Health) per Appendix C.</div>
+    <div class="evidence">OB-GYN and Internal Medicine carry the heaviest load — target them first. These org figures <b>aggregate the same per-clinician signals Canary tracks privately</b>, de-identified: no individual is singled out, and nothing feeds productivity or employment decisions.</div>
   </div>`;
+}
+
+function vReport(){
+  const a = AMA, met = a.domains.filter(d=>d.met).length;
+  return `
+  <h1 class="page-title">Joy in Medicine — data extract report</h1>
+  <p class="page-sub">One click assembles your submission for the AMA Joy in Medicine Health System Recognition Program — no manual data pull.</p>
+
+  <div class="grid g32">
+    <div class="card">
+      <h3>Report contents</h3>
+      <div class="rowitem"><span class="chip accent" style="min-width:26px;text-align:center">1</span><div style="flex:1"><div class="t small">Organization &amp; eligibility</div><div class="d">${a.orgName} · ${a.orgHQ} · applying for <b>${a.applyingFor}</b> · assessment ${a.assessmentDate}</div></div></div>
+      <div class="rowitem"><span class="chip accent" style="min-width:26px;text-align:center">2</span><div style="flex:1"><div class="t small">Six domains — evidence</div><div class="d">${met} of 6 met (5 required); auto-populated from LumaChart activity</div></div></div>
+      <div class="rowitem"><span class="chip accent" style="min-width:26px;text-align:center">3</span><div style="flex:1"><div class="t small">EHR data extraction (Appendix C)</div><div class="d">EHR8 · WOW8 · IB-Time8 by specialty, per 8 hrs scheduled</div></div></div>
+    </div>
+    <div class="card">
+      <h3>Submit</h3>
+      <p class="small muted" style="margin:0 0 10px">Generate the report, review it, then submit to the AMA application portal.</p>
+      <button class="btn primary" id="gen-joy-report">⬇ Generate &amp; download report</button>
+      <div style="margin-top:10px"><button class="btn" id="submit-joy-report">Submit to AMA portal</button></div>
+      <div class="tiny" style="margin-top:10px">Confirm current criteria &amp; deadlines at <a class="pmid" href="${a.sourceUrl}" target="_blank" rel="noopener" style="text-indent:0">ama-assn.org ↗</a>. Applied on behalf of the health system; only executed activities count.</div>
+    </div>
+  </div>
+  <div class="section-gap"></div>
+  <div class="card">
+    <h3>EHR data extract preview <span class="chip plain">min per 8 hrs scheduled</span></h3>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Specialty</th><th>N</th><th>EHR8</th><th>WOW8</th><th>IB-Time8</th></tr>
+      ${a.metrics.map(m=>`<tr><td class="cap">${m.specialty}</td><td>${m.n}</td><td>${m.ehr8}</td><td>${m.wow8}</td><td>${m.ibt8}</td></tr>`).join('')}
+    </table></div>
+  </div>`;
+}
+
+function generateJoyReport(){
+  const a = AMA, met = a.domains.filter(d=>d.met).length, today = new Date().toISOString().slice(0,10);
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>Joy in Medicine Data Extract Report — ${a.orgName}</title>
+<style>body{font-family:-apple-system,Arial,sans-serif;max-width:820px;margin:32px auto;color:#18262f;padding:0 20px}
+h1{font-size:22px}h2{font-size:15px;margin-top:26px;border-bottom:2px solid #2FB3C6;padding-bottom:4px}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}th,td{border:1px solid #dfe6ea;padding:7px 9px;text-align:left}
+th{background:#f2f8f9}.muted{color:#5d6e79;font-size:12px}.met{color:#2e8b62;font-weight:700}.pend{color:#b8503c;font-weight:700}</style></head><body>
+<h1>Joy in Medicine&reg; Data Extract Report</h1>
+<div class="muted">Prepared by LumaChart · ${today} · for submission to the AMA Joy in Medicine Health System Recognition Program</div>
+<h2>1 &middot; Organization &amp; eligibility</h2>
+<table>
+<tr><td>Health system</td><td>${a.orgName}</td></tr>
+<tr><td>Headquarters</td><td>${a.orgHQ}</td></tr>
+<tr><td>Primary contact</td><td>${a.contact}, reports to ${a.cwo.reportsTo}</td></tr>
+<tr><td>Applying for</td><td>${a.applyingFor}</td></tr>
+<tr><td>Well-being assessment (within 3 yrs)</td><td>${a.assessmentTool} &mdash; ${a.assessmentDate}</td></tr></table>
+<h2>2 &middot; Recognition domains (${met} of 6 met; 5 required)</h2>
+<table><tr><th>Domain</th><th>Status</th><th>Evidence</th></tr>
+${a.domains.map(d=>`<tr><td>${d.key}</td><td class="${d.met?'met':'pend'}">${d.met?'Met':'In progress'}</td><td>${d.evidence}</td></tr>`).join('')}</table>
+<h2>3 &middot; EHR data extraction (Appendix C)</h2>
+<p class="muted">Minutes per 8 hours of scheduled patient time (not clock time), normalized for part-time FTE.</p>
+<table><tr><th>Specialty</th><th>N</th><th>EHR8</th><th>WOW8</th><th>IB-Time8</th></tr>
+${a.metrics.map(m=>`<tr><td>${m.specialty}</td><td>${m.n}</td><td>${m.ehr8}</td><td>${m.wow8}</td><td>${m.ibt8}</td></tr>`).join('')}</table>
+<p class="muted">EHR8 = total EHR time; WOW8 = Work Outside of Work; IB-Time8 = inbox time. IB-Time8 illustrative (~24% of EHR8, per Arndt et al. 2017). Extraction methods for Epic / Oracle Health per Appendix C of the AMA guidelines.</p>
+<p class="muted" style="margin-top:22px">Demonstration report — synthetic data. Confirm current criteria and deadlines at ama-assn.org. Submitted on behalf of the health system; only executed activities count toward recognition.</p>
+</body></html>`;
+  const url = URL.createObjectURL(new Blob([html], { type:"text/html" }));
+  const link = document.createElement("a"); link.href = url;
+  link.download = "Joy-in-Medicine-Data-Extract-Report.html"; link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  toast("Report generated 📄", "Joy in Medicine data extract downloaded — open it to review or print to PDF, then submit to the AMA.", "green");
 }
 
 /* ==========================================================================
@@ -1120,7 +1189,7 @@ const VIEWS = {
   clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, billing:vBilling, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, synthesis:vSynthesis, roadmap:vRoadmap },
-  cwo:{ joy:vJoy, ehr8:vEhr8 },
+  cwo:{ joy:vJoy, ehr8:vEhr8, report:vReport },
 };
 
 function render(){
@@ -1178,6 +1247,10 @@ function wireView(){
     toast("CME booked 🎓", `${c.title} — ${c.credits} credits${c.cost?`, $${c.cost}`:""}. Dates held and credits logged.${c.kind==="destination"?" Travel plan started.":""}`, "green");
   }));
   $$("[data-cme-cancel]").forEach(b => b.addEventListener("click", () => { delete state.cmeBooked[b.dataset.cmeCancel]; store.set("cmeBooked", state.cmeBooked); render(); }));
+
+  // --- Joy in Medicine data extract report ---
+  const gjr = $("#gen-joy-report"); if (gjr) gjr.addEventListener("click", generateJoyReport);
+  const sjr = $("#submit-joy-report"); if (sjr) sjr.addEventListener("click", () => toast("Submitted to AMA portal", `${AMA.orgName}'s ${AMA.applyingFor} application data extract was routed to the AMA Joy in Medicine application portal. You'll be notified of the review outcome.`, "green"));
   const note = $("#lean-note");
   if (note){
     const count = () => { $("#note-count").textContent = `${note.value.trim().split(/\s+/).length} words — lean and clinical`; };

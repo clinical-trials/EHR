@@ -555,18 +555,29 @@ const AMA = {
   currentTier: "Silver",
   nextTierNeeds: "Sustained EHR8/WOW8 reduction + documented action in all competencies earns Gold.",
   cwo: { title:"Chief Wellness Officer / Director, Resiliency Center", reportsTo:"SVP & Chief Medical Officer" },
-  // minutes per 8 hours of scheduled patient time
+  // application context (org-level; the program is applied for on behalf of a health system)
+  orgName: "Luma Health System",
+  orgHQ: "San Juan, PR",
+  contact: "Dr. A. Chen, Chief Wellness Officer",
+  applyingFor: "Silver",
+  assessmentTool: "AMA Organizational Biopsy (no-cost) — physician well-being survey",
+  assessmentDate: "2025-11",
+  // The program's "8" metrics: minutes per 8 hours of SCHEDULED patient time (not clock time),
+  // normalized for part-time FTE. EHR8 total EHR time · WOW8 Work Outside of Work · IB-Time8 inbox.
+  // IB-Time8 shown here is illustrative (~24% of EHR8; Arndt, inbox share of EHR time).
   metrics: [
-    { specialty:"Internal Medicine", n:78, ehr8:134, wow8:87 },
-    { specialty:"OB-GYN",            n:32, ehr8:178, wow8:65 },
-    { specialty:"Cardiology",        n:30, ehr8:78,  wow8:34 },
-    { specialty:"Surgery",           n:67, ehr8:65,  wow8:21 },
+    { specialty:"Internal Medicine", n:78, ehr8:134, wow8:87, ibt8:32 },
+    { specialty:"OB-GYN",            n:32, ehr8:178, wow8:65, ibt8:43 },
+    { specialty:"Cardiology",        n:30, ehr8:78,  wow8:34, ibt8:19 },
+    { specialty:"Surgery",           n:67, ehr8:65,  wow8:21, ibt8:16 },
   ],
-  pillars: [
-    { t:"Commitment", d:"Leadership names clinician well-being a system priority." },
-    { t:"Assessment", d:"Measure burnout & professional fulfillment with validated tools." },
-    { t:"Leadership", d:"A Chief Wellness Officer with a direct line to the C-suite." },
-    { t:"Efficiency of practice", d:"Reduce documentation burden — EHR8 & WOW8 — and clerical load." },
-    { t:"Teamwork & support", d:"Team-based care, peer support, and a just culture." },
+  // Six recognition domains — must meet 5 of 6. Evidence auto-drawn from LumaChart.
+  domains: [
+    { key:"Assessment", met:true,  evidence:"Physician well-being measured within 3 years (validated MBI/ProQOL self-checks + AMA Organizational Biopsy)." },
+    { key:"Commitment", met:true,  evidence:"Leadership named clinician well-being a system priority; well-being metrics reviewed at the C-suite/Board." },
+    { key:"Efficiency of Practice Environment", met:true, evidence:"EHR8, WOW8 and IB-Time8 measured and actively reduced (lean notes decoupled from billing, team delegation, Canary)." },
+    { key:"Leadership", met:true,  evidence:"Chief Wellness Officer with a direct reporting line to SVP & CMO." },
+    { key:"Teamwork",   met:true,  evidence:"Team-based 'care choreography' — shared inbox, standing orders, scribe-assisted documentation." },
+    { key:"Support",    met:false, evidence:"Wellness Center + peer support in place; formal peer-support program build in progress." },
   ],
 };
