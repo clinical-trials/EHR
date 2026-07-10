@@ -29,6 +29,7 @@ const state = {
   _idUploaded: false,
   cmeReqIdx: store.get("cmeReqIdx", 0),  // selected state requirement (default Puerto Rico)
   cmeBooked: store.get("cmeBooked", {}), // booked CME programs
+  supportExecuted: store.get("supportExecuted", false), // AMA Support-domain intervention executed
 };
 
 /* ---------- evidence helpers — every PMID links straight to PubMed ---------- */
@@ -139,9 +140,10 @@ const NAVS = {
   ],
   cwo: [
     { label:"Well-being program", items:[
-      { id:"joy",    ic:"🏅", t:"Joy in Medicine" },
-      { id:"ehr8",   ic:"⏱", t:"EHR8 · WOW8 · Inbox" },
-      { id:"report", ic:"📄", t:"Data extract report" },
+      { id:"joy",     ic:"🏅", t:"Joy in Medicine" },
+      { id:"ehr8",    ic:"⏱", t:"EHR8 · WOW8 · Inbox" },
+      { id:"actions", ic:"🎯", t:"Action plan" },
+      { id:"report",  ic:"📄", t:"Data extract report" },
     ]},
   ],
 };
@@ -1057,6 +1059,13 @@ function vCME(){
 /* ==========================================================================
    CHIEF WELLNESS OFFICER — AMA Joy in Medicine
    ========================================================================== */
+// Domains, with the Support domain flipped to met once its intervention is executed.
+function effectiveDomains(){
+  return AMA.domains.map(d => (d.key==="Support" && state.supportExecuted)
+    ? { ...d, met:true, evidence:"Formal peer-support program launched (executed)." } : d);
+}
+function domainsMet(){ return effectiveDomains().filter(d=>d.met).length; }
+
 function vJoy(){
   const a = AMA, cur = a.tiers.indexOf(a.currentTier);
   return `
@@ -1081,10 +1090,10 @@ function vJoy(){
   <div class="section-gap"></div>
 
   <div class="card">
-    <h3>Recognition domains <span class="chip ${a.domains.filter(d=>d.met).length>=5?'green':'amber'}">${a.domains.filter(d=>d.met).length} of 6 met · need 5</span></h3>
-    ${a.domains.map(d=>`<div class="rowitem"><span class="chip ${d.met?'green':'plain'}" style="min-width:26px; text-align:center">${d.met?'✓':'…'}</span><div style="flex:1"><div class="t small">${d.key}</div><div class="d">${d.evidence}</div></div></div>`).join('')}
-    <div class="evidence">Efficiency of Practice Environment is where LumaChart is strongest — EHR8, WOW8 and IB-Time8 quantify documentation burden, and Canary + team choreography reduce it. The report auto-populates domain evidence from LumaChart activity.</div>
-    <button class="btn primary" data-nav-inline="report" style="margin-top:10px">Request Joy in Medicine data extract report →</button>
+    <h3>Recognition domains <span class="chip ${domainsMet()>=5?'green':'amber'}">${domainsMet()} of 6 met · need 5</span></h3>
+    ${effectiveDomains().map(d=>`<div class="rowitem"><span class="chip ${d.met?'green':'plain'}" style="min-width:26px; text-align:center">${d.met?'✓':'…'}</span><div style="flex:1"><div class="t small">${d.key}</div><div class="d">${d.evidence}</div></div></div>`).join('')}
+    <div class="evidence">Efficiency of Practice Environment is where LumaChart is strongest — EHR8, WOW8 and IB-Time8 quantify documentation burden, and Canary + team choreography reduce it. Build the evidence trail on the <b>Action plan</b>, then generate the report.</div>
+    <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap"><button class="btn" data-nav-inline="actions">Action plan →</button><button class="btn primary" data-nav-inline="report">Request data extract report →</button></div>
   </div>`;
 }
 
@@ -1119,7 +1128,7 @@ function vEhr8(){
 }
 
 function vReport(){
-  const a = AMA, met = a.domains.filter(d=>d.met).length;
+  const a = AMA, met = domainsMet();
   return `
   <h1 class="page-title">Joy in Medicine — data extract report</h1>
   <p class="page-sub">One click assembles your submission for the AMA Joy in Medicine Health System Recognition Program — no manual data pull.</p>
@@ -1150,7 +1159,7 @@ function vReport(){
 }
 
 function generateJoyReport(){
-  const a = AMA, met = a.domains.filter(d=>d.met).length, today = new Date().toISOString().slice(0,10);
+  const a = AMA, met = domainsMet(), today = new Date().toISOString().slice(0,10);
   const html = `<!doctype html><html><head><meta charset="utf-8"><title>Joy in Medicine Data Extract Report — ${a.orgName}</title>
 <style>body{font-family:-apple-system,Arial,sans-serif;max-width:820px;margin:32px auto;color:#18262f;padding:0 20px}
 h1{font-size:22px}h2{font-size:15px;margin-top:26px;border-bottom:2px solid #2FB3C6;padding-bottom:4px}
@@ -1167,7 +1176,7 @@ th{background:#f2f8f9}.muted{color:#5d6e79;font-size:12px}.met{color:#2e8b62;fon
 <tr><td>Well-being assessment (within 3 yrs)</td><td>${a.assessmentTool} &mdash; ${a.assessmentDate}</td></tr></table>
 <h2>2 &middot; Recognition domains (${met} of 6 met; 5 required)</h2>
 <table><tr><th>Domain</th><th>Status</th><th>Evidence</th></tr>
-${a.domains.map(d=>`<tr><td>${d.key}</td><td class="${d.met?'met':'pend'}">${d.met?'Met':'In progress'}</td><td>${d.evidence}</td></tr>`).join('')}</table>
+${effectiveDomains().map(d=>`<tr><td>${d.key}</td><td class="${d.met?'met':'pend'}">${d.met?'Met':'In progress'}</td><td>${d.evidence}</td></tr>`).join('')}</table>
 <h2>3 &middot; EHR data extraction (Appendix C)</h2>
 <p class="muted">Minutes per 8 hours of scheduled patient time (not clock time), normalized for part-time FTE.</p>
 <table><tr><th>Specialty</th><th>N</th><th>EHR8</th><th>WOW8</th><th>IB-Time8</th></tr>
@@ -1182,6 +1191,23 @@ ${a.metrics.map(m=>`<tr><td>${m.specialty}</td><td>${m.n}</td><td>${m.ehr8}</td>
   toast("Report generated 📄", "Joy in Medicine data extract downloaded — open it to review or print to PDF, then submit to the AMA.", "green");
 }
 
+function vActions(){
+  const iv = AMA.interventions;
+  const isExec = x => x.status==="executed" || (x.key==="support" && state.supportExecuted);
+  const card = x => `<div class="rowitem">
+    <span class="chip ${isExec(x)?'green':x.status==='in-progress'?'amber':'plain'}">${isExec(x)?'✓ executed':x.status}</span>
+    <div style="flex:1"><div class="t small">${x.t}</div><div class="d">${x.domain}${x.metric!=='—'?' · targets '+x.metric:''} · ${x.impact}</div></div>
+    ${(x.key==="support" && !state.supportExecuted)?`<button class="btn small" id="exec-support">Mark executed</button>`:''}
+  </div>`;
+  const executed = iv.filter(isExec), pending = iv.filter(x=>!isExec(x));
+  return `
+  <h1 class="page-title">Well-being action plan</h1>
+  <p class="page-sub">Measurement → intervention → recognition. Only <b>executed</b> activities count toward AMA recognition — this is your evidence trail.</p>
+  <div class="card"><h3>Executed <span class="chip green">${executed.length}</span></h3>${executed.map(card).join('')}</div>
+  ${pending.length?`<div class="section-gap"></div><div class="card"><h3>Planned / in progress</h3>${pending.map(card).join('')}<div class="tiny" style="margin-top:8px">Executing the peer-support program completes the Support domain — moving you from 5 of 6 to 6 of 6.</div></div>`:''}
+  ${state.supportExecuted?`<div class="evidence" style="margin-top:16px">All six domains now carry executed evidence — you're positioned to apply at a higher level. Regenerate the data extract report to include it.</div>`:''}`;
+}
+
 /* ==========================================================================
    RENDER + WIRING
    ========================================================================== */
@@ -1189,7 +1215,7 @@ const VIEWS = {
   clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, billing:vBilling, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, synthesis:vSynthesis, roadmap:vRoadmap },
-  cwo:{ joy:vJoy, ehr8:vEhr8, report:vReport },
+  cwo:{ joy:vJoy, ehr8:vEhr8, actions:vActions, report:vReport },
 };
 
 function render(){
@@ -1251,6 +1277,7 @@ function wireView(){
   // --- Joy in Medicine data extract report ---
   const gjr = $("#gen-joy-report"); if (gjr) gjr.addEventListener("click", generateJoyReport);
   const sjr = $("#submit-joy-report"); if (sjr) sjr.addEventListener("click", () => toast("Submitted to AMA portal", `${AMA.orgName}'s ${AMA.applyingFor} application data extract was routed to the AMA Joy in Medicine application portal. You'll be notified of the review outcome.`, "green"));
+  const es = $("#exec-support"); if (es) es.addEventListener("click", () => { state.supportExecuted = true; store.set("supportExecuted", true); render(); toast("Intervention executed 🎯", "Peer-support program launched — the Support domain is now met (6 of 6). Your report reflects it.", "green"); });
   const note = $("#lean-note");
   if (note){
     const count = () => { $("#note-count").textContent = `${note.value.trim().split(/\s+/).length} words — lean and clinical`; };

@@ -580,4 +580,14 @@ const AMA = {
     { key:"Teamwork",   met:true,  evidence:"Team-based 'care choreography' — shared inbox, standing orders, scribe-assisted documentation." },
     { key:"Support",    met:false, evidence:"Wellness Center + peer support in place; formal peer-support program build in progress." },
   ],
+  // Evidence trail: the program credits EXECUTED interventions only. Each links a
+  // metric/domain to a concrete action.
+  interventions: [
+    { t:"Lean clinical notes decoupled from billing", domain:"Efficiency of Practice Environment", metric:"EHR8", status:"executed", impact:"Notes ~38% shorter than the national average" },
+    { t:"Inbox pooling & protocol-based delegation", domain:"Efficiency of Practice Environment", metric:"IB-Time8", status:"executed", impact:"Protocol items routed off the physician inbox" },
+    { t:"Team documentation (APEX-style) & scribes", domain:"Teamwork", metric:"WOW8", status:"executed", impact:"Cuts after-hours 'pajama time'" },
+    { t:"Canary private after-hours monitoring & nudges", domain:"Assessment", metric:"WOW8", status:"executed", impact:"De-identified early warning; never used for productivity" },
+    { t:"Annual well-being assessment (Organizational Biopsy)", domain:"Assessment", metric:"—", status:"executed", impact:"Meets the within-3-years assessment entry criterion" },
+    { t:"Formal peer-support program", domain:"Support", metric:"—", status:"planned", key:"support", impact:"Executing this completes the Support domain (6 of 6)" },
+  ],
 };
