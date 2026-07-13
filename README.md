@@ -23,7 +23,9 @@ One architecture, the whole **Quadruple Aim** (Bodenheimer & Sinsky 2014, PMID 2
 |---|---|
 | **[docs/LumaChart-Planning.pdf](docs/LumaChart-Planning.pdf)** | The planning document — vision, full evidence base, Canary engine, three pillars, ONC/HIPAA/IRB gates, build-vs-buy. Every PMID is a clickable PubMed link. |
 | **[docs/INTEROPERABILITY-PLAN.md](docs/INTEROPERABILITY-PLAN.md)** | The compliance plan — USCDI v3.1 regulatory baseline (USCDI v6 / US Core 9.0.0 / C-CDA 5.0.0 via the 2026 SVAP), a full USCDI data-class → LumaChart feature → FHIR resource mapping, a phased plan to §170.315(g)(10) certification, and a 2026-Standards-for-Approval checklist. Sourced from healthit.gov primary documents; unverified items flagged. |
-| **Interactive prototype** | `index.html` + `luma.css` + `data.js` + `app.js`. Dependency-free — open `index.html` in any browser, or `python3 -m http.server`. |
+| **[docs/ONC-CERTIFICATION-ROADMAP.md](docs/ONC-CERTIFICATION-ROADMAP.md)** | The requirements-complete plan — **every** ONC §170.315 (a)–(h) certification criterion mapped to LumaChart's status (prototype / partial / partner / gap / exceeds-floor) with a five-phase path to a certifiable module. |
+| **[docs/BILLING-AND-CLEARINGHOUSE-PLAN.md](docs/BILLING-AND-CLEARINGHOUSE-PLAN.md)** | The revenue-cycle plan — undercoding fix, the billing agent, and the Puerto Rico ICD-9 clearinghouse bridge. |
+| **Interactive prototype** | `index.html` + `luma.css` + `data.js` + `app.js`. Dependency-free — open `index.html` in any browser, or `python3 -m http.server`. Roles: Clinician · Patient · Researcher · **CWO** (Chief Wellness Officer). |
 
 ## Prototype highlights
 
