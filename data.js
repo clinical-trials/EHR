@@ -640,3 +640,126 @@ const COMPETE = {
     { v:"DrChrono", market:"Solo & very small practices", standout:"iPad-native, mobile-first; patient check-in on a tablet.", take:"We built the iPad check-in — and made it pre-load the chart, the claim, and evidence-based prevention." },
   ],
 };
+
+/* ---------- Research directory (real, publicly-funded projects) ----------
+   Shown to illustrate the equity / precision-medicine research the consented
+   public-health layer is designed to support. These teams do NOT use this
+   prototype; titles are public and attributed to their institutions. */
+const RESEARCH_PROJECTS = [
+  { pi:"Deborah Adeyemi", org:"UC San Francisco", t:"Characterizing variation in postpartum readmission risk among Black women using intersectional and Bayesian approaches" },
+  { pi:"Isaac Bouchard", org:"UC San Diego", t:"Chronic-disease disparities via representative generative AI and culturally responsive, whole-person precision-medicine tools" },
+  { pi:"Fanying Chen", org:"UC Irvine", t:"PROACTIVE — patient-reported-outcome- and AI-informed proactive screening to reduce disparities in a majority-minority cancer population" },
+  { pi:"Tracy Chidyausiku", org:"Stanford University", t:"Integrating citizen-generated lived-experience data with EHRs for representative precision diabetes prevention in low-income older adults" },
+  { pi:"Amber Keith", org:"UC Riverside", t:"Data-driven immune biomarkers to diagnose and prevent pancreatic cancer in African Americans" },
+  { pi:"Nikita Mohapatra", org:"UC Davis", t:"How cumulative social and environmental stress shapes recovery after traumatic brain injury" },
+  { pi:"Joseph Morrison", org:"UC Davis", t:"After the Break — X-rays and machine learning to catch bone-healing problems sooner" },
+  { pi:"Sima Naderi", org:"UC San Francisco", t:"Improving cervical-cancer prevention and screening through precision medicine for Afghan adolescent girls and women in California" },
+  { pi:"Sujin Park", org:"UC San Diego", t:"Precision-fMRI-guided biomarkers of Tourette syndrome in youth" },
+  { pi:"Nanase Toda", org:"UC San Francisco", t:"Contributors to drug-induced angioedema via genomics, transcriptomics, and social determinants" },
+  { pi:"Julia Ellen Trudeau", org:"UC Irvine", t:"PRECISION-COG — precision biomarkers of cancer-related cognitive impairment in racially/ethnically diverse breast-cancer patients" },
+];
+
+/* ---------- Security, SAFER, cloud vs local, readiness, contracts ----------
+   Summarized from ONC/ASTP healthit.gov guidance (SAFER Guides; API privacy &
+   security; "EHR Contracts Untangled"). Sources listed in each view. */
+const TRUST = {
+  hipaa: [
+    { t:"Encryption", d:"PHI encrypted in transit (TLS) and at rest." },
+    { t:"Access control (RBAC)", d:"Least-privilege roles; unique user IDs." },
+    { t:"Multi-factor authentication", d:"MFA for clinician and admin access." },
+    { t:"Audit trails & Provenance", d:"Every access and change logged and attributable." },
+    { t:"Automatic time-out", d:"Sessions lock after inactivity (Canary already models session awareness)." },
+    { t:"Break-the-glass", d:"Emergency access with heightened logging." },
+    { t:"Business Associate Agreement", d:"Signed BAA with every vendor touching PHI." },
+    { t:"Breach response", d:"Documented detection, notification (HIPAA Breach Rule), and remediation plan." },
+  ],
+  saferGuides: [
+    "High Priority Practices", "Organizational Responsibilities",
+    "Contingency Planning", "System Configuration", "System Interfaces",
+    "Patient Identification", "CPOE with Decision Support",
+    "Test Results Reporting & Follow-up", "Clinician Communication",
+  ],
+  saferHighPriority: [
+    "Reliable test-result reporting with tracked follow-up (no result falls through the cracks)",
+    "Accurate patient identification to prevent wrong-patient errors",
+    "Safe CPOE with active drug-drug / drug-allergy decision support",
+    "Downtime & contingency plans so care continues if the system is unavailable",
+    "Feedback & reporting channels for clinicians to flag EHR safety hazards",
+  ],
+  saferUrl: "https://www.healthit.gov/topic/safety/safer-guides",
+  apiPrivacyUrl: "https://www.healthit.gov/sites/default/files/page/2021-04/Privacy-and-Security-Guide.pdf",
+  cloud: {
+    benefits: ["Lower upfront hardware & software cost","Lower ongoing maintenance","Start small, scale IT as you grow","Higher service availability than in-house IT","Fewer run-time failures (freezes, slowness)"],
+    challenges: ["Data-security responsibility is shared with the vendor","Less direct data access/control than local hosting"],
+  },
+  local: {
+    benefits: ["Less dependence on high-speed internet","No outside org holds your patients' data"],
+    challenges: ["You secure the servers physically","You run regular backups","You buy & maintain the equipment"],
+  },
+  readiness: [
+    { k:"Readiness", q:"Our organization is ready to change workflows for an EHR." },
+    { k:"Personnel eagerness", q:"Our staff are eager (not resistant) to adopt new tools." },
+    { k:"A champion", q:"We have someone to champion the rollout day-to-day." },
+    { k:"Stakeholder buy-in", q:"Leaders and clinicians see the EHR as genuinely useful." },
+    { k:"Teamwork", q:"We work well as a team through change." },
+  ],
+  contractsUrl: "https://www.healthit.gov/sites/default/files/2025-03/EHR_Contracts_Untangled.pdf",
+  contracts: [
+    { t:"Service level agreement (SLA)", d:"Uptime %, support response times, and remedies in writing." },
+    { t:"Data ownership & export", d:"You own your data; guaranteed export in standard formats (EHI export / FHIR) at any time and at exit." },
+    { t:"Business Associate Agreement", d:"HIPAA BAA covering the vendor and its subcontractors." },
+    { t:"Security & breach obligations", d:"Vendor's safeguards, breach-notification timelines, and audit rights." },
+    { t:"Pricing & fees", d:"All-in pricing: implementation, interfaces, support, and any per-transaction fees named up front." },
+    { t:"Interoperability & no information-blocking", d:"Standards-based interfaces; no practices that would constitute information blocking." },
+    { t:"Termination & transition", d:"Exit terms, data migration assistance, and no hostage data." },
+  ],
+};
+
+/* ---------- Practice revenue & analytics (demo figures) ---------- */
+const ANALYTICS = {
+  kpis: [
+    { t:"Payments collected (MTD)", v:"$184,320", d:"+8% vs last month", tone:"green" },
+    { t:"Clean-claim rate", v:"96.4%", d:"first-pass acceptance", tone:"green" },
+    { t:"Denial rate", v:"4.1%", d:"down from 7.8% with agent-assisted coding", tone:"green" },
+    { t:"Days in A/R", v:"29", d:"target < 35", tone:"green" },
+  ],
+  claims: { submitted:428, paid:391, pending:22, denied:15 },
+  arAging: [ { b:"0–30", pct:62 }, { b:"31–60", pct:23 }, { b:"61–90", pct:9 }, { b:"90+", pct:6 } ],
+  office: [ { t:"Visits (MTD)", v:"1,284" }, { t:"No-show rate", v:"6.2%" }, { t:"Avg reimbursement / visit", v:"$143" }, { t:"Prevention gaps closed", v:"312" } ],
+  revenue12: [120,128,132,141,138,150,146,158,162,170,176,184], // $k/month collected
+  automations: [
+    { t:"Claim tracking", d:"Every claim is auto-tracked from submit → 835 remittance; exceptions surface as tasks." },
+    { t:"Follow-up tasks", d:"Denials and no-shows auto-generate worklist tasks with an owner and due date." },
+    { t:"Charting & intake", d:"iPad check-in pre-loads the chart; the agent drafts codes for one-tap sign-off." },
+  ],
+};
+
+/* ---------- Patient digital payments (demo) ---------- */
+const PAYMENTS = {
+  balance: 42.00,
+  methods: "Card, HSA/FSA, Apple Pay / Google Pay",
+  statements: [
+    { date:"Jul 2", desc:"Office visit 07/01 — patient responsibility after insurance", amt:42.00, status:"due" },
+    { date:"May 8", desc:"Lab work — patient responsibility after insurance", amt:18.00, status:"paid" },
+  ],
+};
+
+/* ---------- Plans & long-term value ----------
+   Pricing MODEL only (free-to-start / trial / custom) — no fabricated dollar
+   figures. Long-term value, not a feature checklist, is the buying decision. */
+const PLANS = {
+  tiers: [
+    { name:"Solo", price:"$0", per:"free to start", for:"Solo & very small practices",
+      feats:["Cloud EHR + patient portal","Evidence-based prevention & screening","Agent-assisted coding","Community support"], cta:"Start free" },
+    { name:"Practice", price:"30-day", per:"free trial, then flexible per-provider pricing", for:"Small–mid practices", featured:true,
+      feats:["Everything in Solo","Revenue analytics & reporting","Digital patient payments","Interoperability: labs, e-Rx, eligibility","Priority support"], cta:"Start free trial" },
+    { name:"Enterprise", price:"Custom", per:"per site", for:"Health systems & hospitals",
+      feats:["Everything in Practice","Inpatient + enterprise integration","TEFCA / QHIN nationwide exchange","CWO well-being suite","Dedicated success + signed BAA"], cta:"Talk to us" },
+  ],
+  value: [
+    { t:"Free trial & flexible pricing", d:"$0 to start for small practices, a 30-day trial on Practice, and transparent per-provider pricing that scales with you — not a big up-front license." },
+    { t:"Cloud-based access", d:"Secure access from any location, any device; no servers to buy or maintain — lower total cost of ownership over the life of the practice." },
+    { t:"Compliance & security", d:"HIPAA-aligned by design: encryption in transit & at rest, audit trails, role-based access, MFA, and a signed Business Associate Agreement. (Formal SOC 2 + ONC certification are on the roadmap.)" },
+    { t:"Future-ready technology", d:"Evidence-linked decision support, workflow automation, and revenue analytics that get more valuable as guidelines update and the consented research network grows." },
+  ],
+};

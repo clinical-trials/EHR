@@ -30,6 +30,9 @@ const state = {
   cmeReqIdx: store.get("cmeReqIdx", 0),  // selected state requirement (default Puerto Rico)
   cmeBooked: store.get("cmeBooked", {}), // booked CME programs
   supportExecuted: store.get("supportExecuted", false), // AMA Support-domain intervention executed
+  billPaid:  store.get("billPaid", false),   // patient digital payment
+  irb:       store.get("irb", {}),           // research study IRB approvals
+  readiness: {},                             // implementation readiness self-assessment
 };
 
 /* ---------- evidence helpers — every PMID links straight to PubMed ---------- */
@@ -107,6 +110,7 @@ const NAVS = {
       { id:"chart",     ic:"▤", t:"Patient chart" },
       { id:"inbox",     ic:"✉", t:"Inbox", badge:() => INBOX.length },
       { id:"billing",   ic:"⛁", t:"Encounter & claim" },
+      { id:"analytics", ic:"📊", t:"Revenue & analytics" },
     ]},
     { label:"Professional", items:[
       { id:"cme",       ic:"🎓", t:"CME & licensure", badge:() => cmeDueBadge() },
@@ -119,7 +123,12 @@ const NAVS = {
       { id:"synthesis",  ic:"◎", t:"Physician health × Interop" },
       { id:"enterprise", ic:"🏛", t:"Enterprise & exchange" },
       { id:"compete",    ic:"◆", t:"Best ideas, improved" },
+      { id:"plans",      ic:"◈", t:"Plans & value" },
       { id:"roadmap",    ic:"⛭", t:"Roadmap & gates" },
+    ]},
+    { label:"Trust & deploy", items:[
+      { id:"security",   ic:"🔒", t:"Security & SAFER" },
+      { id:"readiness",  ic:"✓", t:"Readiness & contracts" },
     ]},
   ],
   patient: [
@@ -128,6 +137,7 @@ const NAVS = {
       { id:"home",      ic:"✚", t:"Healthspan home" },
       { id:"plan",      ic:"◷", t:"Prevention plan", badge:() => PREVENTION_PLAN.filter(p=>p.status==="due" && !state.scheduled[p.t]).length || null },
       { id:"screenings",ic:"✎", t:"Screenings & questionnaires" },
+      { id:"payments",  ic:"💳", t:"Billing & payments" },
       { id:"myplan",    ic:"☑", t:"My care plan" },
       { id:"longevity", ic:"↗", t:"Longevity tracker" },
       { id:"consent",   ic:"✔", t:"Research & consent" },
@@ -866,35 +876,49 @@ function vConsent(){
    ========================================================================== */
 function vConsole(){
   const r = RESEARCH;
+  const irbOk = i => !!state.irb[i];
+  const approved = r.studies.filter((_,i)=>irbOk(i)).length;
+  const anyApproved = approved > 0;
   return `
   <h1 class="page-title">Public-health research console</h1>
-  <p class="page-sub">Prospective, consented, de-identified — the population layer the National Academy of Medicine called for.</p>
+  <p class="page-sub">Prospective, consented, de-identified — the population layer the National Academy of Medicine called for. Nothing leaves without IRB approval.</p>
 
   <div class="grid g3">
     <div class="card"><div class="metric"><div class="v">${r.consented.toLocaleString()}</div><div class="l">consented participants</div></div>
       <div class="bar" style="margin-top:10px"><i class="green" style="width:${r.consented/r.total*100}%"></i></div>
       <div class="tiny" style="margin-top:6px">${(r.consented/r.total*100).toFixed(1)}% of ${r.total.toLocaleString()} patients — consent is explicit &amp; revocable.</div></div>
-    <div class="card"><div class="metric"><div class="v">2</div><div class="l">active prospective studies</div></div>
-      <div class="tiny" style="margin-top:10px">Leaner, structured records make research-grade data a by-product of care — "better use for research."${ev("downing")}</div></div>
+    <div class="card"><div class="metric"><div class="v">${approved}/${r.studies.length}</div><div class="l">studies IRB-approved</div></div>
+      <div class="tiny" style="margin-top:10px">Cohort export unlocks only after Institutional Review Board approval.</div></div>
     <div class="card"><div class="metric"><div class="v">100%</div><div class="l">queries audit-logged</div></div>
-      <div class="tiny" style="margin-top:10px">Every cohort query is recorded and reviewable.</div></div>
+      <div class="tiny" style="margin-top:10px">Every cohort query is recorded, attributable, and reviewable.</div></div>
   </div>
   <div class="section-gap"></div>
 
   <div class="grid g2">
     <div class="card">
-      <h3>Active studies</h3>
-      ${r.studies.map(s=>`
+      <h3>Active studies · IRB review</h3>
+      ${r.studies.map((s,i)=>`
         <div class="rowitem"><div style="flex:1"><div class="t small">${s.t}</div><div class="d">${s.d}</div>
-        <div class="tiny" style="margin-top:3px">${s.n}</div></div><span class="chip accent">${s.status}</span></div>`).join("")}
+        <div class="tiny" style="margin-top:3px">${s.n}</div></div>
+        ${irbOk(i)?`<span class="chip green">✓ IRB approved</span>`:`<button class="btn small" data-irb="${i}">Submit for IRB</button>`}</div>`).join("")}
+      <div class="evidence">IRB approval is an ethics gate for human-subjects research — required before any cohort is exported, not a formality. LumaChart makes the submission one click and tracks the status here.</div>
     </div>
     <div class="card">
       <h3>Privacy guardrails <span class="chip green">enforced</span></h3>
       ${r.guardrails.map(g=>`<div class="rowitem"><div class="d">🔒 ${g}</div></div>`).join("")}
       <div class="divider"></div>
-      <button class="btn" disabled style="opacity:.55; cursor:not-allowed">Export cohort — requires IRB approval</button>
+      ${anyApproved
+        ? `<button class="btn primary" id="export-cohort">Export de-identified cohort ✓ IRB-approved</button>`
+        : `<button class="btn" disabled style="opacity:.55; cursor:not-allowed">Export cohort — requires IRB approval</button>`}
       <div class="tiny" style="margin-top:6px">Honest by design: no export path exists without an approved protocol.</div>
     </div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card">
+    <h3>Research directory <span class="chip plain">${RESEARCH_PROJECTS.length} projects</span></h3>
+    <p class="small muted" style="margin:0 0 8px">Equity &amp; precision-medicine research the consented public-health layer is built to support. Publicly-funded projects shown for illustration — these teams do not use this prototype.</p>
+    ${RESEARCH_PROJECTS.map(p=>`<div class="rowitem"><div style="flex:1"><div class="t small">${p.t}</div><div class="d">${p.pi} · ${p.org}</div></div></div>`).join("")}
   </div>`;
 }
 
@@ -1279,11 +1303,140 @@ function vCompete(){
 }
 
 /* ==========================================================================
+   PRACTICE — revenue & analytics, digital payments, plans & value
+   ========================================================================== */
+function vAnalytics(){
+  const a = ANALYTICS, maxR = Math.max(...a.revenue12);
+  return `
+  <h1 class="page-title">Revenue &amp; analytics</h1>
+  <p class="page-sub">Payments, claims, and office performance in one place — so the practice runs on numbers, not guesswork.</p>
+  <div class="grid g2">
+    ${a.kpis.map(k=>`<div class="card"><div class="metric"><div class="v" style="color:var(--${k.tone==='green'?'green':'accent'})">${k.v}</div><div class="l">${k.t}</div></div><div class="tiny" style="margin-top:4px">${k.d}</div></div>`).join('')}
+  </div>
+  <div class="section-gap"></div>
+  <div class="grid g2">
+    <div class="card"><h3>Revenue trend (12 mo)</h3><div class="sparkrow">${a.revenue12.map(v=>`<i style="height:${Math.round(v/maxR*100)}%"></i>`).join('')}</div><div class="tiny" style="margin-top:6px">Monthly collected ($k), trending up.</div></div>
+    <div class="card"><h3>Claims this month</h3>
+      <div class="rowitem"><div style="flex:1" class="small">Submitted</div><b>${a.claims.submitted}</b></div>
+      <div class="rowitem"><div style="flex:1" class="small" style="color:var(--green)">Paid</div><b style="color:var(--green)">${a.claims.paid}</b></div>
+      <div class="rowitem"><div style="flex:1" class="small">Pending</div><b style="color:var(--amber)">${a.claims.pending}</b></div>
+      <div class="rowitem"><div style="flex:1" class="small">Denied <span class="tiny">— auto-routed to follow-up</span></div><b style="color:var(--red)">${a.claims.denied}</b></div>
+    </div>
+  </div>
+  <div class="section-gap"></div>
+  <div class="grid g2">
+    <div class="card"><h3>A/R aging</h3>${a.arAging.map(x=>`<div class="small muted" style="margin-bottom:6px">${x.b} days · <b>${x.pct}%</b><div class="bar" style="margin-top:3px"><i class="${x.b==='90+'?'red':x.b==='61–90'?'amber':'green'}" style="width:${x.pct}%"></i></div></div>`).join('')}</div>
+    <div class="card"><h3>Office performance</h3>${a.office.map(o=>`<div class="rowitem"><div style="flex:1" class="small">${o.t}</div><b>${o.v}</b></div>`).join('')}</div>
+  </div>
+  <div class="section-gap"></div>
+  <div class="card"><h3>Automated workflow <span class="chip green">saves clicks</span></h3>${a.automations.map(x=>`<div class="rowitem"><span class="chip green">auto</span><div style="flex:1"><div class="t small">${x.t}</div><div class="d">${x.d}</div></div></div>`).join('')}</div>`;
+}
+
+function vPayments(){
+  const p = PAYMENTS, paid = state.billPaid, bal = paid ? 0 : p.balance;
+  return `
+  <h1 class="page-title">Billing &amp; payments</h1>
+  <p class="page-sub">See what you owe after insurance, and pay online in a tap — card, HSA/FSA, or Apple/Google Pay.</p>
+  <div class="grid g32">
+    <div class="card" style="display:flex; align-items:center; gap:20px">
+      <div class="metric"><div class="v" style="color:${bal>0?'var(--amber)':'var(--green)'}">$${bal.toFixed(2)}</div><div class="l">current balance</div></div>
+      ${bal>0?`<button class="btn primary" id="pay-now">Pay $${bal.toFixed(2)} now</button>`:`<span class="chip green">Paid in full 🎉</span>`}
+    </div>
+    <div class="card"><h3>Payment methods</h3><p class="small muted" style="margin:0">${p.methods}. Set up autopay or a payment plan any time — no surprises.</p></div>
+  </div>
+  <div class="section-gap"></div>
+  <div class="card"><h3>Statements</h3>
+    ${p.statements.map(s=>{ const isPaid = s.status==='paid' || (s.status==='due' && paid);
+      return `<div class="rowitem"><div style="flex:1"><div class="t small">${s.desc}</div><div class="d">${s.date}</div></div><span class="chip ${isPaid?'green':'amber'}">${isPaid?'paid':'due'} · $${s.amt.toFixed(2)}</span></div>`; }).join('')}
+  </div>`;
+}
+
+function vPlans(){
+  const p = PLANS;
+  return `
+  <h1 class="page-title">Plans &amp; long-term value</h1>
+  <p class="page-sub">Doctors and health systems buy value over years, not a checklist of features. Here's the long-term case.</p>
+  <div class="grid g3">
+    ${p.tiers.map(t=>`<div class="card" style="${t.featured?'border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent)':''}">
+      <h3>${t.name} ${t.featured?'<span class="chip accent">popular</span>':''}</h3>
+      <div class="metric"><div class="v">${t.price}</div><div class="l">${t.per}</div></div>
+      <div class="tiny" style="margin:6px 0 8px">${t.for}</div>
+      ${t.feats.map(f=>`<div class="small muted">✓ ${f}</div>`).join('')}
+      <button class="btn ${t.featured?'primary':''}" style="margin-top:12px">${t.cta}</button>
+    </div>`).join('')}
+  </div>
+  <div class="tiny" style="margin:8px 0 0">Illustrative pricing model — free to start for small practices, a 30-day trial, custom enterprise terms.</div>
+  <div class="section-gap"></div>
+  <div class="grid g2">
+    ${p.value.map(v=>`<div class="card"><h3>${v.t}</h3><p class="small muted" style="margin:0">${v.d}</p></div>`).join('')}
+  </div>
+  <div class="banner" style="margin-top:16px; background:linear-gradient(100deg,var(--accent-soft),var(--surface2)); border:1px solid var(--line-strong); color:var(--text)">
+    <h3 style="color:var(--text)">Why the value compounds</h3>
+    <p style="color:var(--text-2)">A feature list is copied in a quarter. An <b>evidence-based record</b> gets better every time guidelines update, every time the consented research network grows, and every time it prevents a denial or an after-hours hour. That is long-term value — see <b>docs/PLANS-AND-VALUE.md</b>.</p>
+  </div>`;
+}
+
+/* ==========================================================================
+   TRUST & DEPLOYMENT — security/SAFER, readiness & contracts
+   ========================================================================== */
+function vSecurity(){
+  const t = TRUST;
+  return `
+  <h1 class="page-title">Security &amp; patient-data protection</h1>
+  <p class="page-sub">Protecting health information is the foundation, not a bolt-on: HIPAA safeguards, ONC SAFER safety practices, and a clear hosting choice.</p>
+
+  <div class="grid g2">
+    <div class="card"><h3>HIPAA safeguards <span class="chip green">by design</span></h3>
+      ${t.hipaa.map(h=>`<div class="rowitem"><span class="chip green">✓</span><div style="flex:1"><div class="t small">${h.t}</div><div class="d">${h.d}</div></div></div>`).join('')}
+    </div>
+    <div class="card"><h3>ONC SAFER — high-priority safety practices</h3>
+      ${t.saferHighPriority.map(s=>`<div class="rowitem"><span class="chip accent">▲</span><div class="d" style="flex:1">${s}</div></div>`).join('')}
+      <div class="tiny" style="margin-top:8px">Nine SAFER Guides in all: ${t.saferGuides.join(' · ')}. <a class="pmid" href="${t.saferUrl}" target="_blank" rel="noopener" style="text-indent:0">SAFER Guides ↗</a></div>
+    </div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card"><h3>Cloud vs. locally hosted — choose with eyes open</h3>
+    <div class="tablewrap"><table class="reg">
+      <tr><th></th><th>☁️ Cloud-based</th><th>🏢 Locally hosted</th></tr>
+      <tr><td class="cap">Benefits</td><td>${t.cloud.benefits.map(b=>'• '+b).join('<br>')}</td><td>${t.local.benefits.map(b=>'• '+b).join('<br>')}</td></tr>
+      <tr><td class="cap">Challenges</td><td>${t.cloud.challenges.map(b=>'• '+b).join('<br>')}</td><td>${t.local.challenges.map(b=>'• '+b).join('<br>')}</td></tr>
+    </table></div>
+    <div class="evidence">LumaChart is cloud-native (lower cost, higher availability), so data-security responsibility is <b>shared</b> with the vendor — always backed by a signed BAA, an SLA, and ongoing monitoring. <a class="pmid" href="${t.apiPrivacyUrl}" target="_blank" rel="noopener" style="text-indent:0">API privacy &amp; security ↗</a></div>
+  </div>`;
+}
+
+function vReadiness(){
+  const t = TRUST;
+  const answered = t.readiness.filter((_,i)=>state.readiness[i]).length;
+  const pct = Math.round(answered/t.readiness.length*100);
+  return `
+  <h1 class="page-title">Readiness &amp; contracts</h1>
+  <p class="page-sub">Implementation succeeds on people and paperwork, not just software. A 60-second readiness check and the contract terms that protect you.</p>
+
+  <div class="grid g32">
+    <div class="card"><h3>Implementation readiness self-check</h3>
+      ${t.readiness.map((x,i)=>`<label class="rowitem" style="cursor:pointer"><input type="checkbox" class="task-check rd-item" data-i="${i}" ${state.readiness[i]?'checked':''}><div style="flex:1"><div class="t small">${x.k}</div><div class="d">${x.q}</div></div></label>`).join('')}
+      <div class="tiny" style="margin-top:6px">Plan for both the <b>initial</b> and the <b>ongoing</b> effects on your practice.</div>
+    </div>
+    <div class="card" style="display:flex; align-items:center; justify-content:center">
+      <div class="ring" style="--p:${pct}; --ring-color:${pct>=80?'var(--green)':pct>=40?'var(--amber)':'var(--red)'}"><div><b>${answered}/${t.readiness.length}</b><span>ready</span></div></div>
+    </div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card"><h3>EHR contract checklist <span class="chip plain">before you sign</span></h3>
+    ${t.contracts.map(c=>`<div class="rowitem"><span class="chip accent">§</span><div style="flex:1"><div class="t small">${c.t}</div><div class="d">${c.d}</div></div></div>`).join('')}
+    <div class="tiny" style="margin-top:8px">Reduce your risk: put SLAs and data-export rights in writing, and monitor on an ongoing basis. <a class="pmid" href="${t.contractsUrl}" target="_blank" rel="noopener" style="text-indent:0">EHR Contracts Untangled ↗</a></div>
+  </div>`;
+}
+
+/* ==========================================================================
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, billing:vBilling, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, compete:vCompete, roadmap:vRoadmap },
-  patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
+  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
+  patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, payments:vPayments, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, actions:vActions, report:vReport },
 };
@@ -1343,6 +1496,16 @@ function wireView(){
     toast("CME booked 🎓", `${c.title} — ${c.credits} credits${c.cost?`, $${c.cost}`:""}. Dates held and credits logged.${c.kind==="destination"?" Travel plan started.":""}`, "green");
   }));
   $$("[data-cme-cancel]").forEach(b => b.addEventListener("click", () => { delete state.cmeBooked[b.dataset.cmeCancel]; store.set("cmeBooked", state.cmeBooked); render(); }));
+
+  // --- digital payment ---
+  const pn = $("#pay-now"); if (pn) pn.addEventListener("click", () => { state.billPaid = true; store.set("billPaid", true); render(); toast("Payment received ✓", "Thanks! Your balance is paid in full. A receipt is in your portal.", "green"); });
+
+  // --- research: IRB + cohort export ---
+  $$("[data-irb]").forEach(b => b.addEventListener("click", () => { state.irb[b.dataset.irb] = true; store.set("irb", state.irb); render(); toast("IRB approved ✓", "Protocol cleared by the Institutional Review Board. Cohort export is now unlocked for this study.", "green"); }));
+  const ex = $("#export-cohort"); if (ex) ex.addEventListener("click", () => toast("Cohort exported", "De-identified, small-cells suppressed, and fully audit-logged — delivered to the approved protocol.", "green"));
+
+  // --- implementation readiness self-check ---
+  $$(".rd-item").forEach(c => c.addEventListener("change", () => { state.readiness[c.dataset.i] = c.checked; render(); }));
 
   // --- Joy in Medicine data extract report ---
   const gjr = $("#gen-joy-report"); if (gjr) gjr.addEventListener("click", generateJoyReport);
