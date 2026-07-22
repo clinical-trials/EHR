@@ -205,6 +205,11 @@ function vDashboard(){
 
     <div style="display:flex; flex-direction:column; gap:16px">
       <div class="card">
+        <h3><span class="spark">🌙</span> After-hours EHR load</h3>
+        <div class="metric"><div class="v">1.4 <span style="font-size:15px">hr/day</span></div><div class="l">national average "pajama time" in the EHR for primary care${ev("arndt")}</div></div>
+        <div class="tiny" style="margin-top:8px">Your last 14 days: <b>${Math.round(PAJAMA_14D.reduce((a,b)=>a+b,0)/PAJAMA_14D.length)} min/day</b> average · yesterday <b>${PAJAMA_14D[PAJAMA_14D.length-1]} min</b> <span style="color:var(--green)">↓ trending down</span></div>
+      </div>
+      <div class="card">
         <h3><span class="spark">◈</span> Your pinned metrics
           <button class="btn ghost small" id="customize-metrics" style="margin-left:auto">⚙ Customize</button></h3>
         ${pinned.length ? pinned.map(metricTile).join("") : `<div class="small muted">No metrics pinned — hit Customize.</div>`}
