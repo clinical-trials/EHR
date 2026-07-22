@@ -30,6 +30,7 @@ const state = {
   cmeReqIdx: store.get("cmeReqIdx", 0),  // selected state requirement (default Puerto Rico)
   cmeBooked: store.get("cmeBooked", {}), // booked CME programs
   supportExecuted: store.get("supportExecuted", false), // AMA Support-domain intervention executed
+  chwAssigned: store.get("chwAssigned", {}),            // readmission CHW follow-up assignments
   billPaid:  store.get("billPaid", false),   // patient digital payment
   irb:       store.get("irb", {}),           // research study IRB status: 'review' | 'approved'
   irbBoard:  store.get("irbBoard", "institutional"), // selected IRB of record
@@ -112,6 +113,7 @@ const NAVS = {
       { id:"dashboard", ic:"▦", t:"Today" },
       { id:"chart",     ic:"▤", t:"Patient chart" },
       { id:"inbox",     ic:"✉", t:"Inbox", badge:() => INBOX.length },
+      { id:"readmit",   ic:"⤾", t:"Readmission risk", badge:() => READMIT.patients.filter((p,i)=>p.risk==="High" && !state.chwAssigned[i]).length || null },
       { id:"billing",   ic:"⛁", t:"Encounter & claim" },
       { id:"analytics", ic:"📊", t:"Revenue & analytics" },
     ]},
@@ -1339,6 +1341,52 @@ function vCompete(){
 }
 
 /* ==========================================================================
+   READMISSION PREDICTIVE ANALYTICS — predict → trigger CHW follow-up
+   ========================================================================== */
+function vReadmit(){
+  const pts = READMIT.patients;
+  const high = pts.filter(p=>p.risk==="High").length;
+  const assigned = pts.filter((p,i)=>state.chwAssigned[i]).length;
+  const tone = r => r==="High"?"red":r==="Moderate"?"amber":"green";
+  return `
+  <h1 class="page-title">Readmission risk</h1>
+  <p class="page-sub">Predict who's likely to come back — using clinical <i>and</i> social data — and act with a follow-up that's proven to work.</p>
+
+  <div class="grid g3">
+    <div class="card"><div class="metric"><div class="v" style="color:var(--red)">${high}</div><div class="l">high-risk after discharge</div></div></div>
+    <div class="card"><div class="metric"><div class="v" style="color:var(--green)">${assigned}</div><div class="l">community health worker assigned</div></div></div>
+    <div class="card"><div class="metric"><div class="v">RCT</div><div class="l">CHW follow-up cut hospitalization in randomized trials${ev("kangovi18")}</div></div></div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card">
+    <h3>Discharged patients — risk-stratified <span class="chip plain">LACE + SDOH</span></h3>
+    ${pts.map((p,i)=>`
+      <div class="plan-item">
+        <span class="chip ${tone(p.risk)}" style="min-width:96px; text-align:center">${p.risk} · ${p.pct}%</span>
+        <div class="pi-body">
+          <div class="pi-what">${p.name} <span class="tiny">· ${p.age} · ${p.dx} · LACE ${p.lace}</span></div>
+          <div class="pi-why"><b>Clinical:</b> ${p.clinical.join(", ")}</div>
+          <div class="pi-why" style="color:var(--text-3)"><b>Social (SDOH):</b> ${p.social.join(", ")}</div>
+        </div>
+        ${state.chwAssigned[i]
+          ? `<span class="chip green">✓ CHW assigned</span>`
+          : (p.risk!=="Low" ? `<button class="btn small" data-chw="${i}">Assign CHW follow-up</button>` : `<span class="chip plain">routine</span>`)}
+      </div>`).join("")}
+    <div class="evidence">The risk score is a <b>transparent decision-support intervention</b> (§170.315(b)(11)): its inputs are disclosed — LACE clinical factors plus named social determinants — not a black box. Model validated in ${ev("lace")} and reviewed in ${ev("kansagara")}.</div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card">
+    <h3>Why this is evidence-based</h3>
+    <div class="rowitem"><span class="chip accent" style="min-width:132px; text-align:center">Predict</span><div class="d" style="flex:1">Validated readmission risk models (LACE) + a systematic review stratify who needs help.${ev("lace")} ${ev("kansagara")}</div></div>
+    <div class="rowitem"><span class="chip accent" style="min-width:132px; text-align:center">Trigger CHW</span><div class="d" style="flex:1">Community health worker follow-up improved post-hospital outcomes and reduced hospitalization in randomized trials.${ev("kangovi14")} ${ev("kangovi18")} ${ev("kangoviPool")}</div></div>
+    <div class="rowitem"><span class="chip accent" style="min-width:132px; text-align:center">Redesign discharge</span><div class="d" style="flex:1">A reengineered discharge (Project RED) cut rehospitalization.${ev("projectRED")}</div></div>
+    <div class="tiny" style="margin-top:8px">Social determinants map to USCDI Health Status Assessments / SDOH — the same structured data the screening tools and research layer already capture.</div>
+  </div>`;
+}
+
+/* ==========================================================================
    PRACTICE — revenue & analytics, digital payments, plans & value
    ========================================================================== */
 function vAnalytics(){
@@ -1518,7 +1566,7 @@ function vHelix(){
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, payments:vPayments, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, actions:vActions, report:vReport },
@@ -1579,6 +1627,11 @@ function wireView(){
     toast("CME booked 🎓", `${c.title} — ${c.credits} credits${c.cost?`, $${c.cost}`:""}. Dates held and credits logged.${c.kind==="destination"?" Travel plan started.":""}`, "green");
   }));
   $$("[data-cme-cancel]").forEach(b => b.addEventListener("click", () => { delete state.cmeBooked[b.dataset.cmeCancel]; store.set("cmeBooked", state.cmeBooked); render(); }));
+  $$("[data-chw]").forEach(b => b.addEventListener("click", () => {
+    const i = b.dataset.chw, p = READMIT.patients[i];
+    state.chwAssigned[i] = true; store.set("chwAssigned", state.chwAssigned); render();
+    toast("Community health worker assigned 🤝", `${p.name} — a home visit and post-discharge check-in are scheduled. CHW follow-up is a randomized-trial-proven way to prevent readmission.`, "green");
+  }));
 
   // --- digital payment ---
   const pn = $("#pay-now"); if (pn) pn.addEventListener("click", () => { state.billPaid = true; store.set("billPaid", true); render(); toast("Payment received ✓", "Thanks! Your balance is paid in full. A receipt is in your portal.", "green"); });

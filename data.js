@@ -18,6 +18,12 @@ const EVIDENCE = {
   smoking:    { pmid:"23343063", cite:"Jha et al., NEJM 2013 — quitting smoking before age 40 regains ~9–10 years of life expectancy." },
   medDiet:    { pmid:"29897866", cite:"PREDIMED, NEJM 2018 (RCT) — Mediterranean diet + olive oil/nuts reduced major cardiovascular events ~30%." },
   activity:   { pmid:"21846575", cite:"Wen et al., Lancet 2011 — 15 min/day of moderate activity added ~3 years of life expectancy." },
+  kansagara:  { pmid:"22009101", cite:"Kansagara et al., JAMA 2011 (systematic review) — evaluating hospital-readmission risk-prediction models." },
+  lace:       { pmid:"20194559", cite:"van Walraven et al., CMAJ 2010 — the LACE index predicts early death or unplanned readmission after discharge." },
+  kangovi14:  { pmid:"24515422", cite:"Kangovi et al., JAMA Intern Med 2014 (RCT) — patient-centered community health worker support improved post-hospital outcomes." },
+  kangovi18:  { pmid:"30422224", cite:"Kangovi et al., JAMA Intern Med 2018 (IMPaCT RCT) — CHW support improved chronic-disease control and reduced hospital days." },
+  kangoviPool:{ pmid:"32643163", cite:"Kangovi et al., Health Serv Res 2020 (pooled analysis of 3 RCTs) — a standardized CHW intervention reduced hospitalization among disadvantaged patients." },
+  projectRED: { pmid:"19189907", cite:"Jack et al., Ann Intern Med 2009 (Project RED RCT) — a reengineered hospital discharge reduced rehospitalization." },
   eyestrain:  { pmid:"40283833", cite:"Int J Environ Res Public Health 2025 — immediate effects of light vs dark mode on visual fatigue in tablet users (dark mode reduced visual fatigue)." },
   phq9:       { pmid:"11556941", cite:"Kroenke, Spitzer & Williams, J Gen Intern Med 2001 — the PHQ-9, a validated brief depression severity measure." },
   gad7:       { pmid:"16717171", cite:"Spitzer, Kroenke, Williams & Löwe, Arch Intern Med 2006 — the GAD-7, a validated brief generalized-anxiety measure." },
@@ -771,6 +777,26 @@ const TRUST = {
     { t:"Pricing & fees", d:"All-in pricing: implementation, interfaces, support, and any per-transaction fees named up front." },
     { t:"Interoperability & no information-blocking", d:"Standards-based interfaces; no practices that would constitute information blocking." },
     { t:"Termination & transition", d:"Exit terms, data migration assistance, and no hostage data." },
+  ],
+};
+
+/* ---------- Readmission predictive analytics (demo cohort) ----------
+   Risk = validated clinical model (LACE) + social determinants. High/moderate
+   risk triggers a community health worker follow-up — an RCT-proven intervention. */
+const READMIT = {
+  patients: [
+    { name:"Earl Bishop", age:71, dx:"COPD exacerbation", lace:13, risk:"High", pct:38,
+      clinical:["2 admissions in 6 months","COPD + heart failure","7 active medications"],
+      social:["Lives alone","No reliable transport","Food insecurity"] },
+    { name:"Denise Whitfield", age:67, dx:"Heart failure (EF 35%)", lace:11, risk:"High", pct:29,
+      clinical:["ED visit 8 days ago","Diuretic adjustment","Renal impairment"],
+      social:["Medication-cost concern","Lives alone"] },
+    { name:"Maria Alvarez", age:58, dx:"Diabetes + hypertension", lace:8, risk:"Moderate", pct:17,
+      clinical:["A1c improving","BP near goal"],
+      social:["Strong family support","Stable housing"] },
+    { name:"Ravi Kapoor", age:52, dx:"Post-MI", lace:6, risk:"Low", pct:9,
+      clinical:["Stable","Enrolled in cardiac rehab"],
+      social:["Employed, insured"] },
   ],
 };
 
