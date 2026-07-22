@@ -783,6 +783,30 @@ const TRUST = {
   ],
 };
 
+/* ---------- Broader healthcare ecosystem: payers · labs · telehealth ---------- */
+const ECOSYSTEM = {
+  payers: [
+    { t:"Real-time eligibility & benefits", d:"Instant coverage, copay and deductible at check-in — no phone calls.", std:"X12 270/271 · FHIR CoverageEligibility" },
+    { t:"Electronic prior authorization", d:"Auto-filled from the chart and submitted in seconds; most approvals return same-day.", std:"Da Vinci CRD · DTR · PAS" },
+    { t:"Payer ↔ provider data sharing", d:"Pull the plan's record — claims history and gaps in care — into the chart; close quality gaps together.", std:"Da Vinci PDex · USCDI" },
+    { t:"Clean-claim submission", d:"The coded claim goes straight to the plan's clearinghouse — fewer denials, faster payment.", std:"X12 837P" },
+  ],
+  labs: {
+    network: "Health Gorilla national lab network + direct genetics-lab connections",
+    tests: [
+      { id:"lab-brca",  name:"Hereditary cancer panel (BRCA1/2+)", kind:"Genetic",   tat:"10–14 days", lab:"National genetics lab",  cpt:"81432" },
+      { id:"lab-pgx",   name:"Pharmacogenomics (CYP2D6 / CYP2C19)", kind:"Genetic",   tat:"7 days",     lab:"PGx reference lab",      cpt:"81418" },
+      { id:"lab-ctdna", name:"Circulating tumor DNA (liquid biopsy)", kind:"Specialty", tat:"7–10 days", lab:"Oncology specialty lab", cpt:"81462" },
+      { id:"lab-ana",   name:"Autoimmune ANA reflex panel", kind:"Specialty", tat:"3–5 days", lab:"Reference lab", cpt:"86038" },
+    ],
+  },
+  telehealth: [
+    { t:"On-demand urgent telehealth", d:"Connect patients to a licensed clinician 24/7, across state lines where permitted." },
+    { t:"Specialist e-consults & video referrals", d:"Refer to specialty telehealth (derm, psych, genetic counseling) without a long wait." },
+    { t:"Remote patient monitoring", d:"Home device data (BP, glucose, weight) streams into the chart for between-visit care." },
+  ],
+};
+
 /* ---------- Readmission predictive analytics (demo cohort) ----------
    Risk = validated clinical model (LACE) + social determinants. High/moderate
    risk triggers a community health worker follow-up — an RCT-proven intervention. */

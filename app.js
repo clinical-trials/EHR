@@ -32,6 +32,7 @@ const state = {
   supportExecuted: store.get("supportExecuted", false), // AMA Support-domain intervention executed
   chwAssigned: store.get("chwAssigned", {}),            // readmission CHW follow-up assignments
   lang: store.get("lang", "en"),                        // patient-portal language (multilingual)
+  labOrders: store.get("labOrders", {}),                // ecosystem specialty/genetic lab orders
   billPaid:  store.get("billPaid", false),   // patient digital payment
   irb:       store.get("irb", {}),           // research study IRB status: 'review' | 'approved'
   irbBoard:  store.get("irbBoard", "institutional"), // selected IRB of record
@@ -128,6 +129,7 @@ const NAVS = {
     { label:"Platform", items:[
       { id:"synthesis",  ic:"◎", t:"Physician health × Interop" },
       { id:"enterprise", ic:"🏛", t:"Enterprise & exchange" },
+      { id:"ecosystem",  ic:"🔌", t:"Ecosystem connections" },
       { id:"helix",      ic:"🧬", t:"Helix Hub (app store)" },
       { id:"compete",    ic:"◆", t:"Best ideas, improved" },
       { id:"plans",      ic:"◈", t:"Plans & value" },
@@ -1347,6 +1349,43 @@ function vCompete(){
 }
 
 /* ==========================================================================
+   ECOSYSTEM CONNECTIONS — payers · specialty/genetic labs · telehealth
+   ========================================================================== */
+function vEcosystem(){
+  const E = ECOSYSTEM;
+  return `
+  <h1 class="page-title">Ecosystem connections <span class="chip green">connected</span></h1>
+  <p class="page-sub">No EHR is an island. LumaChart plugs into the health plans, specialty labs and telehealth networks your patients depend on — on open standards.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>🏦 Health plans / payers</h3>
+    <p class="small muted" style="margin:0 0 6px">Share data, cut administrative burden, and get patients to care faster — no faxes, no hold music.</p>
+    ${E.payers.map(p=>`<div class="rowitem"><span class="chip green">✓</span><div style="flex:1"><div class="t small">${p.t}</div><div class="d">${p.d}</div></div><span class="chip plain">${p.std}</span></div>`).join("")}
+    <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap">
+      <button class="btn" data-eco="eligibility">Run eligibility check</button>
+      <button class="btn primary" data-eco="priorauth">Submit prior authorization</button>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>🧬 Specialty &amp; genetic diagnostic labs</h3>
+    <p class="small muted" style="margin:0 0 8px">Ordering a genetic or specialty test should be as easy as a basic lab. Pick it, order it — the result returns to the chart. <span class="tiny">${E.labs.network}</span></p>
+    ${E.labs.tests.map(t=>`<div class="rowitem">
+      <span class="chip ${t.kind==='Genetic'?'accent':'plain'}">${t.kind}</span>
+      <div style="flex:1"><div class="t small">${t.name}</div><div class="d">${t.lab} · results ${t.tat} · CPT ${t.cpt}</div></div>
+      ${state.labOrders[t.id]?`<span class="chip green">✓ ordered</span>`:`<button class="btn small" data-laborder="${t.id}">Order</button>`}
+    </div>`).join("")}
+  </div>
+
+  <div class="card">
+    <h3>📹 National telehealth network</h3>
+    <p class="small muted" style="margin:0 0 6px">Extend the practice beyond its walls — urgent care, specialty e-consults, and remote monitoring.</p>
+    ${E.telehealth.map(t=>`<div class="rowitem"><span class="chip accent">live</span><div style="flex:1"><div class="t small">${t.t}</div><div class="d">${t.d}</div></div></div>`).join("")}
+    <button class="btn primary" data-eco="telehealth" style="margin-top:12px">Start a telehealth visit</button>
+  </div>`;
+}
+
+/* ==========================================================================
    COMMUNITY HEALTH · MENTAL HEALTH (patient, multilingual) · SYSTEMS & POLICY
    ========================================================================== */
 function L(en, es){ return state.lang === "es" ? es : en; }
@@ -1666,7 +1705,7 @@ function vHelix(){
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, actions:vActions, report:vReport },
@@ -1731,6 +1770,18 @@ function wireView(){
     const i = b.dataset.chw, p = READMIT.patients[i];
     state.chwAssigned[i] = true; store.set("chwAssigned", state.chwAssigned); render();
     toast("Community health worker assigned 🤝", `${p.name} — a home visit and post-discharge check-in are scheduled. CHW follow-up is a randomized-trial-proven way to prevent readmission.`, "green");
+  }));
+  $$("[data-eco]").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.eco;
+    const msg = k==="eligibility" ? "HealthFirst PPO active · $42 copay · deductible met — confirmed in real time (X12 271)."
+      : k==="priorauth" ? "Prior authorization approved in seconds — auto-filled from the chart via Da Vinci DTR/PAS. No fax, no phone call."
+      : "Telehealth visit launched on the national network — the clinician and patient are connected, notes flow back to the chart.";
+    toast(k==="eligibility"?"Eligibility confirmed ✓":k==="priorauth"?"Prior auth approved ✓":"Telehealth started 📹", msg, "green");
+  }));
+  $$("[data-laborder]").forEach(b => b.addEventListener("click", () => {
+    const id = b.dataset.laborder, t = ECOSYSTEM.labs.tests.find(x=>x.id===id);
+    state.labOrders[id] = true; store.set("labOrders", state.labOrders); render();
+    toast("Test ordered 🧬", `${t.name} — routed to ${t.lab}. Results (~${t.tat}) return straight to the chart.`, "green");
   }));
   const ls = $("#lang-select"); if (ls) ls.addEventListener("change", () => { state.lang = ls.value; store.set("lang", state.lang); render(); });
   $$("[data-community]").forEach(b => b.addEventListener("click", () => {
