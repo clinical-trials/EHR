@@ -31,6 +31,7 @@ const state = {
   cmeBooked: store.get("cmeBooked", {}), // booked CME programs
   supportExecuted: store.get("supportExecuted", false), // AMA Support-domain intervention executed
   chwAssigned: store.get("chwAssigned", {}),            // readmission CHW follow-up assignments
+  lang: store.get("lang", "en"),                        // patient-portal language (multilingual)
   billPaid:  store.get("billPaid", false),   // patient digital payment
   irb:       store.get("irb", {}),           // research study IRB status: 'review' | 'approved'
   irbBoard:  store.get("irbBoard", "institutional"), // selected IRB of record
@@ -148,10 +149,15 @@ const NAVS = {
       { id:"longevity", ic:"↗", t:"Longevity tracker" },
       { id:"consent",   ic:"✔", t:"Research & consent" },
     ]},
+    { label:"Community & mind", items:[
+      { id:"community", ic:"🏘", t:"Community health" },
+      { id:"mental",    ic:"🧠", t:"Mental health" },
+    ]},
   ],
   researcher: [
     { label:"Public health", items:[
       { id:"console",   ic:"◫", t:"Research console" },
+      { id:"systems",   ic:"🏛", t:"Systems & policy" },
       { id:"synthesis", ic:"◎", t:"Physician health × Interop" },
       { id:"roadmap",   ic:"⛭", t:"Roadmap & gates" },
     ]},
@@ -1341,6 +1347,100 @@ function vCompete(){
 }
 
 /* ==========================================================================
+   COMMUNITY HEALTH · MENTAL HEALTH (patient, multilingual) · SYSTEMS & POLICY
+   ========================================================================== */
+function L(en, es){ return state.lang === "es" ? es : en; }
+
+function vCommunity(){
+  const heatHigh = true, aqi = 138;
+  return `
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px">
+    <h1 class="page-title">${L("Community health","Salud comunitaria")}</h1>
+    <select id="lang-select" class="cme-select" title="Language / Idioma">
+      <option value="en" ${state.lang==='en'?'selected':''}>English</option>
+      <option value="es" ${state.lang==='es'?'selected':''}>Español</option>
+    </select>
+  </div>
+  <p class="page-sub">${L("Health is shaped where you live — food, heat, air, and the people who help you navigate it.","La salud se forma donde usted vive: la comida, el calor, el aire y las personas que le ayudan.")}</p>
+  <div class="note">${L("Language-first care: this information is in your language and adapted to your community — not one-size-fits-all.","Atención en su idioma: esta información está en su idioma y adaptada a su comunidad, no igual para todos.")}</div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h3>🥬 ${L("Food as medicine","La comida como medicina")}</h3>
+      <p class="small muted" style="margin:0 0 8px">${L("A weekly produce prescription and medically tailored meals — covered by your insurance — for diabetes, high blood pressure, or food insecurity.","Una receta semanal de frutas y verduras y comidas adaptadas a su salud, cubiertas por su seguro, para la diabetes, la presión alta o la falta de alimentos.")}</p>
+      <button class="btn primary" data-community="food">${L("Enroll","Inscribirme")}</button>
+      ${evidenceCard("produceRx")}
+    </div>
+    <div class="card">
+      <h3>🌡️ ${L("Heat & air quality alerts","Alertas de calor y calidad del aire")}</h3>
+      <div class="rowitem"><span class="chip ${heatHigh?'red':'green'}">${L("Heat","Calor")}</span><div style="flex:1" class="small">${L("Extreme heat today — check on neighbors, hydrate, limit midday activity.","Calor extremo hoy: cuide a sus vecinos, hidrátese, evite el mediodía.")}</div></div>
+      <div class="rowitem"><span class="chip ${aqi>100?'amber':'green'}">AQI ${aqi}</span><div style="flex:1" class="small">${L("Unhealthy for sensitive groups — limit outdoor exertion if you have asthma or COPD.","Dañino para grupos sensibles: limite el esfuerzo al aire libre si tiene asma o EPOC.")}</div></div>
+      <div class="tiny" style="margin-top:6px">${L("Nearest cooling center: Central Library, 0.4 mi — open until 8 PM.","Centro de enfriamiento más cercano: Biblioteca Central, 0.6 km, abierto hasta las 8 PM.")} · CDC HeatRisk / AirNow</div>
+    </div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card">
+    <h3>🤝 ${L("Community health worker","Trabajador de salud comunitaria")}</h3>
+    <p class="small muted" style="margin:0 0 8px">${L("A community health worker can help with housing, food, transportation and benefits — and coordinate with your care team, documenting your needs so nothing falls through the cracks.","Un trabajador de salud comunitaria puede ayudarle con vivienda, comida, transporte y beneficios, y coordinar con su equipo de salud, documentando sus necesidades para que nada se pierda.")}</p>
+    <button class="btn primary" data-community="chw">${L("Request a community health worker","Solicitar un trabajador de salud")}</button>
+    ${evidenceCard("kangovi18")}
+  </div>`;
+}
+
+function vMental(){
+  const phq = state.screens.phq9;
+  const level = phq ? (phq.score>=15?3:phq.score>=10?2:1) : null;
+  const levels = [
+    { n:1, t:L("Self-guided","Autoayuda guiada"), d:L("Free evidence-based apps for stress, sleep and mood.","Apps gratuitas basadas en evidencia para el estrés, el sueño y el ánimo.") },
+    { n:2, t:L("Peer & coaching","Apoyo de pares"), d:L("Talk with a trained peer or health coach.","Hable con un par capacitado o un asesor de salud.") },
+    { n:3, t:L("Clinician therapy","Terapia profesional"), d:L("Connect to a therapist or psychiatrist, in person or by telehealth.","Conéctese con un terapeuta o psiquiatra, en persona o por telesalud.") },
+  ];
+  return `
+  <h1 class="page-title">${L("Mental & behavioral health","Salud mental y del comportamiento")}</h1>
+  <p class="page-sub">${L("The right care at the right intensity — for you and for your kids.","La atención adecuada en la intensidad adecuada, para usted y sus hijos.")}</p>
+  <div class="note">${L("In crisis? Call or text 988 (Suicide & Crisis Lifeline) — free, confidential, 24/7.","¿En crisis? Llame o envíe un texto al 988 (Línea de Crisis) — gratis, confidencial, 24/7.")}</div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>${L("Stepped care — matched to you","Cuidado escalonado — a su medida")}</h3>
+    ${levels.map(l=>`<div class="rowitem"><span class="chip ${level===l.n?'accent':'plain'}" style="min-width:30px; text-align:center">${l.n}</span><div style="flex:1"><div class="t small">${l.t}${level===l.n?` · <span style="color:var(--accent)">${L("suggested for you","sugerido para usted")}</span>`:''}</div><div class="d">${l.d}</div></div><button class="btn small">${L("Start","Empezar")}</button></div>`).join('')}
+    ${phq?`<div class="evidence">${L("Based on your recent PHQ-9 score","Según su puntaje reciente de PHQ-9")} (${phq.score}). ${L("Stepped/collaborative care is proven to improve depression and anxiety outcomes.","El cuidado escalonado mejora los resultados de depresión y ansiedad.")}${ev("collabCare")}</div>`:`<div class="tiny" style="margin-top:8px">${L("Take a quick check-in to get matched.","Complete un breve cuestionario para recibir una recomendación.")} <button class="btn ghost small" data-nav-inline="screenings">${L("Go to screenings","Ir a cuestionarios")}</button></div>`}
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card">
+    <h3>🎒 ${L("For your child — school-based support","Para su hijo/a — apoyo escolar")}</h3>
+    <p class="small muted" style="margin:0">${L("Schools can screen early for anxiety and depression and connect students to on-site or telehealth counseling — catching problems sooner.","Las escuelas pueden detectar temprano la ansiedad y la depresión y conectar a los estudiantes con consejería en el lugar o por telesalud.")}</p>
+    <div class="tiny" style="margin-top:6px">${L("Aligned with SAMHSA school mental health guidance.","Alineado con la guía de salud mental escolar de SAMHSA.")}</div>
+  </div>`;
+}
+
+function vSystems(){
+  return `
+  <h1 class="page-title">Systems &amp; policy</h1>
+  <p class="page-sub">The infrastructure and incentives that let prevention scale beyond one clinic.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>🏛️ Public-health data infrastructure <span class="chip accent">Health department</span></h3>
+    <p class="small muted" style="margin:0 0 6px">Modernize the patchwork of health-department systems so outbreak data flows in near-real-time. LumaChart emits electronic case reports and syndromic-surveillance data on the certified FHIR surface — §170.315(f).</p>
+    <div class="rowitem"><span class="chip green">live</span><div class="d" style="flex:1">Electronic case reporting (eCR) — reportable conditions auto-transmit to public health.</div></div>
+    <div class="rowitem"><span class="chip green">live</span><div class="d" style="flex:1">Syndromic surveillance — de-identified, near-real-time signal to the health department.</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>💵 Value-based payment for prevention</h3>
+    <p class="small muted" style="margin:0">Reimbursement that rewards keeping populations healthy, not just treating illness. LumaChart's prevention, screening and CHW activity generate the quality and outcome measures value-based contracts pay on (CMS value-based programs).</p>
+    <div class="tiny" style="margin-top:6px">Feeds the same measures as Revenue &amp; analytics — prevention becomes revenue, not cost.</div>
+  </div>
+
+  <div class="card">
+    <h3>🦠 Antimicrobial-resistance stewardship</h3>
+    <p class="small muted" style="margin:0 0 6px">Point-of-care decision support plus diagnostics that reduce unnecessary antibiotics — with incentives that make best practice the easy path. Every avoidable prescription is avoidable resistance prevented.</p>
+    ${evidenceCard("amrSteward")}
+  </div>`;
+}
+
+/* ==========================================================================
    READMISSION PREDICTIVE ANALYTICS — predict → trigger CHW follow-up
    ========================================================================== */
 function vReadmit(){
@@ -1567,8 +1667,8 @@ function vHelix(){
    ========================================================================== */
 const VIEWS = {
   clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
-  patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, payments:vPayments, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
-  researcher:{ console:vConsole, synthesis:vSynthesis, roadmap:vRoadmap },
+  patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
+  researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, actions:vActions, report:vReport },
 };
 
@@ -1631,6 +1731,14 @@ function wireView(){
     const i = b.dataset.chw, p = READMIT.patients[i];
     state.chwAssigned[i] = true; store.set("chwAssigned", state.chwAssigned); render();
     toast("Community health worker assigned 🤝", `${p.name} — a home visit and post-discharge check-in are scheduled. CHW follow-up is a randomized-trial-proven way to prevent readmission.`, "green");
+  }));
+  const ls = $("#lang-select"); if (ls) ls.addEventListener("change", () => { state.lang = ls.value; store.set("lang", state.lang); render(); });
+  $$("[data-community]").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.community;
+    toast(L("Request received ✓","Solicitud recibida ✓"),
+      k==="food" ? L("You're enrolled — your first produce box and meal plan are on the way, billed to insurance.","Está inscrito/a: su primera caja de frutas y verduras y su plan de comidas están en camino, facturados al seguro.")
+                 : L("A community health worker will reach out within 2 business days to help with your needs.","Un trabajador de salud comunitaria se comunicará en un plazo de 2 días hábiles para ayudarle."),
+      "green");
   }));
 
   // --- digital payment ---
