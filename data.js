@@ -641,6 +641,21 @@ const COMPETE = {
   ],
 };
 
+/* ---------- IRB of record (realistic options) ----------
+   Human-subjects research needs IRB oversight. Institutions review under a
+   Federalwide Assurance (FWA) with OHRP; independent/commercial IRBs (e.g.,
+   BRANY, WCG, Advarra) are common, especially as the single IRB for multi-site
+   studies. Factual concepts; URLs point to OHRP. */
+const IRB = {
+  fwa: "FWA00006790",   // illustrative Federalwide Assurance number
+  options: [
+    { id:"institutional", name:"Institutional IRB", d:"Your organization's own board, operating under a Federalwide Assurance (FWA) registered with OHRP.", turnaround:"4–8 weeks" },
+    { id:"central", name:"Commercial / central IRB", d:"An independent IRB (e.g., BRANY, WCG, Advarra). Often faster, and serves as the single IRB (sIRB) for multi-site studies.", turnaround:"1–3 weeks" },
+  ],
+  note: "NIH-funded multi-site human-subjects research generally requires a single IRB of record. Many IRB options exist — institutional or commercial.",
+  ohrpUrl: "https://www.hhs.gov/ohrp/register-irbs-and-obtain-fwas/index.html",
+};
+
 /* ---------- Research directory (real, publicly-funded projects) ----------
    Shown to illustrate the equity / precision-medicine research the consented
    public-health layer is designed to support. These teams do NOT use this

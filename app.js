@@ -31,7 +31,8 @@ const state = {
   cmeBooked: store.get("cmeBooked", {}), // booked CME programs
   supportExecuted: store.get("supportExecuted", false), // AMA Support-domain intervention executed
   billPaid:  store.get("billPaid", false),   // patient digital payment
-  irb:       store.get("irb", {}),           // research study IRB approvals
+  irb:       store.get("irb", {}),           // research study IRB status: 'review' | 'approved'
+  irbBoard:  store.get("irbBoard", "institutional"), // selected IRB of record
   readiness: {},                             // implementation readiness self-assessment
 };
 
@@ -876,7 +877,8 @@ function vConsent(){
    ========================================================================== */
 function vConsole(){
   const r = RESEARCH;
-  const irbOk = i => !!state.irb[i];
+  const irbOk = i => state.irb[i] === "approved";
+  const board = IRB.options.find(o=>o.id===state.irbBoard) || IRB.options[0];
   const approved = r.studies.filter((_,i)=>irbOk(i)).length;
   const anyApproved = approved > 0;
   return `
@@ -894,14 +896,29 @@ function vConsole(){
   </div>
   <div class="section-gap"></div>
 
+  <div class="card" style="margin-bottom:16px">
+    <h3>IRB of record <span class="chip accent">${board.name}</span></h3>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin:8px 0">
+      ${IRB.options.map(o=>`<button class="btn small ${o.id===state.irbBoard?'primary':''}" data-irb-board="${o.id}">${o.name}</button>`).join('')}
+    </div>
+    <div class="small muted">${board.d} ${board.id==='institutional'?`<b>FWA ${IRB.fwa}</b> · `:''}typical turnaround ${board.turnaround}.</div>
+    <div class="tiny" style="margin-top:6px">${IRB.note} <a class="pmid" href="${IRB.ohrpUrl}" target="_blank" rel="noopener" style="text-indent:0">OHRP: register IRB / obtain FWA ↗</a></div>
+  </div>
+
   <div class="grid g2">
     <div class="card">
-      <h3>Active studies · IRB review</h3>
-      ${r.studies.map((s,i)=>`
-        <div class="rowitem"><div style="flex:1"><div class="t small">${s.t}</div><div class="d">${s.d}</div>
-        <div class="tiny" style="margin-top:3px">${s.n}</div></div>
-        ${irbOk(i)?`<span class="chip green">✓ IRB approved</span>`:`<button class="btn small" data-irb="${i}">Submit for IRB</button>`}</div>`).join("")}
-      <div class="evidence">IRB approval is an ethics gate for human-subjects research — required before any cohort is exported, not a formality. LumaChart makes the submission one click and tracks the status here.</div>
+      <h3>Active studies · IRB status</h3>
+      ${r.studies.map((s,i)=>{
+        const st = state.irb[i];
+        const right = st==='approved' ? `<span class="chip green">✓ Approved · ${board.name}</span>`
+          : st==='review' ? `<button class="btn small" data-irb-decide="${i}">Record decision</button>`
+          : `<button class="btn small" data-irb="${i}">Submit to ${board.name}</button>`;
+        const sub = st==='review' ? ` · <span style="color:var(--amber)">under review at ${board.name}</span>`
+          : st==='approved' ? ` · <span style="color:var(--green)">approved · continuing review in 12 mo</span>` : '';
+        return `<div class="rowitem"><div style="flex:1"><div class="t small">${s.t}</div><div class="d">${s.d}</div>
+          <div class="tiny" style="margin-top:3px">${s.n}${sub}</div></div>${right}</div>`;
+      }).join("")}
+      <div class="evidence">IRB approval is an ethics gate for human-subjects research — no cohort is exported without it. The flow is realistic: submit → under review → approved, tracked here against your chosen board of record.</div>
     </div>
     <div class="card">
       <h3>Privacy guardrails <span class="chip green">enforced</span></h3>
@@ -1501,7 +1518,9 @@ function wireView(){
   const pn = $("#pay-now"); if (pn) pn.addEventListener("click", () => { state.billPaid = true; store.set("billPaid", true); render(); toast("Payment received ✓", "Thanks! Your balance is paid in full. A receipt is in your portal.", "green"); });
 
   // --- research: IRB + cohort export ---
-  $$("[data-irb]").forEach(b => b.addEventListener("click", () => { state.irb[b.dataset.irb] = true; store.set("irb", state.irb); render(); toast("IRB approved ✓", "Protocol cleared by the Institutional Review Board. Cohort export is now unlocked for this study.", "green"); }));
+  $$("[data-irb-board]").forEach(b => b.addEventListener("click", () => { state.irbBoard = b.dataset.irbBoard; store.set("irbBoard", state.irbBoard); render(); }));
+  $$("[data-irb]").forEach(b => b.addEventListener("click", () => { state.irb[b.dataset.irb] = "review"; store.set("irb", state.irb); render(); const bd = IRB.options.find(o=>o.id===state.irbBoard); toast("Protocol submitted", `Sent to the ${bd?bd.name:'IRB'} for review. You'll be notified of the board's decision.`, "green"); }));
+  $$("[data-irb-decide]").forEach(b => b.addEventListener("click", () => { state.irb[b.dataset.irbDecide] = "approved"; store.set("irb", state.irb); render(); toast("IRB approved ✓", "Protocol approved. Cohort export is unlocked for this study; continuing review in 12 months.", "green"); }));
   const ex = $("#export-cohort"); if (ex) ex.addEventListener("click", () => toast("Cohort exported", "De-identified, small-cells suppressed, and fully audit-logged — delivered to the approved protocol.", "green"));
 
   // --- implementation readiness self-check ---
