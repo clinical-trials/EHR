@@ -18,6 +18,7 @@ const EVIDENCE = {
   smoking:    { pmid:"23343063", cite:"Jha et al., NEJM 2013 — quitting smoking before age 40 regains ~9–10 years of life expectancy." },
   medDiet:    { pmid:"29897866", cite:"PREDIMED, NEJM 2018 (RCT) — Mediterranean diet + olive oil/nuts reduced major cardiovascular events ~30%." },
   activity:   { pmid:"21846575", cite:"Wen et al., Lancet 2011 — 15 min/day of moderate activity added ~3 years of life expectancy." },
+  eyestrain:  { pmid:"40283833", cite:"Int J Environ Res Public Health 2025 — immediate effects of light vs dark mode on visual fatigue in tablet users (dark mode reduced visual fatigue)." },
   phq9:       { pmid:"11556941", cite:"Kroenke, Spitzer & Williams, J Gen Intern Med 2001 — the PHQ-9, a validated brief depression severity measure." },
   gad7:       { pmid:"16717171", cite:"Spitzer, Kroenke, Williams & Löwe, Arch Intern Med 2006 — the GAD-7, a validated brief generalized-anxiety measure." },
   bdi:        { pmid:"13688369", cite:"Beck, Ward, Mendelson, Mock & Erbaugh, Arch Gen Psychiatry 1961 — the original Beck Depression Inventory." },
@@ -640,6 +641,49 @@ const COMPETE = {
     { v:"DrChrono", market:"Solo & very small practices", standout:"iPad-native, mobile-first; patient check-in on a tablet.", take:"We built the iPad check-in — and made it pre-load the chart, the claim, and evidence-based prevention." },
   ],
 };
+
+/* ---------- Helix Hub — the vetted app store for the health record ----------
+   A secondary market: developers publish SMART-on-FHIR apps/APIs; LumaChart
+   vets each for safety + HIPAA before listing. App entries are illustrative. */
+const HELIX = {
+  brand: "Helix Hub",
+  tagline: "The vetted app store for the health record.",
+  model: "Developers publish SMART-on-FHIR apps and APIs; LumaChart vets each for clinical safety and HIPAA compliance before it is listed. Open-source ideas from the community, hardened into trustworthy health-IT — a secondary market built on top of the record.",
+  vetting: [
+    { t:"Safety review", d:"Clinical-safety assessment against the ONC SAFER practices." },
+    { t:"HIPAA & security", d:"Signed BAA, encryption, least-privilege scopes, independent security review." },
+    { t:"SMART on FHIR conformance", d:"Standards-based launch & scopes (§170.315(g)(10)) — no proprietary lock-in." },
+    { t:"Source & data review", d:"Open-source provenance checked; data flows disclosed; DSI transparency where AI is used." },
+  ],
+  apps: [
+    { name:"OpenPrecision Genomics", dev:"Community · MIT", cat:"Genomics", price:"Free", oss:true, desc:"Visualize genomic risk on the chart with pharmacogenomic alerts.", scopes:"patient/*.read" },
+    { name:"CommunityRx SDOH", dev:"OpenSDOH", cat:"Social needs", price:"Free", oss:true, desc:"Screen social needs and refer to local resources." },
+    { name:"EyeScreen Retina AI", dev:"RetinaLabs", cat:"AI screening", price:"$", oss:false, desc:"Diabetic-retinopathy screening from fundus photos (DSI-transparent)." },
+    { name:"MedRec Reconcile", dev:"Community · Apache-2", cat:"Medications", price:"Free", oss:true, desc:"Open-source medication reconciliation with interaction checks." },
+    { name:"CardioRisk (ASCVD)", dev:"HeartMath OSS", cat:"Calculators", price:"Free", oss:true, desc:"Evidence-based 10-year cardiovascular risk, fully cited." },
+    { name:"VaxBridge IIS", dev:"PublicHealth.io", cat:"Public health", price:"Free", oss:true, desc:"Two-way immunization-registry (IIS) connector." },
+    { name:"OpenNotes Companion", dev:"Community", cat:"Patient engagement", price:"Free", oss:true, desc:"Plain-language explanations of visit notes for patients." },
+    { name:"Scribe Assist (ambient)", dev:"NoteAI", cat:"Documentation", price:"$$", oss:false, desc:"Ambient note drafting; outputs link to source (DSI-transparent)." },
+  ],
+};
+
+/* ---------- Framingham-modeled consent + registration documents ---------- */
+const FRAMINGHAM = {
+  note: "Modeled on the Framingham Heart Study — 78 years of consented, multi-generational cohort research. Consent is informed, tiered, revocable, and stewarded for the long term.",
+  url: "https://www.framinghamheartstudy.org/fhs-for-researchers/",
+  tiers: [
+    { t:"Core health data", d:"Diagnoses, labs, vitals, prevention — de-identified for research.", on:true },
+    { t:"Genetic & biospecimen", d:"Optional: contribute genetic data / biospecimens under separate explicit consent.", on:false },
+    { t:"Re-contact for future studies", d:"Optional: let researchers invite you to studies you can always decline.", on:false },
+    { t:"Long-term stewardship", d:"Your data supports longitudinal research across years — revoke any time.", on:true },
+  ],
+};
+const REGDOCS = [
+  { t:"IRB approval letter", d:"Institutional Review Board authorization for the active protocol.", status:"on file" },
+  { t:"FDA registration letter", d:"IND / IDE registration acknowledgment where applicable.", status:"placeholder" },
+  { t:"Federalwide Assurance (FWA)", d:"OHRP assurance for human-subjects protections.", status:"on file" },
+  { t:"Data Use Agreement (DUA)", d:"Terms governing de-identified data access.", status:"on file" },
+];
 
 /* ---------- IRB of record (realistic options) ----------
    Human-subjects research needs IRB oversight. Institutions review under a

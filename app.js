@@ -33,6 +33,8 @@ const state = {
   billPaid:  store.get("billPaid", false),   // patient digital payment
   irb:       store.get("irb", {}),           // research study IRB status: 'review' | 'approved'
   irbBoard:  store.get("irbBoard", "institutional"), // selected IRB of record
+  helixInstalled: store.get("helixInstalled", {}),   // installed Helix Hub apps
+  consentTiers: null,                                 // Framingham-modeled consent tiers (lazy-init)
   readiness: {},                             // implementation readiness self-assessment
 };
 
@@ -97,7 +99,7 @@ $$(".theme-btn[data-themepick]").forEach(btn => btn.addEventListener("click", ()
   $$(".theme-btn[data-themepick]").forEach(b => b.classList.toggle("active", b === btn));
   if (btn.dataset.themepick !== "restore" && !state.canary.fired.themeNote) {
     state.canary.fired.themeNote = true;
-    toast("Theme changed", "Restore Mode (low-glare dark) is LumaChart's default — designed to reduce eyestrain on long shifts. Switch back any time.", "green");
+    toast("Theme changed", `Restore Mode (low-glare dark) is LumaChart's default — dark mode reduced visual fatigue vs light mode in a 2025 study.${ev("eyestrain")} Switch back any time.`, "green");
   }
 }));
 
@@ -123,6 +125,7 @@ const NAVS = {
     { label:"Platform", items:[
       { id:"synthesis",  ic:"◎", t:"Physician health × Interop" },
       { id:"enterprise", ic:"🏛", t:"Enterprise & exchange" },
+      { id:"helix",      ic:"🧬", t:"Helix Hub (app store)" },
       { id:"compete",    ic:"◆", t:"Best ideas, improved" },
       { id:"plans",      ic:"◈", t:"Plans & value" },
       { id:"roadmap",    ic:"⛭", t:"Roadmap & gates" },
@@ -863,6 +866,14 @@ function vConsent(){
     </div>
   </div>
 
+  <div class="card" style="margin-bottom:16px">
+    <h3>How your consent works <span class="chip plain">modeled on the Framingham Heart Study</span></h3>
+    <p class="small muted" style="margin:0 0 8px">${FRAMINGHAM.note} <a class="pmid" href="${FRAMINGHAM.url}" target="_blank" rel="noopener" style="text-indent:0">Framingham for researchers ↗</a></p>
+    ${FRAMINGHAM.tiers.map((t,i)=>{ const on = state.consentTiers ? !!state.consentTiers[i] : t.on;
+      return `<label class="rowitem" style="cursor:pointer"><input type="checkbox" class="task-check consent-tier" data-i="${i}" ${on?'checked':''}><div style="flex:1"><div class="t small">${t.t}</div><div class="d">${t.d}</div></div></label>`; }).join('')}
+    <div class="tiny" style="margin-top:6px">Tiered &amp; granular: opt into exactly what you're comfortable with, and revoke any tier any time — the hallmark of long-term cohort consent.</div>
+  </div>
+
   <div class="card">
     <h3>What consented data like yours is helping discover</h3>
     ${r.studies.map(s=>`
@@ -936,6 +947,14 @@ function vConsole(){
     <h3>Research directory <span class="chip plain">${RESEARCH_PROJECTS.length} projects</span></h3>
     <p class="small muted" style="margin:0 0 8px">Equity &amp; precision-medicine research the consented public-health layer is built to support. Publicly-funded projects shown for illustration — these teams do not use this prototype.</p>
     ${RESEARCH_PROJECTS.map(p=>`<div class="rowitem"><div style="flex:1"><div class="t small">${p.t}</div><div class="d">${p.pi} · ${p.org}</div></div></div>`).join("")}
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card">
+    <h3>Regulatory &amp; registration documents</h3>
+    <p class="small muted" style="margin:0 0 6px">Every study keeps its authorization paperwork on file — the audit trail regulators and partners expect.</p>
+    ${REGDOCS.map(d=>`<div class="rowitem"><span class="chip ${d.status==='on file'?'green':'amber'}">${d.status}</span><div style="flex:1"><div class="t small">${d.t}</div><div class="d">${d.d}</div></div><button class="btn ghost small" data-regdoc="${d.t}">View letter</button></div>`).join("")}
+    <div class="tiny" style="margin-top:6px">Consent stewardship is modeled on the 78-year Framingham Heart Study — tiered, revocable, long-term.</div>
   </div>`;
 }
 
@@ -1449,10 +1468,57 @@ function vReadiness(){
 }
 
 /* ==========================================================================
+   HELIX HUB — the vetted app store for the health record
+   ========================================================================== */
+function helixLogo(sz){
+  const s = sz || 34;
+  return `<svg viewBox="0 0 40 40" width="${s}" height="${s}" fill="none" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+    <path d="M12 6c8 4 8 10 0 14s-8 10 0 14" stroke="var(--accent)"/>
+    <path d="M28 6c-8 4-8 10 0 14s8 10 0 14" stroke="var(--amber)"/>
+    <line x1="13" y1="11" x2="27" y2="11" stroke="var(--accent)"/><line x1="15" y1="20" x2="25" y2="20" stroke="var(--accent)"/><line x1="13" y1="29" x2="27" y2="29" stroke="var(--accent)"/>
+    <circle cx="20" cy="20" r="3.4" fill="var(--accent)" stroke="none"/>
+  </svg>`;
+}
+function vHelix(){
+  const h = HELIX, inst = state.helixInstalled || {};
+  return `
+  <div style="display:flex; align-items:center; gap:12px">
+    ${helixLogo(38)}
+    <div><h1 class="page-title" style="margin:0">${h.brand}</h1><div class="page-sub" style="margin:0">${h.tagline}</div></div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="banner" style="background:linear-gradient(100deg,#0f2a33,#1d4a4f); color:#e7f4f6">
+    <h3 style="color:#fff">A secondary market on the health record</h3>
+    <p style="color:#bcd8de">${h.model}</p>
+  </div>
+
+  <div class="card" style="margin-bottom:16px"><h3>Every app is vetted before it lists</h3>
+    <div class="grid g2">${h.vetting.map(v=>`<div class="rowitem"><span class="chip green">✓</span><div style="flex:1"><div class="t small">${v.t}</div><div class="d">${v.d}</div></div></div>`).join('')}</div>
+  </div>
+
+  <h3 style="margin:0 0 8px">Apps &amp; APIs <span class="chip plain">SMART on FHIR</span></h3>
+  <div class="grid g3">
+    ${h.apps.map((a,i)=>`<div class="card">
+      <h3 style="font-size:14px">${a.name}</h3>
+      <div class="small muted">${a.dev}${a.oss?' · <span class="chip green" style="font-size:10px">open source</span>':''}</div>
+      <div class="small" style="margin:6px 0">${a.desc}</div>
+      <div style="margin-bottom:8px"><span class="chip accent">${a.cat}</span> <span class="chip plain">${a.price}</span> <span class="chip green">vetted ✓</span></div>
+      ${inst[i]?`<button class="btn" disabled style="opacity:.6">✓ Installed</button>`:`<button class="btn primary" data-helix="${i}">Install</button>`}
+    </div>`).join('')}
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card"><h3>Publish to Helix Hub <span class="chip accent">for developers</span></h3>
+    <p class="small muted" style="margin:0">Build on the open §170.315(g)(10) FHIR API, submit to the vetting pipeline (safety → HIPAA → conformance → source review), and reach every LumaChart site. Great open-source ideas — hardened, distributed, and revenue-shared.</p>
+  </div>`;
+}
+
+/* ==========================================================================
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, payments:vPayments, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, actions:vActions, report:vReport },
@@ -1522,6 +1588,29 @@ function wireView(){
   $$("[data-irb]").forEach(b => b.addEventListener("click", () => { state.irb[b.dataset.irb] = "review"; store.set("irb", state.irb); render(); const bd = IRB.options.find(o=>o.id===state.irbBoard); toast("Protocol submitted", `Sent to the ${bd?bd.name:'IRB'} for review. You'll be notified of the board's decision.`, "green"); }));
   $$("[data-irb-decide]").forEach(b => b.addEventListener("click", () => { state.irb[b.dataset.irbDecide] = "approved"; store.set("irb", state.irb); render(); toast("IRB approved ✓", "Protocol approved. Cohort export is unlocked for this study; continuing review in 12 months.", "green"); }));
   const ex = $("#export-cohort"); if (ex) ex.addEventListener("click", () => toast("Cohort exported", "De-identified, small-cells suppressed, and fully audit-logged — delivered to the approved protocol.", "green"));
+
+  // --- Helix Hub install ---
+  $$("[data-helix]").forEach(b => b.addEventListener("click", () => { const a = HELIX.apps[b.dataset.helix]; state.helixInstalled[b.dataset.helix] = true; store.set("helixInstalled", state.helixInstalled); render(); toast("App installed 🧬", `${a.name} added to your LumaChart — vetted for safety &amp; HIPAA, running on SMART-on-FHIR scopes.`, "green"); }));
+  // --- Framingham-modeled consent tiers ---
+  $$(".consent-tier").forEach(c => c.addEventListener("change", () => { if(!state.consentTiers) state.consentTiers={}; state.consentTiers[c.dataset.i] = c.checked; }));
+  // --- regulatory document placeholder ---
+  $$("[data-regdoc]").forEach(b => b.addEventListener("click", () => {
+    const layer = $("#modal-layer"); layer.classList.remove("hidden");
+    layer.innerHTML = `<div class="modal">
+      <h2>📄 ${b.dataset.regdoc}</h2>
+      <p class="small muted" style="margin-top:0">Placeholder — a real deployment attaches the signed authorization here.</p>
+      <div class="evidence" style="font-family:var(--font)">
+        <b>[ ${b.dataset.regdoc} — PLACEHOLDER ]</b><br><br>
+        Protocol: LumaChart Prospective Public-Health Cohort<br>
+        Sponsor / Institution: (your organization)<br>
+        FWA: ${IRB.fwa} · IRB of record: ${(IRB.options.find(o=>o.id===state.irbBoard)||IRB.options[0]).name}<br>
+        Status: authorized · continuing review in 12 months<br><br>
+        This is a demonstration placeholder and not a real regulatory document.
+      </div>
+      <div class="modal-actions"><button class="btn primary" id="regdoc-ok">Close</button></div>
+    </div>`;
+    $("#regdoc-ok").addEventListener("click", () => layer.classList.add("hidden"));
+  }));
 
   // --- implementation readiness self-check ---
   $$(".rd-item").forEach(c => c.addEventListener("change", () => { state.readiness[c.dataset.i] = c.checked; render(); }));
@@ -1876,4 +1965,4 @@ loadUSPSTF();                    // pull the latest Grade A/B recommendations (e
 $("#wellness-toggle").addEventListener("click", toggleWellness);
 updateWellnessUI();
 setInterval(canaryTick, 1000);
-setTimeout(() => toast("Welcome to LumaChart", "Restore Mode (low-glare dark) is on to reduce eyestrain. Tap any notification to dismiss it — they stay gentle and out of your way.", "green"), 4500);
+setTimeout(() => toast("Welcome to LumaChart", `Restore Mode (low-glare dark) is on to reduce visual fatigue.${ev("eyestrain")} Tap any notification to dismiss it — they stay gentle and out of your way.`, "green"), 4500);
