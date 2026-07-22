@@ -116,8 +116,10 @@ const NAVS = {
       { id:"canary",    ic:"🐦", t:"Canary", ph:true },
     ]},
     { label:"Platform", items:[
-      { id:"synthesis", ic:"◎", t:"Physician health × Interop" },
-      { id:"roadmap",   ic:"⛭", t:"Roadmap & gates" },
+      { id:"synthesis",  ic:"◎", t:"Physician health × Interop" },
+      { id:"enterprise", ic:"🏛", t:"Enterprise & exchange" },
+      { id:"compete",    ic:"◆", t:"Best ideas, improved" },
+      { id:"roadmap",    ic:"⛭", t:"Roadmap & gates" },
     ]},
   ],
   patient: [
@@ -1214,10 +1216,73 @@ function vActions(){
 }
 
 /* ==========================================================================
+   ENTERPRISE INTEGRATION & NATIONWIDE EXCHANGE
+   ========================================================================== */
+function vEnterprise(){
+  const e = ENTERPRISE;
+  const chip = s => s==="proto" ? '<span class="chip green">prototype</span>'
+                  : s==="partner" ? '<span class="chip amber">partner</span>'
+                  : '<span class="chip plain">planned</span>';
+  return `
+  <h1 class="page-title">Enterprise &amp; nationwide exchange</h1>
+  <p class="page-sub">One longitudinal record across every care setting, one patient portal, and query/retrieve to virtually any site in the country.</p>
+
+  <div class="banner" style="background:linear-gradient(100deg,var(--accent-soft),var(--surface2)); border:1px solid var(--line-strong); color:var(--text)">
+    <h3 style="color:var(--text)">One record, every setting → one FHIR source of truth → nationwide exchange.</h3>
+    <p style="color:var(--text-2)">Inpatient, outpatient, ED, pharmacy, lab and imaging feed a single longitudinal record on a FHIR-native core with an enterprise master patient index — then that record joins the national network.</p>
+  </div>
+
+  <div class="grid g2">
+    <div class="card"><h3>One record, every setting</h3>
+      ${e.settings.map(s=>`<div class="rowitem">${chip(s.status)}<div style="flex:1"><div class="t small">${s.t}</div><div class="d">${s.std}${s.note?' · '+s.note:''}</div></div></div>`).join('')}
+    </div>
+    <div class="card"><h3>Integration engine</h3>
+      ${e.engine.map(x=>`<div class="rowitem"><div style="flex:1"><div class="t small">${x.t}</div><div class="d">${x.d}</div></div></div>`).join('')}
+    </div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card"><h3>Nationwide record exchange <span class="chip accent">TEFCA-anchored</span></h3>
+    ${e.exchange.map(x=>`<div class="rowitem"><div style="flex:1"><div class="t small">${x.t}</div><div class="d">${x.d}</div></div></div>`).join('')}
+    <div class="evidence">Once connected to a QHIN under TEFCA, LumaChart can discover and retrieve a patient's records from any other participating provider nationwide — with Carequality/CommonWell during the transition. Maps to §170.315(b)(1) transitions of care, (h)(1) Direct, and (g)(10) FHIR — see <b>docs/ENTERPRISE-INTEGRATION-PLAN.md</b> and the ONC roadmap.</div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="grid g2">
+    <div class="card"><h3>Scheduling</h3><p class="small muted" style="margin:0">${e.scheduling}</p></div>
+    <div class="card"><h3>Patient, everywhere</h3><p class="small muted" style="margin:0">${e.portal}</p></div>
+  </div>`;
+}
+
+/* ==========================================================================
+   COMPETITIVE POSITIONING — best ideas, improved with evidence
+   ========================================================================== */
+function vCompete(){
+  const c = COMPETE;
+  return `
+  <h1 class="page-title">Best ideas, improved</h1>
+  <p class="page-sub">The market is crowded and the products look alike. LumaChart takes the strongest idea from each incumbent — and adds the one thing none of them centers.</p>
+
+  <div class="banner" style="background:linear-gradient(100deg,#0f2a33,#1d4a4f); color:#e7f4f6">
+    <h3 style="color:#fff">Not "AI on the EHR." Evidence on the EHR.</h3>
+    <p style="color:#bcd8de">${c.thesis}</p>
+  </div>
+
+  <div class="card">
+    <h3>Take the best, add the evidence</h3>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Incumbent</th><th>Best-fit market</th><th>What makes it stand out</th><th>What LumaChart takes &amp; improves</th></tr>
+      ${c.rows.map(r=>`<tr><td class="cap">${r.v}</td><td>${r.market}</td><td>${r.standout}</td><td>${r.take}</td></tr>`).join('')}
+    </table></div>
+    <div class="tiny" style="margin-top:8px">Market positions are approximate, factual industry facts; the landscape is fluid. LumaChart differentiates on <b>evidence</b>, not vendor branding. See <b>docs/COMPETITIVE-LANDSCAPE.md</b>.</div>
+  </div>`;
+}
+
+/* ==========================================================================
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, billing:vBilling, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, billing:vBilling, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, compete:vCompete, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, actions:vActions, report:vReport },

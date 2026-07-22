@@ -591,3 +591,52 @@ const AMA = {
     { t:"Formal peer-support program", domain:"Support", metric:"—", status:"planned", key:"support", impact:"Executing this completes the Support domain (6 of 6)" },
   ],
 };
+
+/* ---------- Enterprise integration & nationwide record exchange ----------
+   One longitudinal record across every care setting, one portal, and query/
+   retrieve to virtually any site nationwide via TEFCA. Standards are factual. */
+const ENTERPRISE = {
+  settings: [
+    { t:"Outpatient / ambulatory", std:"FHIR R4 + US Core", status:"proto",   note:"the clinic workflow built today" },
+    { t:"Inpatient",               std:"HL7 v2 ADT / ORM / ORU", status:"plan", note:"admit-discharge-transfer, orders, results, flowsheets" },
+    { t:"Emergency department",    std:"HL7 v2 + FHIR Encounter", status:"plan", note:"" },
+    { t:"Pharmacy / eMAR",         std:"NCPDP SCRIPT",           status:"partner", note:"DrFirst / MDToolbox" },
+    { t:"Laboratory",              std:"HL7 v2 ORU / FHIR Observation", status:"partner", note:"Health Gorilla network" },
+    { t:"Imaging",                 std:"DICOM + FHIR ImagingStudy", status:"plan", note:"" },
+  ],
+  engine: [
+    { t:"HL7 v2 interfaces", d:"ADT, orders (ORM/OMG), results (ORU), scheduling (SIU) through an interface engine (Mirth/Rhapsody-class)" },
+    { t:"FHIR R4 APIs", d:"US Core, SMART App Launch, Bulk Data — the §170.315(g)(10) surface" },
+    { t:"X12 EDI (billing)", d:"837 claims, 835 remittance, 270/271 eligibility, 278 prior auth — the revenue cycle you already build" },
+    { t:"IHE profiles", d:"XCPD / XCA / XDS.b for cross-community patient discovery & document exchange" },
+    { t:"Enterprise Master Patient Index", d:"one patient identity across every setting and every site" },
+  ],
+  exchange: [
+    { t:"TEFCA / QHIN", d:"Connect once to a Qualified Health Information Network — the national on-ramp to virtually any participating site." },
+    { t:"Carequality", d:"Query-based document exchange framework (converging under TEFCA)." },
+    { t:"CommonWell Health Alliance", d:"Record locator + retrieval across members." },
+    { t:"eHealth Exchange", d:"Large federal + private query network." },
+    { t:"Direct secure messaging", d:"Push transitions-of-care documents point to point (§170.315(h)(1))." },
+  ],
+  scheduling: "Enterprise scheduling across settings on FHIR Appointment / Schedule / Slot + HL7 v2 SIU — ties directly into the iPad check-in.",
+  portal: "One patient portal spanning every setting: view-download-transmit, secure messaging, patient-reported data, and SMART-on-FHIR patient apps (incl. Apple / Google Health).",
+};
+
+/* ---------- Competitive positioning ----------
+   Vendor market positions are approximate, factual industry facts. LumaChart's
+   differentiator: evidence-based research in the record, not just AI on top. */
+const COMPETE = {
+  thesis: "LumaChart's idea isn't \"add AI to the EHR.\" It's add evidence-based research to the EHR — every recommendation carries its citation, every screen is a validated instrument, prevention is USPSTF-graded, and consented data feeds a learning health system.",
+  rows: [
+    { v:"Epic", market:"Large health systems, academic centers", standout:"Deep integrated enterprise suite, the MyChart patient portal, and a broad app ecosystem.", take:"Match the integrated enterprise + portal — but organize the record around health and evidence, not billing." },
+    { v:"Oracle Health (Cerner)", market:"Hospitals, government (VA, DoD)", standout:"Enterprise scale and large-scale interoperability; major government deployments.", take:"Interoperate at scale via TEFCA — and make every decision-support intervention transparent and cited (§170.315(b)(11))." },
+    { v:"athenahealth", market:"Ambulatory network, data analytics", standout:"A connected network sharing rules, knowledge and billing intelligence across all practices.", take:"Turn the network effect toward public health: consented, de-identified data → a learning health system, not just a billing engine." },
+    { v:"eClinicalWorks", market:"Private practices, community health centers", standout:"Affordable full-featured ambulatory suite with patient engagement and an AI scribe.", take:"Add an evidence layer to the scribe/assistant — outputs link to their source, and screening is validated." },
+    { v:"NextGen Healthcare", market:"Specialty practices, FQHCs", standout:"Configurable specialty content and population-health / FQHC tooling.", take:"Ship USPSTF-graded prevention + SDOH + validated instruments as the content, evidence-linked by default." },
+    { v:"MEDITECH", market:"Community hospitals", standout:"Broad hospital functionality (Expanse) at a lower price point.", take:"Cost-effective breadth on an open FHIR core — plus a well-being layer the incumbents don't have." },
+    { v:"TruBridge (CPSI / Evident)", market:"Rural & critical-access hospitals", standout:"Focus on rural / critical-access hospitals plus revenue-cycle services.", take:"Serve the under-resourced too — the Puerto Rico clearinghouse bridge + an agent-assisted revenue cycle." },
+    { v:"Veradigm (Allscripts)", market:"Independent ambulatory practices", standout:"A data & analytics business built on real-world evidence from de-identified records.", take:"Do research with consent and transparency, for public benefit — the patient opts in and can see the studies." },
+    { v:"Practice Fusion", market:"Independent physicians, small practices", standout:"Low-cost, cloud, fast onboarding for small practices.", take:"Low barrier to start, cloud-native — with evidence-based care built in from day one, not bolted on." },
+    { v:"DrChrono", market:"Solo & very small practices", standout:"iPad-native, mobile-first; patient check-in on a tablet.", take:"We built the iPad check-in — and made it pre-load the chart, the claim, and evidence-based prevention." },
+  ],
+};
