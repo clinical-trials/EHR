@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="LumaChart">
+  <defs>
+    <linearGradient id="lumaRing" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5AD1E0"/>
+      <stop offset="0.5" stop-color="#86BEA4"/>
+      <stop offset="1" stop-color="#F2B04C"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="44" height="44" rx="12" fill="url(#lumaRing)"/>
+  <rect x="6" y="6" width="36" height="36" rx="9" fill="#0F1A22"/>
+  <path d="M11 27 H18 L21 27 L24 15 L27 34 L30 27 H37"
+        fill="none" stroke="#5AD1E0" stroke-width="3"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="24" cy="15" r="2.4" fill="#F2B04C"/>
+</svg>

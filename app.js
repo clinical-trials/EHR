@@ -924,6 +924,7 @@ function vConsole(){
     </div>
     <div class="small muted">${board.d} ${board.id==='institutional'?`<b>FWA ${IRB.fwa}</b> · `:''}typical turnaround ${board.turnaround}.</div>
     <div class="tiny" style="margin-top:6px">${IRB.note} <a class="pmid" href="${IRB.ohrpUrl}" target="_blank" rel="noopener" style="text-indent:0">OHRP: register IRB / obtain FWA ↗</a></div>
+    <div class="tiny" style="margin-top:4px">A registered <b>FWA</b> is the institutional unlock for federally-regulated human-subjects research — the critical piece that lets a site participate, alongside its IRB of record.</div>
   </div>
 
   <div class="grid g2">
@@ -963,7 +964,7 @@ function vConsole(){
   <div class="card">
     <h3>Regulatory &amp; registration documents</h3>
     <p class="small muted" style="margin:0 0 6px">Every study keeps its authorization paperwork on file — the audit trail regulators and partners expect.</p>
-    ${REGDOCS.map(d=>`<div class="rowitem"><span class="chip ${d.status==='on file'?'green':'amber'}">${d.status}</span><div style="flex:1"><div class="t small">${d.t}</div><div class="d">${d.d}</div></div><button class="btn ghost small" data-regdoc="${d.t}">View letter</button></div>`).join("")}
+    ${REGDOCS.map(d=>`<div class="rowitem"><span class="chip ${d.status==='on file'?'green':'amber'}">${d.status}</span><div style="flex:1"><div class="t small">${d.t}</div><div class="d">${d.d}${d.url?` · <a class="pmid" href="${d.url}" target="_blank" rel="noopener" style="text-indent:0">${d.src} ↗</a>`:''}</div></div><button class="btn ghost small" data-regdoc="${d.t}">View letter</button></div>`).join("")}
     <div class="tiny" style="margin-top:6px">Consent stewardship is modeled on the 78-year Framingham Heart Study — tiered, revocable, long-term.</div>
   </div>`;
 }

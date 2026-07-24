@@ -688,9 +688,9 @@ const FRAMINGHAM = {
   ],
 };
 const REGDOCS = [
-  { t:"IRB approval letter", d:"Institutional Review Board authorization for the active protocol.", status:"on file" },
-  { t:"FDA registration letter", d:"IND / IDE registration acknowledgment where applicable.", status:"placeholder" },
-  { t:"Federalwide Assurance (FWA)", d:"OHRP assurance for human-subjects protections.", status:"on file" },
+  { t:"IRB approval letter", d:"Institutional Review Board authorization for the active protocol.", status:"on file", url:"https://www.hhs.gov/ohrp/", src:"OHRP" },
+  { t:"FDA registration letter", d:"IRB / IND / IDE registration acknowledgment where FDA-regulated (drugs, devices).", status:"placeholder", url:"https://www.fda.gov/about-fda/cder-offices-and-divisions/institutional-review-boards-irbs-and-protection-human-subjects-clinical-trials", src:"FDA" },
+  { t:"Federalwide Assurance (FWA)", d:"OHRP assurance for the protection of human subjects — the institutional unlock for federally-regulated research.", status:"on file", url:"https://www.hhs.gov/ohrp/register-irbs-and-obtain-fwas/index.html", src:"OHRP" },
   { t:"Data Use Agreement (DUA)", d:"Terms governing de-identified data access.", status:"on file" },
 ];
 
@@ -705,7 +705,7 @@ const IRB = {
     { id:"institutional", name:"Institutional IRB", d:"Your organization's own board, operating under a Federalwide Assurance (FWA) registered with OHRP.", turnaround:"4–8 weeks" },
     { id:"central", name:"Commercial / central IRB", d:"An independent IRB (e.g., BRANY, WCG, Advarra). Often faster, and serves as the single IRB (sIRB) for multi-site studies.", turnaround:"1–3 weeks" },
   ],
-  note: "NIH-funded multi-site human-subjects research generally requires a single IRB of record. Many IRB options exist — institutional or commercial.",
+  note: "NIH-funded multi-site human-subjects research generally requires a single IRB of record. Many IRB options exist — your institution's own board, or a commercial/central IRB such as BRANY, WCG, or Advarra.",
   ohrpUrl: "https://www.hhs.gov/ohrp/register-irbs-and-obtain-fwas/index.html",
 };
 
