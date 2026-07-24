@@ -195,6 +195,9 @@ table.vitals td{ padding:8px; border-bottom:1px solid var(--line); }
 .cme-select{ background:var(--surface2); color:var(--text); border:1px solid var(--line-strong);
   border-radius:8px; padding:5px 10px; font-family:var(--font); font-size:13px; font-weight:600; }
 .cme-select:focus{ outline:2px solid var(--accent); border-color:transparent; }
+.hx-input{ background:var(--surface2); color:var(--text); border:1px solid var(--line-strong);
+  border-radius:9px; padding:8px 12px; font-family:var(--font); font-size:13.5px; }
+.hx-input:focus{ outline:2px solid var(--accent); border-color:transparent; }
 
 /* modal */
 #modal-layer{ position:fixed; inset:0; background:rgba(8,14,19,.62); z-index:300;
@@ -1369,6 +1372,12 @@ const state = {
   irb:       store.get("irb", {}),           // research study IRB status: 'review' | 'approved'
   irbBoard:  store.get("irbBoard", "institutional"), // selected IRB of record
   helixInstalled: store.get("helixInstalled", {}),   // installed Helix Hub apps
+  helixSuggestions: store.get("helixSuggestions", [  // clinician-requested tools / research questions
+    { id:"seed1", type:"question", title:"Which post-discharge patients benefit most from CHW follow-up?", desc:"Stratify readmission risk against social needs to target community health workers.", votes:14, by:"Dr. Okafor, Hospitalist" },
+    { id:"seed2", type:"tool", title:"One-tap sepsis + CURB-65 screen at triage", desc:"Auto-pull vitals and labs to flag sepsis and pneumonia severity in the ED.", votes:9, by:"Dr. Reyes, Emergency Medicine" },
+    { id:"seed3", type:"question", title:"Does embedding a pharmacist speed A1c improvement?", desc:"Compare diabetic panels with vs. without a co-visiting pharmacist.", votes:7, by:"Dr. Chen, Internal Medicine" },
+  ]),
+  helixVoted: store.get("helixVoted", {}),            // suggestions this user has upvoted
   consentTiers: null,                                 // Framingham-modeled consent tiers (lazy-init)
   readiness: {},                             // implementation readiness self-assessment
 };
@@ -3029,6 +3038,24 @@ function vHelix(){
   </div>
   <div class="section-gap"></div>
 
+  <div class="card" style="margin-bottom:16px"><h3>Requested by clinicians <span class="chip accent">${state.helixSuggestions.length}</span></h3>
+    <p class="small muted" style="margin:0 0 8px">Helix Hub grows from real questions at the bedside. Suggest a tool or a research question, or upvote what matters — the top requests guide what LumaChart builds and studies next.</p>
+    ${state.helixSuggestions.slice().sort((a,b)=>b.votes-a.votes).map(s=>`<div class="rowitem">
+      <button class="btn small" data-hx-vote="${s.id}" ${state.helixVoted[s.id]?'disabled style="opacity:.55"':''}>▲ ${s.votes}</button>
+      <div style="flex:1"><div class="t small">${s.type==='question'?'🔬':'🛠'} ${s.title}</div><div class="d">${s.desc}</div><div class="tiny">— ${s.by}</div></div>
+      ${s.by==='You'?'<span class="chip green">yours</span>':''}
+    </div>`).join('')}
+    <div class="divider"></div>
+    <div class="small" style="font-weight:700; margin-bottom:6px">Suggest something for Helix Hub</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center">
+      <select id="hx-type" class="cme-select"><option value="question">🔬 Research question</option><option value="tool">🛠 Tool / app</option></select>
+      <input id="hx-title" class="hx-input" placeholder="Your idea in one line — e.g., 'flag AKI risk before contrast'" style="flex:1; min-width:240px">
+    </div>
+    <input id="hx-desc" class="hx-input" placeholder="A sentence of clinical context (optional)" style="width:100%; margin-top:8px">
+    <button class="btn primary" id="hx-submit" style="margin-top:10px">Submit to Helix Hub</button>
+    <div class="tiny" style="margin-top:6px">Submissions go to the clinical &amp; safety team for review — the same vetting every listed app passes — so routine bedside questions become vetted tools and studies.</div>
+  </div>
+
   <div class="card"><h3>Publish to Helix Hub <span class="chip accent">for developers</span></h3>
     <p class="small muted" style="margin:0">Build on the open §170.315(g)(10) FHIR API, submit to the vetting pipeline (safety → HIPAA → conformance → source review), and reach every LumaChart site. Great open-source ideas — hardened, distributed, and revenue-shared.</p>
   </div>`;
@@ -3136,6 +3163,20 @@ function wireView(){
 
   // --- Helix Hub install ---
   $$("[data-helix]").forEach(b => b.addEventListener("click", () => { const a = HELIX.apps[b.dataset.helix]; state.helixInstalled[b.dataset.helix] = true; store.set("helixInstalled", state.helixInstalled); render(); toast("App installed 🧬", `${a.name} added to your LumaChart — vetted for safety &amp; HIPAA, running on SMART-on-FHIR scopes.`, "green"); }));
+  $$("[data-hx-vote]").forEach(b => b.addEventListener("click", () => {
+    const id = b.dataset.hxVote; if (state.helixVoted[id]) return;
+    const s = state.helixSuggestions.find(x => x.id === id);
+    if (s){ s.votes++; state.helixVoted[id] = true; store.set("helixSuggestions", state.helixSuggestions); store.set("helixVoted", state.helixVoted); render(); }
+  }));
+  const hxs = $("#hx-submit"); if (hxs) hxs.addEventListener("click", () => {
+    const title = ($("#hx-title").value || "").trim();
+    if (!title){ toast("Add a title", "Give your suggestion a one-line title first.", "amber"); return; }
+    const s = { id:"u"+Date.now(), type:$("#hx-type").value, title, desc:($("#hx-desc").value||"").trim() || "(no additional context)", votes:1, by:"You" };
+    state.helixSuggestions.unshift(s); state.helixVoted[s.id] = true;
+    store.set("helixSuggestions", state.helixSuggestions); store.set("helixVoted", state.helixVoted);
+    render();
+    toast("Suggestion submitted 🧬", `"${title}" is queued for clinical &amp; safety review. This is how a routine question becomes a vetted tool or study.`, "green");
+  });
   // --- Framingham-modeled consent tiers ---
   $$(".consent-tier").forEach(c => c.addEventListener("change", () => { if(!state.consentTiers) state.consentTiers={}; state.consentTiers[c.dataset.i] = c.checked; }));
   // --- regulatory document placeholder ---

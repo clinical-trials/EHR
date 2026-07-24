@@ -193,6 +193,9 @@ table.vitals td{ padding:8px; border-bottom:1px solid var(--line); }
 .cme-select{ background:var(--surface2); color:var(--text); border:1px solid var(--line-strong);
   border-radius:8px; padding:5px 10px; font-family:var(--font); font-size:13px; font-weight:600; }
 .cme-select:focus{ outline:2px solid var(--accent); border-color:transparent; }
+.hx-input{ background:var(--surface2); color:var(--text); border:1px solid var(--line-strong);
+  border-radius:9px; padding:8px 12px; font-family:var(--font); font-size:13.5px; }
+.hx-input:focus{ outline:2px solid var(--accent); border-color:transparent; }
 
 /* modal */
 #modal-layer{ position:fixed; inset:0; background:rgba(8,14,19,.62); z-index:300;
