@@ -841,7 +841,7 @@ function safetyModal(){
 function vLongevity(){
   return `
   <h1 class="page-title">Longevity tracker</h1>
-  <p class="page-sub">Five modifiable numbers, one goal: more healthy years. Small moves on these compound.</p>
+  <p class="page-sub">Five modifiable numbers, one goal: more healthy years.</p>
   ${LONGEVITY.map(l=>`
     <div class="card" style="margin-bottom:13px">
       <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap">
