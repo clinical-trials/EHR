@@ -11,7 +11,7 @@ for id in "${ORDER[@]}"; do
   # neural TTS from the existing narration text (slightly slowed for clarity)
   piper -m "$M" --length-scale 1.06 -f "audio/$id.wav" < "audio/$id.txt" >/dev/null 2>&1
   dur=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 "audio/$id.wav")
-  tot=$(echo "$dur + 0.9" | bc)
+  tot=$(echo "$dur + 1.15" | bc)
   ffmpeg -y -loglevel error -loop 1 -i "frames/$id.png" -i "audio/$id.wav" \
     -vf "scale=1280:800,setsar=1,format=yuv420p" -t "$tot" -r 30 \
     -c:v libx264 -preset veryfast -crf 23 -c:a aac -b:a 160k -ar 44100 -movflags +faststart "clips/$id.mp4"

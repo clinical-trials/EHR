@@ -14,6 +14,7 @@ OVR_HEAD='<script>(function(){try{
 state.wellness=true; state.canary={sessionMin:0,snoozedUntil:999999,fired:{micro:true,breathe:true,extended:true}};'
 OVR_TAIL='render();
 document.querySelectorAll(".theme-btn[data-themepick]").forEach(function(b){b.classList.toggle("active",b.dataset.themepick===document.documentElement.getAttribute("data-theme"))});
+document.querySelectorAll(".role-btn").forEach(function(b){b.classList.toggle("active",b.dataset.role===state.role)});
 var t=document.getElementById("toast-layer"); if(t) t.innerHTML="";
 var m=document.getElementById("modal-layer"); if(m) m.classList.add("hidden");
 function sc(k){var el;var hs=[].slice.call(document.querySelectorAll("h3"));
