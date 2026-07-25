@@ -2,3 +2,6 @@ frames/
 audio/
 clips/
 clips.txt
+.ttsenv/
+voices/
+*.wav
