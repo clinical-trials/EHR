@@ -94,7 +94,7 @@ narr 10cwo    "For leaders, a chief wellness officer dashboard tracks A M A Joy 
 narr 11pt     "Patients get a portal organized around staying well. Prevention, longevity, community health, digital payments, and language first communication."
 narr 12theme  "Prefer a classic light interface? Switch themes in a click, or hide the well being features entirely for a lean clinical view."
 narr 13syn    "It all ties together. Clinician centered interoperability is physician health infrastructure, and the same lean data serves public health."
-narr 99close  "LumaChart. Not A I on the E H R. Evidence on the E H R. This is a demonstration prototype with synthetic data. Learn more at luma E H R dot com."
+narr 99close  "LumaChart. Not, ay eye, on the E H R. Evidence, on the E H R. This is a demonstration prototype, with synthetic data. Learn more at luma E H R dot com."
 
 # ---- build clips (image + narration, +0.9s tail) ----
 : > "$W/clips.txt"
