@@ -3,7 +3,7 @@ set -e
 cd /Users/lgm/public-health-ehr/media
 . .ttsenv/bin/activate
 export PATH="/opt/homebrew/bin:$PATH"
-M=voices/hfc.onnx
+M=voices/${VOICE:-lessac}.onnx
 ORDER=(00title 02dash 03chart 04screen 05canary 06bill 07eco 08helix 09res 10cwo 11pt 12theme 13syn 99close)
 
 : > clips.txt
@@ -11,10 +11,11 @@ for id in "${ORDER[@]}"; do
   # neural TTS from the existing narration text (slightly slowed for clarity)
   piper -m "$M" --length-scale 1.06 -f "audio/$id.wav" < "audio/$id.txt" >/dev/null 2>&1
   dur=$(ffprobe -v quiet -show_entries format=duration -of csv=p=0 "audio/$id.wav")
-  tot=$(echo "$dur + 1.15" | bc)
+  tot=$(echo "$dur + 1.4" | bc)
+  # adelay=300 -> 0.3s screen settles before voice; apad -> silence-pad audio to match video (fixes A/V drift on concat)
   ffmpeg -y -loglevel error -loop 1 -i "frames/$id.png" -i "audio/$id.wav" \
-    -vf "scale=1280:800,setsar=1,format=yuv420p" -t "$tot" -r 30 \
-    -c:v libx264 -preset veryfast -crf 23 -c:a aac -b:a 160k -ar 44100 -movflags +faststart "clips/$id.mp4"
+    -vf "scale=1280:800,setsar=1,format=yuv420p" -af "adelay=300:all=1,apad" -t "$tot" -r 30 \
+    -c:v libx264 -preset veryfast -crf 23 -pix_fmt yuv420p -c:a aac -b:a 160k -ar 44100 -movflags +faststart "clips/$id.mp4"
   echo "file 'clips/$id.mp4'" >> clips.txt
 done
 
