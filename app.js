@@ -24,6 +24,10 @@ const state = {
   activeInstrument: null,                // instrument currently being taken
   activeResult: null,                    // instrument result being shown
   wellness:  store.get("wellness", true),// well-being features on/off (provider preference)
+  focus:     store.get("focus", false),  // Focus mode — minimal display for maximum concentration
+  ambientSigned: false,                  // Luma Ambient draft note signed this session
+  ambientSent:   false,                  // Ambient draft codes sent to Encounter & claim
+  delegated: {},                         // delegation steps run this session (by index)
   checkin:   store.get("checkin", null), // patient iPad pre-visit intake
   claim:     { dxAdded:false, verified:{}, stage:"code" }, // encounter/claim workflow
   _idUploaded: false,
@@ -120,6 +124,7 @@ const NAVS = {
     { label:"Care", items:[
       { id:"dashboard", ic:"▦", t:"Today" },
       { id:"chart",     ic:"▤", t:"Patient chart" },
+      { id:"ambient",   ic:"🎙", t:"Luma Ambient", badge:() => state.ambientSigned ? null : 1 },
       { id:"inbox",     ic:"✉", t:"Inbox", badge:() => INBOX.length },
       { id:"readmit",   ic:"⤾", t:"Readmission risk", badge:() => READMIT.patients.filter((p,i)=>p.risk==="High" && !state.chwAssigned[i]).length || null },
       { id:"billing",   ic:"⛁", t:"Encounter & claim" },
@@ -187,9 +192,13 @@ $$(".role-btn").forEach(btn => btn.addEventListener("click", () => {
   render();
 }));
 
+// Focus mode: the nav trims to today's clinical work — everything else is one toggle away.
+const FOCUS_CORE = new Set(["dashboard","chart","ambient","inbox","billing"]);
+
 function renderNav(){
   $("#sidenav").innerHTML = NAVS[state.role].map(group => {
-    const items = group.items.filter(i => !(i.ph && !state.wellness));   // hide well-being items when off
+    let items = group.items.filter(i => !(i.ph && !state.wellness));   // hide well-being items when off
+    if (state.focus && state.role === "clinician") items = items.filter(i => FOCUS_CORE.has(i.id));
     if (!items.length) return "";
     return `<div class="nav-label">${group.label}</div>` + items.map(i => {
       const b = i.badge ? i.badge() : null;
@@ -212,8 +221,59 @@ function metricTile(m){
   </div></div>`;
 }
 
+/* --- point-of-care charting: fit EHR work between patients, not after hours --- */
+function chartNowCard(){
+  const open = state.ambientSigned ? 0 : 1;
+  return `<div class="card">
+    <h3><span class="spark">✍</span> Chart between patients ${open?`<span class="chip amber">${open} note open</span>`:`<span class="chip green">all caught up</span>`}</h3>
+    ${open?`<div class="small">Maria Alvarez's draft note is ready — <b>~90 seconds</b> to review and sign while it's fresh.</div>
+    <button class="btn primary small" style="margin-top:10px" data-nav-inline="ambient">Chart now → nothing left for tonight</button>`
+    :`<div class="small muted">Every note signed. Tonight belongs to you.</div>`}
+    <div class="evidence">Closing the note in the moment beats end-of-day catch-up — it's a healthy habit that prevents the "pajama time" that drives burnout.${ev("arndt")}</div>
+  </div>`;
+}
+
+/* --- run-on-time coach: protect the schedule, defer what can wait --- */
+function pacingCard(){
+  return `<div class="card">
+    <h3><span class="spark">⏱</span> Run on time <span class="chip green">${PACING.status}</span></h3>
+    <div class="tiny" style="margin-bottom:8px">Drift ${PACING.drift} · ${PACING.onTimePct}% of your visits started on time this month. Late mornings snowball into late afternoons — for you <i>and</i> your patients.</div>
+    <div class="rowlist">
+      ${PACING.defer.map((d,i)=>`<div class="rowitem">
+        <div style="flex:1"><div class="t small">${d.pt} — ${d.item}</div><div class="d">${d.action}</div></div>
+        ${state.tasksDone["defer"+i]?`<span class="chip green">booked ✓</span>`:`<button class="btn ghost small" data-defer="${i}">Defer &amp; book</button>`}
+      </div>`).join("")}
+    </div>
+    <details style="margin-top:8px"><summary class="small" style="cursor:pointer">Three graceful exits</summary>
+      <ul class="small muted" style="margin:6px 0 0 18px">${PACING.exits.map(x=>`<li style="margin-bottom:4px">${x}</li>`).join("")}</ul>
+    </details>
+    <div class="tiny" style="margin-top:8px">Don't tackle everything in one visit — a booked follow-up is better care than a rushed add-on.</div>
+  </div>`;
+}
+
 function vDashboard(){
   const pinned = METRIC_LIBRARY.filter(m => state.metrics.includes(m.id));
+  if (state.focus) return `
+  <h1 class="page-title">Today <span class="chip accent">◉ Focus on</span></h1>
+  <p class="page-sub">The minimal display — schedule, charting, pacing. Everything else is one toggle away. Urgent items always break through.</p>
+  <div class="grid g23">
+    <div class="card">
+      <h3><span class="spark">▦</span> Today's schedule</h3>
+      <div class="rowlist">
+        ${SCHEDULE.map(p => `
+          <div class="rowitem">
+            <div class="avatar">${p.initials}</div>
+            <div style="flex:1"><div class="t">${p.time} — ${p.name}</div><div class="d">${p.reason}</div></div>
+            <span class="chip ${p.status==="roomed"?"green":p.status==="arrived"?"amber":"plain"}">${p.status}</span>
+          </div>`).join("")}
+      </div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:16px">
+      ${chartNowCard()}
+      ${pacingCard()}
+      <div class="tiny">✉ Next inbox batch <b>12:15 PM</b> — staff-triaged and earmarked. Nothing pings you until then.</div>
+    </div>
+  </div>`;
   return `
   <h1 class="page-title">Good morning, Dr. Chen</h1>
   <p class="page-sub">Thursday · 6 visits scheduled · your day is designed to end on time.</p>
@@ -253,6 +313,49 @@ function vDashboard(){
         <div class="tiny" style="margin-top:8px">Private to you. Never used for productivity review.</div>
         <button class="btn ghost small" style="margin-top:10px" data-nav-inline="canary">Open Canary panel →</button>
       </div>`:""}
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px">
+    ${chartNowCard()}
+    ${pacingCard()}
+  </div>`;
+}
+
+/* ==========================================================================
+   LUMA AMBIENT — the encounter documents itself (demo simulation)
+   ========================================================================== */
+function vAmbient(){
+  return `
+  <h1 class="page-title">🎙 Luma Ambient <span class="chip accent">demo simulation</span></h1>
+  <p class="page-sub">The encounter documents itself: with the patient's consent, Ambient listens, drafts the note, suggests questions, and pre-codes the visit — so charting fits <b>between</b> patients. No homework. No after-hours catch-up.${ev("arndt")}</p>
+
+  <div class="grid g23">
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <h3><span class="spark">●</span> Visit captured — Maria Alvarez <span class="chip green">consented · 14 min</span></h3>
+        <div class="tiny">Audio is processed in the room and discarded — only the structured draft below persists. A production version is a decision-support intervention under §170.315(b)(11), with full source &amp; logic transparency.</div>
+      </div>
+      <div class="card">
+        <h3>✍ First-draft note ${state.ambientSigned?'<span class="chip green">signed ✓</span>':'<span class="chip amber">awaiting your review</span>'}</h3>
+        <textarea id="ambient-note" class="ambient-note" rows="7" ${state.ambientSigned?"disabled":""}>${AMBIENT.note}</textarea>
+        ${state.ambientSigned?'<div class="small muted" style="margin-top:8px">Signed and filed while it was fresh. Nothing left for tonight.</div>':`<button class="btn primary" style="margin-top:10px" data-ambient-sign>Review &amp; sign — ~90 seconds</button>`}
+        <div class="evidence">Ambient writes the first pass; the physician stays the author. The note stays lean because billing justification lives in the claim layer — not the note.</div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <h3>❓ Suggested questions</h3>
+        <div class="rowlist">${AMBIENT.questions.map(q=>`<div class="rowitem"><span class="chip accent">ask</span><div class="d" style="flex:1">${q}</div></div>`).join("")}</div>
+        <div class="tiny" style="margin-top:8px">Surfaced live from the conversation plus the chart — nothing gets missed while you stay face-to-face with the patient.</div>
+      </div>
+      <div class="card">
+        <h3>⛁ Drafted codes ${state.ambientSent?'<span class="chip green">sent ✓</span>':""}</h3>
+        <div class="small" style="margin-bottom:6px">ICD-10 ${AMBIENT.icd.map(c=>`<span class="chip plain">${c}</span>`).join(" ")}</div>
+        <div class="small">CPT ${AMBIENT.cpt.map(c=>`<span class="chip plain">${c}</span>`).join(" ")}</div>
+        ${state.ambientSent?`<div class="small muted" style="margin-top:8px">Queued in Encounter &amp; claim for one-tap verification.</div>`:`<button class="btn primary small" style="margin-top:10px" data-ambient-send>Send to Encounter &amp; claim →</button>`}
+        <div class="tiny" style="margin-top:8px">Diagnosis and billing codes drop out of the visit itself — the revenue cycle starts complete instead of being reconstructed at 9 PM.</div>
+      </div>
     </div>
   </div>`;
 }
@@ -355,11 +458,22 @@ function vChart(){
 }
 
 function vInbox(){
-  const cats = ["Results","Refill","Portal"];
   const delegable = INBOX.filter(i=>i.delegable).length;
+  const batchRow = i => `
+    <div class="rowitem">
+      <div style="flex:1"><div class="t small">${i.t} ${i.gratitude?"💛":""}</div>
+      <div class="d">${i.d} · <span class="tiny">earmarked by ${i.by}</span></div></div>
+      ${i.delegable?`<span class="chip green">delegable</span>`:`<span class="chip plain">physician</span>`}
+    </div>`;
   return `
   <h1 class="page-title">Inbox <span class="chip amber">${INBOX.length} items</span></h1>
-  <p class="page-sub">Inbox work is ~24% of physicians' EHR time.${ev("arndt")} LumaChart routes what your team can own.</p>
+  <p class="page-sub">Inbox work is ~24% of physicians' EHR time.${ev("arndt")} Here, every message lands with staff first — and reaches you in two daily batches, not thirty interruptions.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>✉ Batched delivery <span class="chip green">on</span></h3>
+    <div class="small">Staff receive everything, resolve what they can, and <b>earmark</b> the rest for you. Earmarked items arrive twice a day — <b>8:00 AM</b> and <b>12:15 PM</b> — so your attention stays with the patient in front of you.</div>
+    <div class="tiny" style="margin-top:8px">⚠ Emergencies are never batched — anything urgent breaks through instantly, 24/7.</div>
+  </div>
 
   <div class="card" style="margin-bottom:16px">
     <h3>Inbox burden</h3>
@@ -372,17 +486,38 @@ function vInbox(){
     <div class="evidence">Team-based models (APEX) that delegate protocol work cut burnout from 53% → 13% in 6 months — while improving vaccination &amp; screening rates.${ev("wright")}</div>
   </div>
 
-  ${cats.map(cat => `
-    <div class="card" style="margin-bottom:14px">
-      <h3>${cat==="Results"?"🧪 Results":cat==="Refill"?"℞ Refills":"💬 Portal messages"}</h3>
-      <div class="rowlist">
-        ${INBOX.filter(i=>i.cat===cat).map(i=>`
-          <div class="rowitem">
-            <div style="flex:1"><div class="t small">${i.t} ${i.gratitude?"💛":""}</div><div class="d">${i.d}</div></div>
-            ${i.delegable?`<span class="chip green">delegable</span>`:`<span class="chip plain">physician</span>`}
-          </div>`).join("")}
-      </div>
-    </div>`).join("")}`;
+  <div class="card" style="margin-bottom:16px">
+    <h3>🤝 Suggested delegation steps <span class="chip accent">you're part of a team</span></h3>
+    <div class="rowlist">
+      ${DELEGATION.map((s,i)=>`<div class="rowitem">
+        <div style="flex:1">
+          <div class="t small">${s.item} <span class="chip plain">${s.to}</span></div>
+          <div class="d">${s.how}</div>
+        </div>
+        ${state.delegated[i]?`<span class="chip green">running ✓</span>`:`<button class="btn ghost small" data-delegate-step="${i}">Run step · ~${s.min} min back</button>`}
+      </div>`).join("")}
+    </div>
+    <div class="tiny" style="margin-top:8px">Concrete steps, not vague advice — each one names who takes the work and how it stays safe (protocol + automatic route-back).</div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
+    <h3>🌅 Morning batch <span class="chip green">delivered 8:00 AM</span></h3>
+    <div class="rowlist">${INBOX.filter(i=>i.batch==="AM").map(batchRow).join("")}</div>
+  </div>
+
+  <div class="card batch-queued" style="margin-bottom:14px">
+    <h3>🕛 Afternoon batch <span class="chip plain">arrives 12:15 PM</span></h3>
+    <div class="rowlist">${INBOX.filter(i=>i.batch==="PM").map(batchRow).join("")}</div>
+    <div class="tiny" style="margin-top:8px">Queued with your staff — out of sight until batch time.</div>
+  </div>
+
+  <div class="card">
+    <h3>1️⃣ One route per task</h3>
+    <div class="small" style="margin-bottom:8px">Legacy EHRs deliver <b>${ROUTES.example}</b> four different ways:</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${ROUTES.before.map(r=>`<span class="chip plain" style="text-decoration:line-through;opacity:.6">${r}</span>`).join("")}</div>
+    <div class="small"><span class="chip green">LumaChart</span> ${ROUTES.after}</div>
+    <div class="tiny" style="margin-top:8px">Redundant routes are how things get double-handled <i>and</i> missed. One canonical route per task is a design rule across LumaChart.</div>
+  </div>`;
 }
 
 function vWellness(){
@@ -1131,6 +1266,19 @@ function vCME(){
     </div>
   </div>
 
+  <div class="section-gap"></div>
+  <div class="card">
+    <h3>🎯 Suggested from your case mix <span class="chip accent">reads your panel, not a catalog</span></h3>
+    <div class="rowlist">
+      ${CME_CASEMIX.map(s=>`<div class="rowitem">
+        <div class="avatar" style="font-size:11px">${s.share}%</div>
+        <div style="flex:1"><div class="t small">${s.topic}</div><div class="d">${s.share}% of your panel carries ${s.cond} — this keeps your CME aligned with the patients you actually see.</div></div>
+        <span class="chip plain">${s.credits} cr</span>
+      </div>`).join("")}
+    </div>
+    <div class="evidence">CME that mirrors your case mix keeps you current where it changes outcomes — and licensure stops being one more thing to hold in your head. Registered in Texas? The state tracks reported credits centrally — LumaChart syncs your log automatically, so compliance takes care of itself.</div>
+  </div>
+
   ${booked.length?`<div class="section-gap"></div><div class="card"><h3>Booked <span class="chip green">${bookedCredits} credits · $${bookedCost}</span></h3>
     ${booked.map(c=>`<div class="rowitem"><span class="chip green">✓</span><div style="flex:1"><div class="t small">${c.title}</div><div class="d">${c.location} · ${c.dates} · ${c.credits} credits</div></div><button class="btn ghost small" data-cme-cancel="${c.id}">Cancel</button></div>`).join("")}</div>`:""}
 
@@ -1730,7 +1878,7 @@ function vHelix(){
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, inbox:vInbox, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, ambient:vAmbient, inbox:vInbox, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, actions:vActions, report:vReport },
@@ -1759,6 +1907,24 @@ function wireView(){
   $$("[data-start-screen]").forEach(b => b.addEventListener("click", () => { state.activeResult = null; state.activeInstrument = b.dataset.startScreen; render(); }));
   const scx = $("[data-screen-cancel]"); if (scx) scx.addEventListener("click", () => { state.activeInstrument = null; render(); });
   $$("[data-screen-submit]").forEach(b => b.addEventListener("click", () => scoreInstrument(b.dataset.screenSubmit)));
+
+  /* --- Aug-2026 interview wave: ambient · pacing · delegation steps --- */
+  const asig = $("[data-ambient-sign]"); if (asig) asig.addEventListener("click", () => {
+    state.ambientSigned = true; render();
+    toast("Note signed ✍", "Charted between patients, while it was fresh — the healthy habit that keeps tonight yours.", "green");
+  });
+  const asend = $("[data-ambient-send]"); if (asend) asend.addEventListener("click", () => {
+    state.ambientSent = true; render();
+    toast("Codes sent to Encounter & claim", "Drafted ICD-10 + CPT codes are queued for your one-tap verification in the claim workflow.", "green");
+  });
+  $$("[data-defer]").forEach(b => b.addEventListener("click", () => {
+    state.tasksDone["defer"+b.dataset.defer] = true; store.set("tasksDone", state.tasksDone); render();
+    toast("Follow-up booked", "Deferred to its own visit — today stays on time, and the concern still gets real attention.", "green");
+  }));
+  $$("[data-delegate-step]").forEach(b => b.addEventListener("click", () => {
+    state.delegated[b.dataset.delegateStep] = true; render();
+    toast("Delegation step running", "Your team has it — protocol-safe, with automatic route-back if anything is out of range.", "green");
+  }));
   $$("[data-view-result]").forEach(b => b.addEventListener("click", () => { state.activeResult = b.dataset.viewResult; render(); }));
   const rdn = $("[data-result-done]"); if (rdn) rdn.addEventListener("click", () => { state.activeResult = null; render(); });
   const usr = $("#uspstf-refresh"); if (usr) usr.addEventListener("click", () => loadUSPSTF(true));
@@ -2201,6 +2367,20 @@ function updateWellnessUI(){
   const wt = $("#wellness-toggle"); if (wt) wt.classList.toggle("active", state.wellness);
   const pill = $("#canary-pill"); if (pill) pill.style.display = state.wellness ? "" : "none";
 }
+function updateFocusUI(){
+  const ft = $("#focus-toggle"); if (ft) ft.classList.toggle("active", state.focus);
+  document.documentElement.classList.toggle("focus-on", state.focus);
+}
+function toggleFocus(){
+  state.focus = !state.focus;
+  store.set("focus", state.focus);
+  if (state.focus && state.role === "clinician" && !FOCUS_CORE.has(state.view)) state.view = "dashboard";
+  updateFocusUI();
+  render();
+  toast("Focus " + (state.focus ? "on" : "off"),
+    state.focus ? "The minimal display — like Do Not Disturb for your EHR. Today's clinical work only; urgent items always break through. Toggle any time." :
+                  "Full interface restored — every panel is back.", "green");
+}
 function toggleWellness(){
   state.wellness = !state.wellness;
   store.set("wellness", state.wellness);
@@ -2214,6 +2394,8 @@ function toggleWellness(){
 render();
 loadUSPSTF();                    // pull the latest Grade A/B recommendations (embedded fallback if offline)
 $("#wellness-toggle").addEventListener("click", toggleWellness);
+const _ft = $("#focus-toggle"); if (_ft) _ft.addEventListener("click", toggleFocus);
 updateWellnessUI();
+updateFocusUI();
 setInterval(canaryTick, 1000);
 setTimeout(() => toast("Welcome to LumaChart", `Restore Mode (low-glare dark) is on to reduce visual fatigue.${ev("eyestrain")} Tap any notification to dismiss it — they stay gentle and out of your way.`, "green"), 4500);

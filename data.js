@@ -51,16 +51,18 @@ const SCHEDULE = [
   { time:"10:30", initials:"EB", name:"Earl Bishop",     age:71, sex:"M", reason:"COPD action plan",          status:"scheduled",preVisit:false },
 ];
 
+// Every message lands with staff first, is triaged, then earmarked into an AM or PM
+// batch for the provider (interview: batch check-ins 2×/day, not 8×; urgent always breaks through).
 const INBOX = [
-  { cat:"Results", t:"CBC + CMP — Maria Alvarez",       d:"A1c 6.9% (was 7.4) — improving", urgent:false, delegable:false },
-  { cat:"Results", t:"Lipid panel — Ravi Kapoor",       d:"LDL 118, on-visit review today", urgent:false, delegable:false },
-  { cat:"Results", t:"TSH — Linh Nguyen",               d:"Within normal limits",           urgent:false, delegable:true  },
-  { cat:"Refill",  t:"Metformin 500 mg — M. Alvarez",   d:"Protocol-eligible renewal",      urgent:false, delegable:true  },
-  { cat:"Refill",  t:"Lisinopril 10 mg — E. Bishop",    d:"Protocol-eligible renewal",      urgent:false, delegable:true  },
-  { cat:"Refill",  t:"Albuterol HFA — E. Bishop",       d:"Protocol-eligible renewal",      urgent:false, delegable:true  },
-  { cat:"Portal",  t:"Question about diet — M. Alvarez",d:"“Is olive oil really better?”",  urgent:false, delegable:true  },
-  { cat:"Portal",  t:"Work note request — J. Tran",     d:"Template available",             urgent:false, delegable:true  },
-  { cat:"Portal",  t:"Thank you 💛 — D. Whitfield",     d:"“You listened. Thank you.”",     urgent:false, delegable:false, gratitude:true },
+  { cat:"Results", t:"CBC + CMP — Maria Alvarez",       d:"A1c 6.9% (was 7.4) — improving", urgent:false, delegable:false, batch:"AM", by:"M. Rivera, RN" },
+  { cat:"Results", t:"Lipid panel — Ravi Kapoor",       d:"LDL 118, on-visit review today", urgent:false, delegable:false, batch:"AM", by:"M. Rivera, RN" },
+  { cat:"Results", t:"TSH — Linh Nguyen",               d:"Within normal limits",           urgent:false, delegable:true,  batch:"AM", by:"M. Rivera, RN" },
+  { cat:"Refill",  t:"Metformin 500 mg — M. Alvarez",   d:"Protocol-eligible renewal",      urgent:false, delegable:true,  batch:"PM", by:"J. Ortiz, PharmD" },
+  { cat:"Refill",  t:"Lisinopril 10 mg — E. Bishop",    d:"Protocol-eligible renewal",      urgent:false, delegable:true,  batch:"PM", by:"J. Ortiz, PharmD" },
+  { cat:"Refill",  t:"Albuterol HFA — E. Bishop",       d:"Protocol-eligible renewal",      urgent:false, delegable:true,  batch:"PM", by:"J. Ortiz, PharmD" },
+  { cat:"Portal",  t:"Question about diet — M. Alvarez",d:"“Is olive oil really better?”",  urgent:false, delegable:true,  batch:"PM", by:"T. Begay, MA" },
+  { cat:"Portal",  t:"Work note request — J. Tran",     d:"Template available",             urgent:false, delegable:true,  batch:"PM", by:"T. Begay, MA" },
+  { cat:"Portal",  t:"Thank you 💛 — D. Whitfield",     d:"“You listened. Thank you.”",     urgent:false, delegable:false, gratitude:true, batch:"AM", by:"T. Begay, MA" },
 ];
 
 const CHART = {
@@ -805,6 +807,67 @@ const ECOSYSTEM = {
     { t:"Specialist e-consults & video referrals", d:"Refer to specialty telehealth (derm, psych, genetic counseling) without a long wait." },
     { t:"Remote patient monitoring", d:"Home device data (BP, glucose, weight) streams into the chart for between-visit care." },
   ],
+};
+
+/* ---------- Unified care timeline (fragmentation → one record) ---------- */
+const TIMELINE = [
+  { date:"2026-07-01", setting:"Primary care", icon:"🩺", title:"Diabetes & BP follow-up — Dr. Chen", detail:"A1c 6.9 (↓ from 7.4), BP 132/81. Colonoscopy referral placed.", src:"LumaChart" },
+  { date:"2026-06-18", setting:"Laboratory",   icon:"🧪", title:"A1c, lipid panel, CMP", detail:"Results filed automatically to the chart.", src:"Health Gorilla" },
+  { date:"2026-05-02", setting:"Emergency Dept",icon:"🚑", title:"ED visit — chest pain, r/o ACS", detail:"Troponin negative; discharged. Summary reconciled into the record.", src:"Regional Hospital · C-CDA" },
+  { date:"2026-04-15", setting:"Cardiology",   icon:"❤️", title:"Cardiology e-consult (telehealth)", detail:"Low ASCVD risk; statin continued. Note received.", src:"Telehealth network · FHIR" },
+  { date:"2026-03-10", setting:"Pharmacy",     icon:"℞",  title:"Metformin & lisinopril refills", detail:"Fill status synced from the pharmacy.", src:"DrFirst" },
+  { date:"2026-02-20", setting:"Imaging",      icon:"🎗️", title:"Screening mammogram — normal (BI-RADS 1)", detail:"Imaging report reconciled into the record.", src:"Imaging Center · C-CDA" },
+  { date:"2025-11-08", setting:"Hospital",     icon:"🏥", title:"Inpatient — pneumonia, 3-day stay", detail:"Discharge summary + med changes reconciled on return to PCP.", src:"Regional Hospital · C-CDA" },
+];
+
+/* ---------- Luma Ambient — point-of-care documentation (demo simulation) ---------- */
+const AMBIENT = {
+  questions: [
+    "Ask how the nocturnal foot tingling has changed since last visit",
+    "Confirm statin adherence and any muscle aches",
+    "Two-question mood check (PHQ-2): low interest, or feeling down?",
+    "Confirm colonoscopy scheduling preference",
+  ],
+  note: "58F with T2DM and HTN, both improving. A1c 6.9 (from 7.4), BP 132/81 on lisinopril 20. Reports nocturnal foot tingling — monofilament exam normal today; will surveil. Discussed Mediterranean diet (patient-raised) and shared the evidence. Plan: continue current meds; colonoscopy referral placed; recheck A1c in 3 months.",
+  icd: ["E11.9","I10","E78.5","R20.2","Z12.11"],
+  cpt: ["99214","96127"],
+};
+
+/* ---------- Suggested delegation steps (interview: "VERY HELPFUL") ---------- */
+const DELEGATION = [
+  { item:"Metformin, lisinopril & albuterol renewals", to:"PharmD · standing order", how:"Pharmacist verifies labs and adherence, renews for 12 months; you co-sign one weekly summary instead of three tickets.", min:6 },
+  { item:"Normal TSH — Linh Nguyen", to:"RN · result protocol", how:"RN releases the “normal, no change” letter. Anything out of range routes back to you automatically.", min:3 },
+  { item:"Diet question — M. Alvarez", to:"RN / health coach", how:"Answered from the care-team playbook (Mediterranean-diet handout), with a dietitian visit offered.", min:4 },
+  { item:"Work note — J. Tran", to:"Front desk", how:"Template note prepared for one-tap signature at checkout.", min:1 },
+];
+
+/* ---------- Clinic pacing — run on time, protect the afternoon ---------- */
+const PACING = {
+  status:"on time through visit 2 of 6", drift:"+4 min", onTimePct:86,
+  defer: [
+    { pt:"Maria Alvarez", item:"New knee pain (non-urgent) raised at the door", action:"Give it its own visit — Tue 2:10 open" },
+    { pt:"Earl Bishop",   item:"Advance-care-planning conversation",            action:"Book a dedicated ACP visit (99497 — reimbursed time)" },
+  ],
+  exits: [
+    "“That deserves its own visit so we can give it real time — let's book it before you leave.”",
+    "Summarize the plan out loud — a spoken close signals the visit is wrapping up.",
+    "Stand, hand over the after-visit summary, and schedule the follow-up in the room.",
+  ],
+};
+
+/* ---------- CME suggested from the doctor's actual case mix ---------- */
+const CME_CASEMIX = [
+  { share:31, cond:"Type 2 diabetes",      topic:"Modern T2DM: GLP-1s, SGLT2 inhibitors & deprescribing", credits:3   },
+  { share:24, cond:"Hypertension",         topic:"BP targets & intensive control in older adults",        credits:2   },
+  { share:18, cond:"COPD",                 topic:"COPD action plans & inhaler technique coaching",        credits:2   },
+  { share:12, cond:"Perinatal mood",       topic:"Postpartum depression: screening to first-line care",   credits:1.5 },
+];
+
+/* ---------- One route per task — the redundancy killer ---------- */
+const ROUTES = {
+  example:"Ravi Kapoor's lipid panel",
+  before:["Result message to physician","Auto-email copy","Separate result note","Staff task to call patient"],
+  after:"One actionable result. The chart view, the patient release and the staff call-back all hang off the same item — close it once and it is closed everywhere.",
 };
 
 /* ---------- Readmission predictive analytics (demo cohort) ----------
