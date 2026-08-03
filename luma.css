@@ -356,10 +356,37 @@ table.reg td.cap{ font-weight:700; }
    + Aug-2026 interview wave components
    ========================================================================== */
 #focus-toggle.active{ background:var(--surface2); color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
-.focus-on #assistant-fab, .focus-on #canary-pill{ display:none !important; }
-.ambient-note{ width:100%; box-sizing:border-box; background:var(--surface2); color:var(--text);
+
+/* When Focus is on, almost everything goes away — a dramatic, quiet minimum. */
+.focus-on #assistant-fab, .focus-on #assistant-drawer, .focus-on #canary-pill,
+.focus-on .tagline, .focus-on .role-switch,
+.focus-on .theme-btn[data-themepick], .focus-on #wellness-toggle,
+.focus-on .theme-switch[aria-label="Well-being features"],
+.focus-on .lm-ring{ display:none !important; }
+.focus-on .demo-banner{ opacity:.38; }
+.focus-on .topbar{ border-bottom-color:transparent; }
+.focus-on .sidenav{ width:64px; min-width:64px; padding:18px 8px; border-right-color:transparent; }
+.focus-on .content{ max-width:940px; margin:0 auto; }
+.nav-item.focus-ic{ justify-content:center; padding:13px 0; font-size:17px; position:relative; width:100%; }
+.nav-item.focus-ic .badge{ position:absolute; top:2px; right:4px; margin-left:0; font-size:9px; padding:1px 5px; }
+
+/* The Focus stage — one patient, one action, silence around it */
+.focus-stage{ min-height:66vh; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; text-align:center; gap:8px; animation:focusIn .5s ease; }
+@keyframes focusIn{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:none;} }
+.focus-kicker{ text-transform:uppercase; letter-spacing:7px; font-size:11px; color:var(--text-3); }
+.focus-now{ font-size:62px; font-weight:200; letter-spacing:-1.5px; line-height:1.05; color:var(--text); }
+.focus-meta{ font-size:18px; color:var(--text-3); font-weight:300; }
+.focus-actions{ display:flex; gap:12px; margin-top:24px; }
+.focus-next{ margin-top:34px; font-size:13px; color:var(--text-3); }
+.focus-status{ margin-top:4px; font-size:11px; color:var(--text-3); opacity:.72; letter-spacing:.4px; }
+@media (max-width:760px){
+  .focus-on .sidenav{ width:100%; min-width:0; flex-direction:row; justify-content:center; }
+  .focus-now{ font-size:40px; }
+}
+.scribe-note{ width:100%; box-sizing:border-box; background:var(--surface2); color:var(--text);
   border:1px solid var(--line-strong); border-radius:10px; padding:12px;
   font:inherit; font-size:13px; line-height:1.55; resize:vertical; }
-.ambient-note:disabled{ opacity:.7; }
+.scribe-note:disabled{ opacity:.7; }
 .batch-queued{ opacity:.62; }
 .batch-queued:hover{ opacity:1; transition:opacity .25s; }

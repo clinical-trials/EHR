@@ -674,7 +674,7 @@ const HELIX = {
     { name:"CardioRisk (ASCVD)", dev:"HeartMath OSS", cat:"Calculators", price:"Free", oss:true, desc:"Evidence-based 10-year cardiovascular risk, fully cited." },
     { name:"VaxBridge IIS", dev:"PublicHealth.io", cat:"Public health", price:"Free", oss:true, desc:"Two-way immunization-registry (IIS) connector." },
     { name:"OpenNotes Companion", dev:"Community", cat:"Patient engagement", price:"Free", oss:true, desc:"Plain-language explanations of visit notes for patients." },
-    { name:"Scribe Assist (ambient)", dev:"NoteAI", cat:"Documentation", price:"$$", oss:false, desc:"Ambient note drafting; outputs link to source (DSI-transparent)." },
+    { name:"Scribe Assist (voice)", dev:"NoteAI", cat:"Documentation", price:"$$", oss:false, desc:"In-visit voice note drafting; outputs link to source (DSI-transparent)." },
   ],
 };
 
@@ -820,8 +820,8 @@ const TIMELINE = [
   { date:"2025-11-08", setting:"Hospital",     icon:"🏥", title:"Inpatient — pneumonia, 3-day stay", detail:"Discharge summary + med changes reconciled on return to PCP.", src:"Regional Hospital · C-CDA" },
 ];
 
-/* ---------- Luma Ambient — point-of-care documentation (demo simulation) ---------- */
-const AMBIENT = {
+/* ---------- Luma Scribe — point-of-care documentation (demo simulation) ---------- */
+const SCRIBE = {
   questions: [
     "Ask how the nocturnal foot tingling has changed since last visit",
     "Confirm statin adherence and any muscle aches",

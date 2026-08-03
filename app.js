@@ -25,8 +25,9 @@ const state = {
   activeResult: null,                    // instrument result being shown
   wellness:  store.get("wellness", true),// well-being features on/off (provider preference)
   focus:     store.get("focus", false),  // Focus mode — minimal display for maximum concentration
-  ambientSigned: false,                  // Luma Ambient draft note signed this session
-  ambientSent:   false,                  // Ambient draft codes sent to Encounter & claim
+  scribeOn:  store.get("scribeOn", true),// digital scribe on/off — the physician's call, per encounter
+  scribeSigned: false,                  // Luma Scribe draft note signed this session
+  scribeSent:   false,                  // Scribe draft codes sent to Encounter & claim
   delegated: {},                         // delegation steps run this session (by index)
   checkin:   store.get("checkin", null), // patient iPad pre-visit intake
   claim:     { dxAdded:false, verified:{}, stage:"code" }, // encounter/claim workflow
@@ -124,7 +125,7 @@ const NAVS = {
     { label:"Care", items:[
       { id:"dashboard", ic:"▦", t:"Today" },
       { id:"chart",     ic:"▤", t:"Patient chart" },
-      { id:"ambient",   ic:"🎙", t:"Luma Ambient", badge:() => state.ambientSigned ? null : 1 },
+      { id:"scribe",   ic:"🎙️", t:"Luma Scribe", badge:() => state.scribeSigned ? null : 1 },
       { id:"inbox",     ic:"✉", t:"Inbox", badge:() => INBOX.length },
       { id:"readmit",   ic:"⤾", t:"Readmission risk", badge:() => READMIT.patients.filter((p,i)=>p.risk==="High" && !state.chwAssigned[i]).length || null },
       { id:"billing",   ic:"⛁", t:"Encounter & claim" },
@@ -193,20 +194,30 @@ $$(".role-btn").forEach(btn => btn.addEventListener("click", () => {
 }));
 
 // Focus mode: the nav trims to today's clinical work — everything else is one toggle away.
-const FOCUS_CORE = new Set(["dashboard","chart","ambient","inbox","billing"]);
+const FOCUS_CORE = new Set(["dashboard","chart","scribe","inbox","billing"]);
 
 function renderNav(){
-  $("#sidenav").innerHTML = NAVS[state.role].map(group => {
-    let items = group.items.filter(i => !(i.ph && !state.wellness));   // hide well-being items when off
-    if (state.focus && state.role === "clinician") items = items.filter(i => FOCUS_CORE.has(i.id));
-    if (!items.length) return "";
-    return `<div class="nav-label">${group.label}</div>` + items.map(i => {
+  if (state.focus && state.role === "clinician"){
+    // Focus: a quiet icon rail — five essentials, nothing else
+    const core = NAVS.clinician.flatMap(g => g.items).filter(i => FOCUS_CORE.has(i.id));
+    $("#sidenav").innerHTML = core.map(i => {
       const b = i.badge ? i.badge() : null;
-      return `<button class="nav-item ${state.view===i.id?"active":""}" data-nav="${i.id}">
-        <span class="ic">${i.ic}</span>${i.t}${b ? `<span class="badge">${b}</span>` : ""}
+      return `<button class="nav-item focus-ic ${state.view===i.id?"active":""}" data-nav="${i.id}" title="${i.t}" aria-label="${i.t}">
+        <span class="ic">${i.ic}</span>${b ? `<span class="badge">${b}</span>` : ""}
       </button>`;
     }).join("");
-  }).join("");
+  } else {
+    $("#sidenav").innerHTML = NAVS[state.role].map(group => {
+      const items = group.items.filter(i => !(i.ph && !state.wellness));   // hide well-being items when off
+      if (!items.length) return "";
+      return `<div class="nav-label">${group.label}</div>` + items.map(i => {
+        const b = i.badge ? i.badge() : null;
+        return `<button class="nav-item ${state.view===i.id?"active":""}" data-nav="${i.id}">
+          <span class="ic">${i.ic}</span>${i.t}${b ? `<span class="badge">${b}</span>` : ""}
+        </button>`;
+      }).join("");
+    }).join("");
+  }
   $$("[data-nav]").forEach(b => b.addEventListener("click", () => { state.view = b.dataset.nav; render(); }));
 }
 
@@ -223,11 +234,11 @@ function metricTile(m){
 
 /* --- point-of-care charting: fit EHR work between patients, not after hours --- */
 function chartNowCard(){
-  const open = state.ambientSigned ? 0 : 1;
+  const open = state.scribeSigned ? 0 : 1;
   return `<div class="card">
     <h3><span class="spark">✍</span> Chart between patients ${open?`<span class="chip amber">${open} note open</span>`:`<span class="chip green">all caught up</span>`}</h3>
     ${open?`<div class="small">Maria Alvarez's draft note is ready — <b>~90 seconds</b> to review and sign while it's fresh.</div>
-    <button class="btn primary small" style="margin-top:10px" data-nav-inline="ambient">Chart now → nothing left for tonight</button>`
+    <button class="btn primary small" style="margin-top:10px" data-nav-inline="scribe">Chart now → nothing left for tonight</button>`
     :`<div class="small muted">Every note signed. Tonight belongs to you.</div>`}
     <div class="evidence">Closing the note in the moment beats end-of-day catch-up — it's a healthy habit that prevents the "pajama time" that drives burnout.${ev("arndt")}</div>
   </div>`;
@@ -253,27 +264,23 @@ function pacingCard(){
 
 function vDashboard(){
   const pinned = METRIC_LIBRARY.filter(m => state.metrics.includes(m.id));
-  if (state.focus) return `
-  <h1 class="page-title">Today <span class="chip accent">◉ Focus on</span></h1>
-  <p class="page-sub">The minimal display — schedule, charting, pacing. Everything else is one toggle away. Urgent items always break through.</p>
-  <div class="grid g23">
-    <div class="card">
-      <h3><span class="spark">▦</span> Today's schedule</h3>
-      <div class="rowlist">
-        ${SCHEDULE.map(p => `
-          <div class="rowitem">
-            <div class="avatar">${p.initials}</div>
-            <div style="flex:1"><div class="t">${p.time} — ${p.name}</div><div class="d">${p.reason}</div></div>
-            <span class="chip ${p.status==="roomed"?"green":p.status==="arrived"?"amber":"plain"}">${p.status}</span>
-          </div>`).join("")}
+  if (state.focus){
+    // The dramatic minimal display — one patient, one action, silence around it.
+    const i = Math.max(SCHEDULE.findIndex(p => p.status === "roomed"), 0);
+    const now = SCHEDULE[i], next = SCHEDULE[i+1];
+    return `
+    <div class="focus-stage">
+      <div class="focus-kicker">now seeing</div>
+      <div class="focus-now">${now.name}</div>
+      <div class="focus-meta">${now.time} · ${now.reason}</div>
+      <div class="focus-actions">
+        <button class="btn primary" data-nav-inline="chart">Open chart</button>
+        ${state.scribeSigned ? "" : `<button class="btn ghost" data-nav-inline="scribe">Sign draft note · 90 s</button>`}
       </div>
-    </div>
-    <div style="display:flex; flex-direction:column; gap:16px">
-      ${chartNowCard()}
-      ${pacingCard()}
-      <div class="tiny">✉ Next inbox batch <b>12:15 PM</b> — staff-triaged and earmarked. Nothing pings you until then.</div>
-    </div>
-  </div>`;
+      ${next ? `<div class="focus-next">next · ${next.time} — ${next.name}</div>` : ""}
+      <div class="focus-status">${PACING.status} · inbox batch 12:15 pm · urgent always breaks through</div>
+    </div>`;
+  }
   return `
   <h1 class="page-title">Good morning, Dr. Chen</h1>
   <p class="page-sub">Thursday · 6 visits scheduled · your day is designed to end on time.</p>
@@ -323,37 +330,47 @@ function vDashboard(){
 }
 
 /* ==========================================================================
-   LUMA AMBIENT — the encounter documents itself (demo simulation)
+   LUMA SCRIBE — the encounter documents itself (demo simulation)
    ========================================================================== */
-function vAmbient(){
-  return `
-  <h1 class="page-title">🎙 Luma Ambient <span class="chip accent">demo simulation</span></h1>
-  <p class="page-sub">The encounter documents itself: with the patient's consent, Ambient listens, drafts the note, suggests questions, and pre-codes the visit — so charting fits <b>between</b> patients. No homework. No after-hours catch-up.${ev("arndt")}</p>
+function vScribe(){
+  const on = state.scribeOn;
+  const head = `
+  <h1 class="page-title">🎙️ Luma Scribe <span class="chip accent">demo simulation</span></h1>
+  <p class="page-sub">The encounter documents itself: with the patient's consent, Scribe listens, drafts the note, suggests questions, and pre-codes the visit — so charting fits <b>between</b> patients. No homework. No after-hours catch-up.${ev("arndt")}</p>
 
+  <div class="card" style="margin-bottom:16px">
+    <h3><span class="spark">${on?"●":"○"}</span> This encounter — Maria Alvarez
+      ${on?'<span class="chip green">scribe on · patient consented · 14 min</span>':'<span class="chip plain">scribe off — nothing captured</span>'}
+      <button class="btn ${on?"ghost":"primary"} small" style="margin-left:auto" data-scribe-toggle>${on?"Turn scribe off":"Turn scribe on"}</button>
+    </h3>
+    <div class="tiny">The scribe is <b>your call, per encounter</b> — turn it on or off at any moment, and the patient consents at check-in. Audio is processed in the room and discarded; only the structured draft persists. A production version is a decision-support intervention under §170.315(b)(11), with full source &amp; logic transparency.</div>
+  </div>`;
+  if (!on) return head + `
+  <div class="card">
+    <h3>○ Scribe is off</h3>
+    <div class="small muted">Nothing is being listened to or drafted. Prefer to chart by hand today, or seeing a patient who'd rather not be recorded? That's exactly what this switch is for. Turn it back on whenever you like — per visit, per room, per patient.</div>
+  </div>`;
+  return head + `
   <div class="grid g23">
     <div style="display:flex;flex-direction:column;gap:16px">
       <div class="card">
-        <h3><span class="spark">●</span> Visit captured — Maria Alvarez <span class="chip green">consented · 14 min</span></h3>
-        <div class="tiny">Audio is processed in the room and discarded — only the structured draft below persists. A production version is a decision-support intervention under §170.315(b)(11), with full source &amp; logic transparency.</div>
-      </div>
-      <div class="card">
-        <h3>✍ First-draft note ${state.ambientSigned?'<span class="chip green">signed ✓</span>':'<span class="chip amber">awaiting your review</span>'}</h3>
-        <textarea id="ambient-note" class="ambient-note" rows="7" ${state.ambientSigned?"disabled":""}>${AMBIENT.note}</textarea>
-        ${state.ambientSigned?'<div class="small muted" style="margin-top:8px">Signed and filed while it was fresh. Nothing left for tonight.</div>':`<button class="btn primary" style="margin-top:10px" data-ambient-sign>Review &amp; sign — ~90 seconds</button>`}
-        <div class="evidence">Ambient writes the first pass; the physician stays the author. The note stays lean because billing justification lives in the claim layer — not the note.</div>
+        <h3>✍ First-draft note ${state.scribeSigned?'<span class="chip green">signed ✓</span>':'<span class="chip amber">awaiting your review</span>'}</h3>
+        <textarea id="scribe-note" class="scribe-note" rows="7" ${state.scribeSigned?"disabled":""}>${SCRIBE.note}</textarea>
+        ${state.scribeSigned?'<div class="small muted" style="margin-top:8px">Signed and filed while it was fresh. Nothing left for tonight.</div>':`<button class="btn primary" style="margin-top:10px" data-scribe-sign>Review &amp; sign — ~90 seconds</button>`}
+        <div class="evidence">Scribe writes the first pass; the physician stays the author. The note stays lean because billing justification lives in the claim layer — not the note.</div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:16px">
       <div class="card">
         <h3>❓ Suggested questions</h3>
-        <div class="rowlist">${AMBIENT.questions.map(q=>`<div class="rowitem"><span class="chip accent">ask</span><div class="d" style="flex:1">${q}</div></div>`).join("")}</div>
+        <div class="rowlist">${SCRIBE.questions.map(q=>`<div class="rowitem"><span class="chip accent">ask</span><div class="d" style="flex:1">${q}</div></div>`).join("")}</div>
         <div class="tiny" style="margin-top:8px">Surfaced live from the conversation plus the chart — nothing gets missed while you stay face-to-face with the patient.</div>
       </div>
       <div class="card">
-        <h3>⛁ Drafted codes ${state.ambientSent?'<span class="chip green">sent ✓</span>':""}</h3>
-        <div class="small" style="margin-bottom:6px">ICD-10 ${AMBIENT.icd.map(c=>`<span class="chip plain">${c}</span>`).join(" ")}</div>
-        <div class="small">CPT ${AMBIENT.cpt.map(c=>`<span class="chip plain">${c}</span>`).join(" ")}</div>
-        ${state.ambientSent?`<div class="small muted" style="margin-top:8px">Queued in Encounter &amp; claim for one-tap verification.</div>`:`<button class="btn primary small" style="margin-top:10px" data-ambient-send>Send to Encounter &amp; claim →</button>`}
+        <h3>⛁ Drafted codes ${state.scribeSent?'<span class="chip green">sent ✓</span>':""}</h3>
+        <div class="small" style="margin-bottom:6px">ICD-10 ${SCRIBE.icd.map(c=>`<span class="chip plain">${c}</span>`).join(" ")}</div>
+        <div class="small">CPT ${SCRIBE.cpt.map(c=>`<span class="chip plain">${c}</span>`).join(" ")}</div>
+        ${state.scribeSent?`<div class="small muted" style="margin-top:8px">Queued in Encounter &amp; claim for one-tap verification.</div>`:`<button class="btn primary small" style="margin-top:10px" data-scribe-send>Send to Encounter &amp; claim →</button>`}
         <div class="tiny" style="margin-top:8px">Diagnosis and billing codes drop out of the visit itself — the revenue cycle starts complete instead of being reconstructed at 9 PM.</div>
       </div>
     </div>
@@ -1878,7 +1895,7 @@ function vHelix(){
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, ambient:vAmbient, inbox:vInbox, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, actions:vActions, report:vReport },
@@ -1908,13 +1925,19 @@ function wireView(){
   const scx = $("[data-screen-cancel]"); if (scx) scx.addEventListener("click", () => { state.activeInstrument = null; render(); });
   $$("[data-screen-submit]").forEach(b => b.addEventListener("click", () => scoreInstrument(b.dataset.screenSubmit)));
 
-  /* --- Aug-2026 interview wave: ambient · pacing · delegation steps --- */
-  const asig = $("[data-ambient-sign]"); if (asig) asig.addEventListener("click", () => {
-    state.ambientSigned = true; render();
+  /* --- Aug-2026 interview wave: scribe · pacing · delegation steps --- */
+  const stog = $("[data-scribe-toggle]"); if (stog) stog.addEventListener("click", () => {
+    state.scribeOn = !state.scribeOn; store.set("scribeOn", state.scribeOn); render();
+    toast("Scribe " + (state.scribeOn ? "on" : "off"),
+      state.scribeOn ? "Listening, with the patient's consent — the visit documents itself." :
+                       "Nothing is captured. Your call, per encounter.", "green");
+  });
+  const asig = $("[data-scribe-sign]"); if (asig) asig.addEventListener("click", () => {
+    state.scribeSigned = true; render();
     toast("Note signed ✍", "Charted between patients, while it was fresh — the healthy habit that keeps tonight yours.", "green");
   });
-  const asend = $("[data-ambient-send]"); if (asend) asend.addEventListener("click", () => {
-    state.ambientSent = true; render();
+  const asend = $("[data-scribe-send]"); if (asend) asend.addEventListener("click", () => {
+    state.scribeSent = true; render();
     toast("Codes sent to Encounter & claim", "Drafted ICD-10 + CPT codes are queued for your one-tap verification in the claim workflow.", "green");
   });
   $$("[data-defer]").forEach(b => b.addEventListener("click", () => {
