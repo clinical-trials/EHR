@@ -26,6 +26,11 @@ const state = {
   wellness:  store.get("wellness", true),// well-being features on/off (provider preference)
   focus:     store.get("focus", false),  // Focus mode — minimal display for maximum concentration
   scribeOn:  store.get("scribeOn", true),// digital scribe on/off — the physician's call, per encounter
+  fhirLog:   [],                         // real FHIR sandbox round-trips this session (resource, id, ms)
+  burnoutSelf: store.get("burnoutSelf", {}), // single-item burnout measure: {baseline, followup}
+  gross:     store.get("gross", GROSS_SEED), // "kill a stupid task" nominations
+  grossVoted: store.get("grossVoted", {}),
+  buddy:     store.get("buddy", false),  // Battle Buddy peer-support opt-in
   scribeSigned: false,                  // Luma Scribe draft note signed this session
   scribeSent:   false,                  // Scribe draft codes sent to Encounter & claim
   delegated: {},                         // delegation steps run this session (by index)
@@ -58,6 +63,12 @@ const ev = key => {
   if (!key || !EVIDENCE[key]) return "";
   const e = EVIDENCE[key];
   return ` <a class="pmid" href="${pubmed(e.pmid)}" target="_blank" rel="noopener" title="${e.cite} — click to open on PubMed">PMID ${e.pmid}</a>`;
+};
+/* authority chips — cite official reports (SG Advisory, NAM, ONC, 25×5) like PMIDs */
+const aut = key => {
+  if (!key || !AUTHORITIES[key]) return "";
+  const a = AUTHORITIES[key];
+  return ` <a class="pmid" href="${a.url}" target="_blank" rel="noopener" title="${a.cite} — click to open the source">${a.label}</a>`;
 };
 const evidenceCard = key => {
   if (!key || !EVIDENCE[key]) return "";
@@ -139,6 +150,8 @@ const NAVS = {
       { id:"canary",    ic:"🐦", t:"Canary", ph:true },
     ]},
     { label:"Platform", items:[
+      { id:"fhir",       ic:"⚡", t:"FHIR sandbox" },
+      { id:"burden",     ic:"⏱", t:"Burden lab" },
       { id:"synthesis",  ic:"◎", t:"Physician health × Interop" },
       { id:"enterprise", ic:"🏛", t:"Enterprise & exchange" },
       { id:"ecosystem",  ic:"🔌", t:"Ecosystem connections" },
@@ -182,6 +195,7 @@ const NAVS = {
       { id:"ehr8",    ic:"⏱", t:"EHR8 · WOW8 · Inbox" },
       { id:"actions", ic:"🎯", t:"Action plan" },
       { id:"report",  ic:"📄", t:"Data extract report" },
+      { id:"biblio",  ic:"📚", t:"Bibliography" },
     ]},
   ],
 };
@@ -535,6 +549,22 @@ function vInbox(){
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px">${ROUTES.before.map(r=>`<span class="chip plain" style="text-decoration:line-through;opacity:.6">${r}</span>`).join("")}</div>
     <div class="small"><span class="chip green">LumaChart</span> ${ROUTES.after}</div>
     <div class="tiny" style="margin-top:8px">Redundant routes are how things get double-handled <i>and</i> missed. One canonical route per task is a design rule across LumaChart.</div>
+  </div>
+
+  <div class="card" style="margin-top:14px">
+    <h3>🗑 Kill a stupid task</h3>
+    <div class="small" style="margin-bottom:10px">Nominate any EHR task that is unnecessary or badly designed — the care team votes, leadership must answer. Hawaii Pacific Health's version of this returned <b>1,700 nursing hours a month</b>.${ev("ashton")}${aut("sgAdvisory")}</div>
+    <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap">
+      <input id="gross-input" type="text" placeholder="What task should die? e.g. “re-entering allergies at every visit”" style="flex:1; min-width:220px; background:var(--surface2); color:var(--text); border:1px solid var(--line-strong); border-radius:10px; padding:8px 12px; font:inherit; font-size:13px">
+      <button class="btn primary small" id="gross-nominate">Nominate</button>
+    </div>
+    <div class="rowlist">
+      ${state.gross.map(g=>`<div class="rowitem">
+        <button class="btn ghost small" data-gross-vote="${g.id}" ${state.grossVoted[g.id]?"disabled":""}>▲ ${g.votes}</button>
+        <div style="flex:1"><div class="t small">${g.title}</div><div class="d">${g.by}${g.saved?` · returned ${g.saved}`:""}</div></div>
+        <span class="chip ${g.status==="eliminated"?"green":"amber"}">${g.status}</span>
+      </div>`).join("")}
+    </div>
   </div>`;
 }
 
@@ -579,6 +609,26 @@ function vWellness(){
       <div><div class="small" style="margin-bottom:5px">I feel I make a difference for my patients</div>
         <input type="range" min="0" max="6" value="5" style="width:100%"></div>
       <div style="display:flex; align-items:flex-end"><button class="btn primary">Log this week</button></div>
+    </div>
+  </div>
+
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card">
+      <h3>☎ Confidential help — one tap, zero paper trail</h3>
+      <div class="rowlist">
+        ${HELP_LINES.map(h=>`<div class="rowitem">
+          <div style="flex:1"><div class="t small"><a href="${h.url}" target="_blank" rel="noopener">${h.name}</a></div><div class="d">${h.how}</div></div>
+        </div>`).join("")}
+      </div>
+      <div class="evidence">Eliminating the fear around seeking care is the Surgeon General's second call to action — and licensure boards are moving to ask only about current impairment, not history.${aut("sgAdvisory")}${ev("dyrbyeLic")}${aut("breenAct")} Nothing you do on this card touches your record or your employer.</div>
+    </div>
+    <div class="card">
+      <h3>🤝 Peer support — Battle Buddy</h3>
+      <div class="small">Pair with one colleague for a standing 5-minute check-in. Not therapy, not a committee — a buddy. Rapid peer-support pairing was deployed for health workers in 2020 and is a recognized model for mitigating isolation and distress.${ev("albott")}${aut("sgAdvisory")}</div>
+      ${state.buddy
+        ? `<div class="small" style="margin-top:10px"><span class="chip green">opted in ✓</span> You'll be paired within your department this week. Opt out any time.</div>`
+        : `<button class="btn primary small" style="margin-top:10px" data-buddy-optin>Opt in to pairing</button>`}
+      <div class="tiny" style="margin-top:8px">Decreased social support is linked to higher burnout — connection is a clinical tool, not a perk.${ev("west")}</div>
     </div>
   </div>`;
 }
@@ -1303,7 +1353,181 @@ function vCME(){
   ${section("online","💻 Look up online CME")}
   ${section("local","📍 Live CME near you")}
   ${section("destination","✈️ Destination CME — restorative &amp; cost-effective")}
-  <div class="tiny" style="margin-top:12px">One tap books the program, holds the dates, logs the credits, and — for a destination program — starts the travel plan. Easier than booking a family trip.</div>`;
+  <div class="tiny" style="margin-top:12px">One tap books the program, holds the dates, logs the credits, and — for a destination program — starts the travel plan. Easier than booking a family trip.</div>
+
+  <div class="section-gap"></div>
+  <div class="card">
+    <h3>🛡 Licensure &amp; your mental health — know your rights</h3>
+    <div class="small">Intrusive licensure questions are a documented reason physicians avoid seeking mental-health care.${ev("dyrbyeLic")} The Joint Commission (2020) and the Federation of State Medical Boards recommend boards ask only about conditions that <b>currently impair</b> your ability to practice — not past diagnoses or treatment. Seeking care is strength, and federal law now funds that culture.${aut("breenAct")}</div>
+    <div class="tiny" style="margin-top:8px">LumaChart shows this note here — beside your license renewals — because the moment you think about licensure is the moment this fear appears.${aut("sgAdvisory")}</div>
+  </div>`;
+}
+
+/* ==========================================================================
+   BIBLIOGRAPHY — generated live from the evidence base, so every citation
+   added with a feature appears here automatically (CWO tab)
+   ========================================================================== */
+function bibliographyHTML(){
+  const pm = Object.entries(EVIDENCE).sort((a,b) => a[1].cite.localeCompare(b[1].cite));
+  const au = Object.entries(AUTHORITIES);
+  return `<!doctype html><html><head><meta charset="utf-8"><title>LumaChart — Bibliography</title>
+<style>body{font-family:Georgia,'Times New Roman',serif;max-width:820px;margin:40px auto;padding:0 24px;color:#1a2833;line-height:1.6}
+h1{font-size:26px;letter-spacing:-.5px}h2{font-size:18px;margin-top:30px;border-bottom:1px solid #c8d2d8;padding-bottom:5px}
+ol{padding-left:22px}li{margin-bottom:10px;font-size:14px}.k{color:#8a9aa4;font-size:11px}a{color:#0a6e86}
+.meta{color:#5a6c76;font-size:13px}</style></head><body>
+<h1>LumaChart — Bibliography &amp; evidence base</h1>
+<p class="meta">Generated live from the running software on ${new Date().toLocaleDateString()} ·
+${pm.length} peer-reviewed sources (PMID-linked) + ${au.length} authoritative reports, standards &amp; legislation.
+Print this page to PDF for a searchable archive.</p>
+<h2>Peer-reviewed literature (PubMed)</h2>
+<ol>${pm.map(([k,e]) => `<li>${e.cite} <a href="https://pubmed.ncbi.nlm.nih.gov/${e.pmid}/">PMID ${e.pmid}</a> <span class="k">[used as: ${k}]</span></li>`).join("\n")}</ol>
+<h2>Reports, standards &amp; legislation</h2>
+<ol>${au.map(([k,a]) => `<li>${a.cite} <a href="${a.url}">${a.url}</a> <span class="k">[used as: ${k}]</span></li>`).join("\n")}</ol>
+<p class="meta" style="margin-top:32px">LumaChart demonstration prototype · PMIDs verified against PubMed E-utilities when added · lumaehr.com</p>
+</body></html>`;
+}
+
+function vBiblio(){
+  const pm = Object.entries(EVIDENCE).sort((a,b) => a[1].cite.localeCompare(b[1].cite));
+  const au = Object.entries(AUTHORITIES);
+  return `
+  <h1 class="page-title">📚 Bibliography <span class="chip accent">${pm.length + au.length} sources · live</span></h1>
+  <p class="page-sub">Every citation used anywhere in LumaChart, pulled straight from the running evidence base — add a cited feature and it appears here automatically. Download once, search forever.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>One searchable document</h3>
+    <div class="small">Generates the complete bibliography as a formatted, hyperlinked document — open it and print to PDF. Every PMID links to PubMed; every report links to its official source.</div>
+    <button class="btn primary" style="margin-top:10px" id="biblio-download">📚 Download bibliography</button>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Peer-reviewed literature <span class="chip plain">${pm.length} PMID-linked</span></h3>
+    <div class="rowlist">
+      ${pm.map(([k,e]) => `<div class="rowitem"><div style="flex:1"><div class="d">${e.cite}</div></div>
+        <a class="pmid" href="https://pubmed.ncbi.nlm.nih.gov/${e.pmid}/" target="_blank" rel="noopener">PMID ${e.pmid}</a></div>`).join("")}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Reports, standards &amp; legislation <span class="chip plain">${au.length}</span></h3>
+    <div class="rowlist">
+      ${au.map(([k,a]) => `<div class="rowitem"><div style="flex:1"><div class="d">${a.cite}</div></div>
+        <a class="pmid" href="${a.url}" target="_blank" rel="noopener">${a.label}</a></div>`).join("")}
+    </div>
+  </div>`;
+}
+
+/* ==========================================================================
+   FHIR SANDBOX — real R4 round-trips to a public test server
+   ========================================================================== */
+async function fhirCall(resource, body){
+  const t0 = performance.now();
+  const res = await fetch(`${FHIR.base}/${resource}`, {
+    method:"POST", headers:{ "Content-Type":"application/fhir+json" }, body:JSON.stringify(body),
+  });
+  const ms = Math.round(performance.now() - t0);
+  const json = await res.json();
+  const entry = { resource, id:json.id || "—", status:res.status, ms, at:new Date().toLocaleTimeString() };
+  state.fhirLog.push(entry);
+  return entry;
+}
+
+async function runFhirWorkflow(id){
+  const wf = FHIR.workflows.find(w => w.id === id);
+  const btn = $(`[data-fhir-run="${id}"]`); if (btn){ btn.disabled = true; btn.textContent = "Running…"; }
+  const out = $(`#fhir-out-${id}`); if (out) out.innerHTML = `<div class="tiny">Contacting ${FHIR.base} …</div>`;
+  try{
+    const results = [];
+    for (const s of wf.steps) results.push(await fhirCall(s.res, s.body));
+    if (out) out.innerHTML = results.map(r => `
+      <div class="rowitem">
+        <span class="chip ${r.status < 300 ? "green" : "red"}">${r.status}</span>
+        <div style="flex:1"><div class="t small">${r.resource} → server id <a href="${FHIR.base}/${r.resource}/${r.id}" target="_blank" rel="noopener">${r.id}</a></div>
+        <div class="d">real round-trip: <b>${r.ms} ms</b> · ${r.at}</div></div>
+      </div>`).join("") +
+      (wf.simulated ? `<div class="tiny" style="margin-top:8px"><span class="chip amber">simulated</span> ${wf.simulated}</div>` : "");
+    toast("FHIR round-trip complete ⚡", `${wf.title}: ${results.length} resource(s) created on the public sandbox, ${results.reduce((a,r)=>a+r.ms,0)} ms total. Every call is in the Burden lab audit log.`, "green");
+  }catch(e){
+    if (out) out.innerHTML = `<div class="small" style="color:var(--amber)">Sandbox unreachable (offline or CORS). The exact request that would be sent is shown above — try again when online.</div>`;
+  }
+  if (btn){ btn.disabled = false; btn.textContent = "Run live ⚡"; }
+}
+
+function vFhir(){
+  return `
+  <h1 class="page-title">⚡ FHIR sandbox <span class="chip green">live · real server</span></h1>
+  <p class="page-sub">Interoperability you can watch happen: LumaChart posts real FHIR R4 resources to the public HAPI test server and shows the server's response — payer prior-auth, lab &amp; genetic ordering, telehealth.${aut("onc2020")}${aut("nam2019")}</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>What's real, what's simulated</h3>
+    <div class="small">${FHIR.honesty}</div>
+    <div class="tiny" style="margin-top:8px">Endpoint: <b>${FHIR.base}</b> · every call is timed and logged to the <a data-nav-inline="burden" style="cursor:pointer">Burden lab</a>.</div>
+  </div>
+
+  ${FHIR.workflows.map(w => `
+  <div class="card" style="margin-bottom:16px">
+    <h3>${w.icon} ${w.title}</h3>
+    <div class="small" style="margin-bottom:6px">${w.desc}</div>
+    <div class="tiny" style="margin-bottom:10px">Manual baseline: ${w.baseline}${aut(w.baselineAuth)}</div>
+    ${w.steps.map(s => `<details style="margin-bottom:6px"><summary class="tiny" style="cursor:pointer">Request JSON — ${s.res}</summary><pre class="json">${JSON.stringify(s.body, null, 1)}</pre></details>`).join("")}
+    <button class="btn primary small" data-fhir-run="${w.id}">Run live ⚡</button>
+    <div id="fhir-out-${w.id}" class="rowlist" style="margin-top:10px"></div>
+  </div>`).join("")}`;
+}
+
+/* ==========================================================================
+   BURDEN LAB — measure the reduction, don't just claim it
+   ========================================================================== */
+function vBurden(){
+  const b = state.burnoutSelf;
+  const avgPajama = Math.round(PAJAMA_14D.reduce((a,x)=>a+x,0)/PAJAMA_14D.length);
+  const chip = v => v==null ? `<span class="chip plain">not taken</span>`
+    : `<span class="chip ${v >= BURNOUT_ITEM.threshold ? "amber" : "green"}">${v}/5 ${v >= BURNOUT_ITEM.threshold ? "· burnout-positive" : ""}</span>`;
+  return `
+  <h1 class="page-title">⏱ Burden lab</h1>
+  <p class="page-sub">The claim isn't “less burden” — the claim is <b>measured</b> less burden: EHR audit-log time metrics against manual baselines, plus a validated burnout instrument, pre and post.${aut("sgAdvisory")}${aut("x25")}</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>📐 The measurement protocol</h3>
+    <div class="rowlist">
+      ${BURDEN_PROTOCOL.map((p,i)=>`<div class="rowitem"><div class="avatar">${i+1}</div>
+        <div style="flex:1"><div class="t small">${p.step}</div><div class="d">${p.d}</div></div></div>`).join("")}
+    </div>
+    <div class="evidence">Audit-log methodology per the landmark time studies: ~2 hr of EHR/desk work per 1 hr of direct care,${ev("sinskyTM")} and ~1.4 hr/day of after-hours “pajama time.”${ev("arndt")} National goal: documentation burden to 25% of current within 5 years.${aut("x25")}</div>
+  </div>
+
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="card">
+      <h3>🌙 Audit-log metrics — this demo panel</h3>
+      <div class="metric"><div class="v">${avgPajama} <span style="font-size:15px">min/day</span></div><div class="l">synthetic 14-day after-hours average (vs ~84 min/day national${ev("arndt")})</div></div>
+      <div class="bar" style="margin-top:8px"><i class="green" style="width:${Math.min(Math.round(avgPajama/84*100),100)}%"></i></div>
+      <div class="tiny" style="margin-top:8px">Demo data, labeled as such. In production these come straight from vendor audit logs — the same source the studies used.</div>
+    </div>
+    <div class="card">
+      <h3>⚡ Measured FHIR transactions — this session</h3>
+      ${state.fhirLog.length ? `<div class="rowlist">${state.fhirLog.slice(-6).map(r=>`
+        <div class="rowitem"><span class="chip ${r.status<300?"green":"red"}">${r.status}</span>
+        <div style="flex:1"><div class="t small">${r.resource} <span class="tiny">#${r.id}</span></div><div class="d">${r.ms} ms · ${r.at}</div></div></div>`).join("")}</div>
+        <div class="tiny" style="margin-top:8px">vs. manual prior auth ≈ 21 min — electronic saves ~12 min per transaction (CAQH 2020).${aut("sgAdvisory")}</div>`
+      : `<div class="small muted">No calls yet — run a workflow in the <a data-nav-inline="fhir" style="cursor:pointer">FHIR sandbox</a> and real timings appear here.</div>`}
+      ${state.fhirLog.length ? `<button class="btn ghost small" style="margin-top:10px" id="audit-download">Download audit log (JSON)</button>` : ""}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🔥 Single-item burnout measure <span class="chip plain">validated · private to you</span></h3>
+    <div class="small" style="margin-bottom:8px">${BURNOUT_ITEM.q}${ev("dolan")} A score of ${BURNOUT_ITEM.threshold}+ is burnout-positive. Production studies pair this with the MBI, Mini-Z, or Stanford PFI (licensed instruments, named — not reproduced).</div>
+    ${BURNOUT_ITEM.anchors.map((a,i)=>`
+      <label class="rowitem" style="cursor:pointer"><input type="radio" name="biq" value="${i+1}" style="margin-right:8px">
+      <div class="d" style="flex:1"><b>${i+1}.</b> ${a}</div></label>`).join("")}
+    <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap">
+      <button class="btn primary small" data-burnout-save="baseline">Save as baseline</button>
+      <button class="btn ghost small" data-burnout-save="followup">Save as 90-day follow-up</button>
+    </div>
+    <div class="small" style="margin-top:12px">Baseline: ${chip(b.baseline)} &nbsp; 90-day: ${chip(b.followup)}
+      ${b.baseline!=null && b.followup!=null ? `&nbsp; Δ <b>${b.followup - b.baseline > 0 ? "+" : ""}${b.followup - b.baseline}</b>` : ""}</div>
+    <div class="tiny" style="margin-top:8px">Stored only on this device. Same privacy promises as Canary: never wired to productivity or employment decisions.</div>
+  </div>`;
 }
 
 /* ==========================================================================
@@ -1353,6 +1577,19 @@ function vEhr8(){
   return `
   <h1 class="page-title">EHR8 · WOW8 · IB-Time8</h1>
   <p class="page-sub">The AMA program's efficiency metrics: time in the record, work that follows clinicians home, and time buried in the inbox.</p>
+
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="card">
+      <h3>💛 Sense of feeling valued <span class="chip plain">quarterly pulse</span></h3>
+      <div class="metric"><div class="v">${VALUED.pct}%</div><div class="l">${VALUED.item} agree/strongly agree · <span style="color:var(--green)">${VALUED.delta}</span></div></div>
+      <div class="evidence">Feeling valued measurably buffered workload stress in pandemic-era studies, and accreditation guidance now suggests tracking it beside burnout on organizational dashboards.${aut("sgAdvisory")}${aut("nam2019")} Synthetic demo value.</div>
+    </div>
+    <div class="card">
+      <h3>⚖ Well-being, disaggregated <span class="chip plain">aggregate-only · confidential</span></h3>
+      ${EQUITY_WELLBEING.map(r=>`<div class="small" style="margin-bottom:6px"><b>${r.group}:</b> ${r.segs.map(s=>`${s[0]} <span class="chip plain">${s[1]}</span>`).join(" ")}</div>`).join("")}
+      <div class="evidence">Burnout is not evenly distributed — the Advisory calls for well-being data disaggregated by role, gender, and race/ethnicity so interventions can be targeted, never individual-level.${aut("sgAdvisory")} Synthetic demo values (burnout-positive rate by group).</div>
+    </div>
+  </div>
 
   <div class="grid g3" style="margin-bottom:16px">
     <div class="card"><h3>EHR8</h3><p class="small muted" style="margin:0">Total <b>EHR time</b> per 8 hours of scheduled patient time.</p></div>
@@ -1896,10 +2133,10 @@ function vHelix(){
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, burden:vBurden, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
-  cwo:{ joy:vJoy, ehr8:vEhr8, actions:vActions, report:vReport },
+  cwo:{ joy:vJoy, ehr8:vEhr8, actions:vActions, report:vReport, biblio:vBiblio },
 };
 
 function render(){
@@ -1949,6 +2186,43 @@ function wireView(){
     state.delegated[b.dataset.delegateStep] = true; render();
     toast("Delegation step running", "Your team has it — protocol-safe, with automatic route-back if anything is out of range.", "green");
   }));
+
+  /* --- FHIR sandbox + Burden lab + advisory features --- */
+  $$("[data-fhir-run]").forEach(b => b.addEventListener("click", () => runFhirWorkflow(b.dataset.fhirRun)));
+  $$("[data-burnout-save]").forEach(b => b.addEventListener("click", () => {
+    const sel = $("input[name=biq]:checked");
+    if (!sel){ toast("Pick an answer first", "Choose the statement that fits best, then save.", "amber"); return; }
+    state.burnoutSelf[b.dataset.burnoutSave] = +sel.value;
+    store.set("burnoutSelf", state.burnoutSelf); render();
+    toast("Saved — private to you", "Stored only on this device, like every well-being measure in LumaChart.", "green");
+  }));
+  const bd = $("#biblio-download"); if (bd) bd.addEventListener("click", () => {
+    const url = URL.createObjectURL(new Blob([bibliographyHTML()], { type:"text/html" }));
+    const a = document.createElement("a"); a.href = url; a.download = "LumaChart-Bibliography.html"; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+    toast("Bibliography generated 📚", "Every citation in the software, in one searchable document — open it and print to PDF. It regenerates from the live evidence base, so new features' citations are always included.", "green");
+  });
+  const adl = $("#audit-download"); if (adl) adl.addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify({ exported:new Date().toISOString(), note:"LumaChart demo audit log — real FHIR sandbox round-trips, synthetic data", calls:state.fhirLog }, null, 2)], { type:"application/json" });
+    const url = URL.createObjectURL(blob); const a = document.createElement("a");
+    a.href = url; a.download = "lumachart-audit-log.json"; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 5000);
+  });
+  const gn = $("#gross-nominate"); if (gn) gn.addEventListener("click", () => {
+    const inp = $("#gross-input"); const v = (inp.value || "").trim();
+    if (!v){ toast("Name the task", "What should die? Be specific — specific nominations get eliminated.", "amber"); return; }
+    state.gross.unshift({ id:"g"+Date.now(), title:v, by:"You (this device)", votes:1, status:"under review", saved:"" });
+    store.set("gross", state.gross); render();
+    toast("Nominated 🗑", "Your care team can now vote it up. Leadership answers every nomination — that's the deal.", "green");
+  });
+  $$("[data-gross-vote]").forEach(b => b.addEventListener("click", () => {
+    const g = state.gross.find(x => x.id === b.dataset.grossVote);
+    if (g && !state.grossVoted[g.id]){ g.votes++; state.grossVoted[g.id] = true;
+      store.set("gross", state.gross); store.set("grossVoted", state.grossVoted); render(); }
+  }));
+  const bo = $("[data-buddy-optin]"); if (bo) bo.addEventListener("click", () => {
+    state.buddy = true; store.set("buddy", true); render();
+    toast("Battle Buddy 🤝", "Opted in — you'll be paired within your department. Five minutes, once a week, no agenda.", "green");
+  });
   $$("[data-view-result]").forEach(b => b.addEventListener("click", () => { state.activeResult = b.dataset.viewResult; render(); }));
   const rdn = $("[data-result-done]"); if (rdn) rdn.addEventListener("click", () => { state.activeResult = null; render(); });
   const usr = $("#uspstf-refresh"); if (usr) usr.addEventListener("click", () => loadUSPSTF(true));

@@ -870,6 +870,121 @@ const ROUTES = {
   after:"One actionable result. The chart view, the patient release and the staff call-back all hang off the same item — close it once and it is closed everywhere.",
 };
 
+/* ==========================================================================
+   AUG 2026 — FHIR SANDBOX + BURDEN LAB + SURGEON GENERAL ADVISORY FEATURES
+   All PMIDs verified against PubMed esummary on 2026-08-03.
+   ========================================================================== */
+Object.assign(EVIDENCE, {
+  dolan:     { pmid:"25451989", cite:"Dolan et al., J Gen Intern Med 2015 — single-item burnout measure, validated against the MBI emotional-exhaustion scale." },
+  ashton:    { pmid:"30403948", cite:"Ashton, N Engl J Med 2018 — “Getting Rid of Stupid Stuff”: staff nominate EHR tasks to eliminate." },
+  dyrbyeLic: { pmid:"28982484", cite:"Dyrbye et al., Mayo Clin Proc 2017 — intrusive licensure questions make physicians reluctant to seek mental health care." },
+  albott:    { pmid:"32345861", cite:"Albott et al., Anesth Analg 2020 — Battle Buddies: rapid peer-support pairing for health workers." },
+});
+
+/* Authoritative reports without PMIDs — cited via link chips, like PMIDs */
+const AUTHORITIES = {
+  sgAdvisory:{ label:"SG Advisory 2022", url:"https://www.hhs.gov/sites/default/files/health-worker-wellbeing-advisory.pdf",
+    cite:"U.S. Surgeon General's Advisory on Health Worker Burnout (2022) — names workload & administrative burden as core drivers." },
+  nam2019:{ label:"NAM 2019", url:"https://doi.org/10.17226/25521",
+    cite:"National Academy of Medicine, Taking Action Against Clinician Burnout (2019) — landmark consensus report implicating health-IT usability." },
+  onc2020:{ label:"ONC 2020", url:"https://www.healthit.gov/topic/usability-and-provider-burden/strategy-reducing-burden-relating-health-it-and-ehrs",
+    cite:"ONC Strategy on Reducing Regulatory & Administrative Burden Relating to Health IT and EHRs (2020) — the Cures Act-mandated burden-reduction strategy." },
+  x25:{ label:"25×5", url:"https://amia.org/community/25x5-task-force",
+    cite:"25×5 initiative — national goal to reduce clinician documentation burden to 25% of current within 5 years." },
+  breenAct:{ label:"Breen Act", url:"https://www.congress.gov/bill/117th-congress/house-bill/1667",
+    cite:"Dr. Lorna Breen Health Care Provider Protection Act (2022) — federal grants for health-worker mental health, non-punitive culture." },
+};
+
+/* ---------- FHIR sandbox — REAL R4 round-trips to a public test server ---------- */
+const FHIR = {
+  base:"https://hapi.fhir.org/baseR4",
+  honesty:"These are real HTTP round-trips to the public HAPI FHIR R4 test server, with synthetic data only. Payer adjudication is simulated and labeled — no public Da Vinci PAS payer endpoint exists to hit.",
+  workflows:[
+    { id:"priorauth", icon:"🛡", title:"Payer eligibility & prior authorization",
+      desc:"Da Vinci-style flow: a CoverageEligibilityRequest, then a Claim with use = preauthorization.",
+      baseline:"Fully electronic prior auth saves ~12 min per transaction vs manual (CAQH 2020 Index).",
+      baselineAuth:"sgAdvisory",
+      steps:[
+        { res:"CoverageEligibilityRequest", body:{ resourceType:"CoverageEligibilityRequest", status:"active", purpose:["validation","benefits"],
+          patient:{ display:"Maria Alvarez (synthetic)" }, created:"2026-08-03", insurer:{ display:"Synthetic Payer Demo" } } },
+        { res:"Claim", body:{ resourceType:"Claim", status:"active", use:"preauthorization",
+          type:{ coding:[{ system:"http://terminology.hl7.org/CodeSystem/claim-type", code:"professional" }] },
+          patient:{ display:"Maria Alvarez (synthetic)" }, created:"2026-08-03",
+          provider:{ display:"Dr. Chen, Internal Medicine (synthetic)" },
+          priority:{ coding:[{ code:"normal" }] },
+          insurance:[{ sequence:1, focal:true, coverage:{ display:"Synthetic Payer Demo" } }],
+          item:[{ sequence:1, productOrService:{ coding:[{ system:"http://www.ama-assn.org/go/cpt", code:"73721", display:"MRI, lower extremity joint" }] } }] } },
+      ],
+      simulated:"Payer adjudication (simulated): APPROVED — auth #PA-2026-0803, valid 60 days." },
+    { id:"lab", icon:"🧪", title:"Lab & genetic ordering",
+      desc:"Two ServiceRequests: an A1c (LOINC 4548-4) and a pharmacogenomic panel (LOINC 81247-9).",
+      baseline:"Manual = phone + fax requisition; site-dependent, measured in pilot (no invented number).",
+      baselineAuth:"onc2020",
+      steps:[
+        { res:"ServiceRequest", body:{ resourceType:"ServiceRequest", status:"active", intent:"order",
+          code:{ coding:[{ system:"http://loinc.org", code:"4548-4", display:"Hemoglobin A1c/Hemoglobin.total in Blood" }] },
+          subject:{ display:"Maria Alvarez (synthetic)" } } },
+        { res:"ServiceRequest", body:{ resourceType:"ServiceRequest", status:"active", intent:"order",
+          code:{ coding:[{ system:"http://loinc.org", code:"81247-9", display:"Master HL7 genetic variant reporting panel" }] },
+          subject:{ display:"Maria Alvarez (synthetic)" }, note:[{ text:"Pharmacogenomics: clopidogrel candidacy (synthetic demo)" }] } },
+      ] },
+    { id:"tele", icon:"📞", title:"Telehealth scheduling",
+      desc:"A booked Appointment resource for a virtual cardiology e-consult.",
+      baseline:"Manual = phone scheduling + callback loop; site-dependent, measured in pilot (no invented number).",
+      baselineAuth:"sgAdvisory",
+      steps:[
+        { res:"Appointment", body:{ resourceType:"Appointment", status:"booked",
+          serviceType:[{ coding:[{ system:"http://terminology.hl7.org/CodeSystem/service-type", code:"540", display:"Telehealth" }] }],
+          description:"Telehealth cardiology e-consult (synthetic demo)",
+          start:"2026-08-05T14:00:00Z", end:"2026-08-05T14:20:00Z",
+          participant:[{ actor:{ display:"Maria Alvarez (synthetic)" }, status:"accepted" },
+                       { actor:{ display:"Dr. Chen (synthetic)" }, status:"accepted" }] } },
+      ] },
+  ],
+};
+
+/* ---------- Burden lab — measurement protocol (audit-log + validated instrument) ---------- */
+const BURDEN_PROTOCOL = [
+  { step:"Baseline", d:"4 weeks of EHR audit-log metrics before any LumaChart feature is enabled — documentation time per note, after-hours (“pajama”) time, inbox time. Same vendor-log methodology as the landmark studies." },
+  { step:"Intervene", d:"Enable one feature at a time (Scribe → batched inbox → Focus → delegation), 2 weeks apart, so each effect is attributable." },
+  { step:"Measure", d:"Re-run the same audit-log metrics at 90 days, plus a validated burnout instrument pre/post: Maslach Burnout Inventory, Mini-Z, or Stanford Professional Fulfillment Index (licensed instruments — named here, administered under license in production)." },
+  { step:"Report", d:"Absolute minutes/day returned per feature, and change in burnout-positive rate. Published to the practice, not buried." },
+];
+const BURNOUT_ITEM = {
+  q:"Overall, based on your definition of burnout, how would you rate your level of burnout?",
+  anchors:[
+    "I enjoy my work. I have no symptoms of burnout.",
+    "Occasionally I am under stress, and I don't always have as much energy as I once did, but I don't feel burned out.",
+    "I am definitely burning out and have one or more symptoms of burnout, such as physical and emotional exhaustion.",
+    "The symptoms of burnout that I'm experiencing won't go away. I think about frustration at work a lot.",
+    "I feel completely burned out and often wonder if I can go on. I am at the point where I may need some changes or may need to seek some sort of help.",
+  ],
+  threshold:3, // score ≥3 = burnout-positive, validated against MBI-EE (Dolan 2015)
+};
+
+/* ---------- Confidential help — always one tap away (SG Advisory call-to-action #2) ---------- */
+const HELP_LINES = [
+  { name:"988 Suicide & Crisis Lifeline", how:"Call or text 988", url:"https://988lifeline.org" },
+  { name:"Physician Support Line", how:"1-888-409-0141 · free, confidential, volunteer psychiatrists", url:"https://www.physiciansupportline.com" },
+  { name:"Crisis Text Line", how:"Text HOME to 741741", url:"https://www.crisistextline.org" },
+  { name:"SAMHSA National Helpline", how:"1-800-662-4357 · 24/7 treatment referral", url:"https://www.samhsa.gov/find-help/national-helpline" },
+];
+
+/* ---------- “Kill a stupid task” — GROSS-style nominations (synthetic seeds) ---------- */
+const GROSS_SEED = [
+  { id:"g1", title:"Smoking status documented in 3 separate places", by:"RN, Med-Surg", votes:12, status:"eliminated", saved:"~4 min/shift" },
+  { id:"g2", title:"Print-and-scan consent forms that already exist electronically", by:"MA, Clinic", votes:9, status:"under review", saved:"" },
+  { id:"g3", title:"Re-typing device vitals into the flowsheet", by:"RN, ICU", votes:7, status:"eliminated", saved:"~6 min/shift" },
+];
+
+/* ---------- CWO: feeling valued + equity-disaggregated well-being (synthetic demo data) ---------- */
+const VALUED = { pct:74, delta:"+6 vs last quarter", item:"“I feel valued by my organization.”" };
+const EQUITY_WELLBEING = [
+  { group:"By role",           segs:[["Physicians","41%"],["Nurses","38%"],["MAs / techs","46%"],["Front desk","33%"]] },
+  { group:"By gender",         segs:[["Women","44%"],["Men","35%"]] },
+  { group:"By race/ethnicity", segs:[["Asian","40%"],["Black","45%"],["Hispanic/Latino","43%"],["White","38%"]] },
+];
+
 /* ---------- Readmission predictive analytics (demo cohort) ----------
    Risk = validated clinical model (LACE) + social determinants. High/moderate
    risk triggers a community health worker follow-up — an RCT-proven intervention. */

@@ -390,3 +390,7 @@ table.reg td.cap{ font-weight:700; }
 .scribe-note:disabled{ opacity:.7; }
 .batch-queued{ opacity:.62; }
 .batch-queued:hover{ opacity:1; transition:opacity .25s; }
+
+/* FHIR sandbox + Burden lab */
+pre.json{ background:var(--surface2); border:1px solid var(--line); border-radius:8px;
+  padding:10px 12px; font-size:10.5px; line-height:1.45; overflow:auto; max-height:230px; margin:6px 0 0; color:var(--text-2); }
