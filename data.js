@@ -105,7 +105,7 @@ const CARE_PLAN = {
 
 /* ---------- Prevention plan + scheduling offers ---------- */
 const PREVENTION_PLAN = [
-  { t:"Colorectal cancer screening", status:"due", detail:"Colonoscopy or FIT — you're 58; screening is recommended for ages 45–75.", ev:"uspstfCrc",
+  { t:"Colorectal cancer screening", status:"due", detail:"A colonoscopy, or an easy at-home stool test (called FIT) — you're 58, and this check is recommended for everyone 45–75.", ev:"uspstfCrc",
     benefit:"Finds cancer early or prevents it entirely by removing precancerous polyps." },
   { t:"Blood-pressure control", status:"active", detail:"Current 132/81 → goal <130. Your medication + walking plan is working.", ev:"sprint",
     benefit:"Tighter control reduced heart attacks, heart failure and death in a landmark trial." },
@@ -893,6 +893,8 @@ const AUTHORITIES = {
     cite:"25×5 initiative — national goal to reduce clinician documentation burden to 25% of current within 5 years." },
   breenAct:{ label:"Breen Act", url:"https://www.congress.gov/bill/117th-congress/house-bill/1667",
     cite:"Dr. Lorna Breen Health Care Provider Protection Act (2022) — federal grants for health-worker mental health, non-punitive culture." },
+  amaJoy:{ label:"AMA Joy", url:"https://www.ama-assn.org/system/files/joy-in-medicine-guidelines.pdf",
+    cite:"AMA Joy in Medicine™ Health System Recognition Program Guidelines — the framework the CWO dashboard measures against (Bronze/Silver/Gold domains and criteria)." },
 };
 
 /* ---------- FHIR sandbox — REAL R4 round-trips to a public test server ---------- */
@@ -1029,8 +1031,8 @@ const PAYMENTS = {
   balance: 42.00,
   methods: "Card, HSA/FSA, Apple Pay / Google Pay",
   statements: [
-    { date:"Jul 2", desc:"Office visit 07/01 — patient responsibility after insurance", amt:42.00, status:"due" },
-    { date:"May 8", desc:"Lab work — patient responsibility after insurance", amt:18.00, status:"paid" },
+    { date:"Jul 2", desc:"Office visit on July 1 — your share after insurance paid its part", code:"billing code 99214", amt:42.00, status:"due" },
+    { date:"May 8", desc:"Blood-sugar lab test (A1c) — your share after insurance paid its part", code:"billing code 83036", amt:18.00, status:"paid" },
   ],
 };
 

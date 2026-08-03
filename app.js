@@ -871,14 +871,14 @@ function vHome(){
   </div>
 
   <div class="grid g3">
-    <div class="card"><div class="metric"><div class="v" style="color:var(--green)">6.9%</div><div class="l">A1c — down from 7.4. Your work is paying off.</div></div></div>
+    <div class="card"><div class="metric"><div class="v" style="color:var(--green)">6.9%</div><div class="l">Your 3-month blood-sugar average <span class="code-light">(A1c)</span> — down from 7.4. Your work is paying off.</div></div></div>
     <div class="card"><div class="metric"><div class="v">132/81</div><div class="l">Blood pressure — close to your &lt;130 goal${ev("sprint")}</div></div></div>
     <div class="card"><div class="metric"><div class="v" style="color:var(--accent)">95<span style="font-size:15px"> min/wk</span></div><div class="l">Activity — every 15 min/day adds up${ev("activity")}</div></div></div>
   </div>
   <div class="section-gap"></div>
   <div class="card" style="display:flex; align-items:center; gap:16px; flex-wrap:wrap">
     <div style="flex:1; min-width:220px"><h3 style="margin-bottom:4px">💚 Mental health is health</h3>
-      <p class="small muted" style="margin:0">A 2-minute private check-in on mood, worry, or drinking — with evidence-based steps that help. Recommended for all adults by the USPSTF.</p></div>
+      <p class="small muted" style="margin:0">A 2-minute private check-in on mood, worry, or drinking — with proven steps that help. Recommended for all adults by the national panel of prevention experts <span class="code-light">(USPSTF)</span>.</p></div>
     <button class="btn primary" data-nav-inline="screenings">Check in</button>
   </div>`;
 }
@@ -889,7 +889,7 @@ function vPlan(){
   <p class="page-sub">Every recommendation comes with the actual evidence — click any PMID to read the study on PubMed.</p>
 
   <div class="card" style="margin-bottom:16px">
-    <h3>Backed by the USPSTF — recommended for you
+    <h3>Recommended for you by national prevention experts <span class="code-light">(USPSTF)</span>
       <a class="pmid" href="${USPSTF_URL}" target="_blank" rel="noopener" style="margin-left:auto; text-indent:0">Learn more ↗</a></h3>
     <p class="small muted" style="margin:0 0 4px">National experts review the evidence and grade what actually helps prevent illness. These apply to you:</p>
     ${uspstfApplicable(PATIENT_CTX).primary.map(r=>`
@@ -911,7 +911,7 @@ function vPlan(){
       </h3>
       <p class="small" style="margin:0 0 4px">${p.detail}</p>
       <p class="small muted" style="margin:0"><b>What it buys you:</b> ${p.benefit}</p>
-      ${p.ev ? evidenceCard(p.ev) : `<div class="evidence"><b>Basis:</b> national guideline recommendation (USPSTF / CDC-ACIP).</div>`}
+      ${p.ev ? evidenceCard(p.ev) : `<div class="evidence"><b>Why we recommend this:</b> it's the official national guidance for someone your age <span class="code-light">(USPSTF / CDC)</span>.</div>`}
       ${p.status==="due" ? `<div style="margin-top:11px; display:flex; gap:9px; flex-wrap:wrap">
           ${s?`<button class="btn" data-ics="${p.t}">📅 Add to calendar (.ics)</button>
                <button class="btn ghost" data-schedule="${p.t}">Change time</button>`
@@ -945,7 +945,7 @@ function vScreenings(){
   if (state.activeResult) return vResultView(state.activeResult);
   return `
   <h1 class="page-title">Mental health is health</h1>
-  <p class="page-sub">Private, validated check-ins recommended by the USPSTF — all free, public-domain instruments. You fill them out; your care team reviews the results, and you get evidence-based steps that help.</p>
+  <p class="page-sub">Private questionnaires — the same ones doctors use everywhere, recommended by national prevention experts <span class="code-light">(USPSTF)</span>. You answer in a few minutes; your care team reviews the results; you get proven steps that help.</p>
   <div class="note">These are <b>screening tools, not diagnoses.</b> If you're ever in crisis, call or text <b>988</b> (Suicide &amp; Crisis Lifeline, US) — free, confidential, any time.</div>
   <div class="grid g3" style="margin-top:16px">
     ${["phq9","gad7","auditc"].map(id=>{
@@ -1067,7 +1067,7 @@ function vLongevity(){
       </div>
     </div>`).join("")}
   <div class="card"><h3>Why these five?</h3>
-    <p class="small muted" style="margin:0">Blood pressure, glucose, lipids, movement and sleep are the levers with the strongest trial evidence for adding healthy years — tight BP control reduced death in a landmark trial${ev("sprint")}, and even 15 minutes of daily activity added ~3 years of life expectancy in a 416,000-person cohort${ev("activity")}.</p></div>`;
+    <p class="small muted" style="margin:0">Blood pressure, blood sugar, cholesterol, movement and sleep are the levers with the strongest proof for adding healthy years — keeping blood pressure well-controlled reduced deaths in a landmark trial${ev("sprint")}, and even 15 minutes of daily activity added about 3 years of life expectancy in a study of 416,000 people${ev("activity")}.</p></div>`;
 }
 
 function vConsent(){
@@ -1080,7 +1080,7 @@ function vConsent(){
     <div style="display:flex; align-items:center; gap:16px">
       <label class="switch"><input type="checkbox" id="consent-toggle" checked><i></i></label>
       <div style="flex:1">
-        <b>Contribute my de-identified data to public-health research</b>
+        <b>Contribute my data to public-health research — with my name and anything that could identify me removed <span class="code-light">(de-identified)</span></b>
         <div class="small muted">Currently: <span id="consent-state" style="color:var(--green); font-weight:700">ON</span> · revocable instantly, no questions asked</div>
       </div>
     </div>
@@ -1986,7 +1986,8 @@ function vPayments(){
   <div class="section-gap"></div>
   <div class="card"><h3>Statements</h3>
     ${p.statements.map(s=>{ const isPaid = s.status==='paid' || (s.status==='due' && paid);
-      return `<div class="rowitem"><div style="flex:1"><div class="t small">${s.desc}</div><div class="d">${s.date}</div></div><span class="chip ${isPaid?'green':'amber'}">${isPaid?'paid':'due'} · $${s.amt.toFixed(2)}</span></div>`; }).join('')}
+      return `<div class="rowitem"><div style="flex:1"><div class="t small">${s.desc}</div><div class="d">${s.date}${s.code?` · <span class="code-light">${s.code}</span>`:""}</div></div><span class="chip ${isPaid?'green':'amber'}">${isPaid?'paid':'due'} · $${s.amt.toFixed(2)}</span></div>`; }).join('')}
+    <div class="tiny" style="margin-top:8px">The light-gray numbers are the standard billing codes your insurance company uses — you don't need to do anything with them, but they're yours to see.</div>
   </div>`;
 }
 

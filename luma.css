@@ -396,3 +396,5 @@ pre.json{ background:var(--surface2); border:1px solid var(--line); border-radiu
   padding:10px 12px; font-size:10.5px; line-height:1.45; overflow:auto; max-height:230px; margin:6px 0 0; color:var(--text-2); }
 .focus-due{ margin-top:14px; font-size:13px; color:var(--amber); letter-spacing:.2px;
   border:1px solid var(--amber-soft); background:var(--amber-soft); border-radius:99px; padding:5px 16px; }
+/* plain-language: billing/technical codes shown, but visually quiet */
+.code-light{ color:var(--text-3); font-weight:600; font-size:.85em; letter-spacing:.3px; }
