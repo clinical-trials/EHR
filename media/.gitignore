@@ -5,3 +5,7 @@ clips.txt
 .ttsenv/
 voices/
 *.wav
+up_frames/
+up_audio/
+up_clips/
+up_clips.txt
