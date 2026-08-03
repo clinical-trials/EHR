@@ -396,6 +396,8 @@ table.reg td.cap{ font-weight:700; }
 /* FHIR sandbox + Burden lab */
 pre.json{ background:var(--surface2); border:1px solid var(--line); border-radius:8px;
   padding:10px 12px; font-size:10.5px; line-height:1.45; overflow:auto; max-height:230px; margin:6px 0 0; color:var(--text-2); }
+.focus-due{ margin-top:14px; font-size:13px; color:var(--amber); letter-spacing:.2px;
+  border:1px solid var(--amber-soft); background:var(--amber-soft); border-radius:99px; padding:5px 16px; }
 </style>
 
 <header class="topbar">
@@ -1837,18 +1839,24 @@ function pacingCard(){
 function vDashboard(){
   const pinned = METRIC_LIBRARY.filter(m => state.metrics.includes(m.id));
   if (state.focus){
-    // The dramatic minimal display — one patient, one action, silence around it.
+    // The dramatic minimal display — one patient, the single most important action,
+    // and what's clinically due. Everything else is silence.
     const i = Math.max(SCHEDULE.findIndex(p => p.status === "roomed"), 0);
     const now = SCHEDULE[i], next = SCHEDULE[i+1];
+    const due = PREVENTION_PLAN.filter(p => p.status === "due" && !state.scheduled[p.t]).map(p => p.t).slice(0,2);
+    // Priority order for the doctor's next action: unsigned note first (the
+    // chart-between-patients habit), then the chart of the patient in the room.
+    const actions = state.scribeSigned
+      ? `<button class="btn primary" data-nav-inline="chart">Open chart</button>`
+      : `<button class="btn primary" data-nav-inline="scribe">Sign draft note · 90 s</button>
+         <button class="btn ghost" data-nav-inline="chart">Open chart</button>`;
     return `
     <div class="focus-stage">
       <div class="focus-kicker">now seeing</div>
       <div class="focus-now">${now.name}</div>
       <div class="focus-meta">${now.time} · ${now.reason}</div>
-      <div class="focus-actions">
-        <button class="btn primary" data-nav-inline="chart">Open chart</button>
-        ${state.scribeSigned ? "" : `<button class="btn ghost" data-nav-inline="scribe">Sign draft note · 90 s</button>`}
-      </div>
+      ${due.length ? `<div class="focus-due">due this visit — ${due.join(" · ")}</div>` : ""}
+      <div class="focus-actions">${actions}</div>
       ${next ? `<div class="focus-next">next · ${next.time} — ${next.name}</div>` : ""}
       <div class="focus-status">${PACING.status} · inbox batch 12:15 pm · urgent always breaks through</div>
     </div>`;
