@@ -190,6 +190,7 @@ $$(".role-btn").forEach(btn => btn.addEventListener("click", () => {
   state.role = btn.dataset.role;
   state.view = NAVS[state.role][0].items[0].id;
   $$(".role-btn").forEach(b => b.classList.toggle("active", b === btn));
+  updateFocusUI();                 // Focus is clinician-only — leave/re-enter it with the role
   render();
 }));
 
@@ -2391,8 +2392,12 @@ function updateWellnessUI(){
   const pill = $("#canary-pill"); if (pill) pill.style.display = state.wellness ? "" : "none";
 }
 function updateFocusUI(){
-  const ft = $("#focus-toggle"); if (ft) ft.classList.toggle("active", state.focus);
-  document.documentElement.classList.toggle("focus-on", state.focus);
+  // Focus is a clinician-only concept — the toggle exists only in the clinician role,
+  // and the minimal display never alters the patient / researcher / CWO experiences.
+  const clin = state.role === "clinician";
+  const ft = $("#focus-toggle");
+  if (ft){ ft.style.display = clin ? "" : "none"; ft.classList.toggle("active", clin && state.focus); }
+  document.documentElement.classList.toggle("focus-on", clin && state.focus);
 }
 function toggleFocus(){
   state.focus = !state.focus;
