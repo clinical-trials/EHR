@@ -151,7 +151,6 @@ const NAVS = {
     ]},
     { label:"Platform", items:[
       { id:"fhir",       ic:"⚡", t:"FHIR sandbox" },
-      { id:"burden",     ic:"⏱", t:"Burden lab" },
       { id:"synthesis",  ic:"◎", t:"Physician health × Interop" },
       { id:"enterprise", ic:"🏛", t:"Enterprise & exchange" },
       { id:"ecosystem",  ic:"🔌", t:"Ecosystem connections" },
@@ -193,6 +192,7 @@ const NAVS = {
     { label:"Well-being program", items:[
       { id:"joy",     ic:"🏅", t:"Joy in Medicine" },
       { id:"ehr8",    ic:"⏱", t:"EHR8 · WOW8 · Inbox" },
+      { id:"burden",  ic:"🧪", t:"Burden lab" },
       { id:"actions", ic:"🎯", t:"Action plan" },
       { id:"report",  ic:"📄", t:"Data extract report" },
       { id:"biblio",  ic:"📚", t:"Bibliography" },
@@ -2133,10 +2133,10 @@ function vHelix(){
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, burden:vBurden, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
-  cwo:{ joy:vJoy, ehr8:vEhr8, actions:vActions, report:vReport, biblio:vBiblio },
+  cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, biblio:vBiblio },
 };
 
 function render(){
