@@ -1,2 +1,11 @@
 .DS_Store
 docs/qa-*.jpg
+media/ov_audio/
+media/ov_clips/
+media/ov_frames/
+media/ov_clips.txt
+media/qa/
+media/up_frames/
+media/up_audio/
+media/up_clips/
+media/up_clips.txt
