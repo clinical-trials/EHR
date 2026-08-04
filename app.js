@@ -31,6 +31,7 @@ const state = {
   gross:     store.get("gross", GROSS_SEED), // "kill a stupid task" nominations
   grossVoted: store.get("grossVoted", {}),
   buddy:     store.get("buddy", false),  // Battle Buddy peer-support opt-in
+  practice:  store.get("practice", {}),  // own-your-practice startup checklist
   scribeSigned: false,                  // Luma Scribe draft note signed this session
   scribeSent:   false,                  // Scribe draft codes sent to Encounter & claim
   delegated: {},                         // delegation steps run this session (by index)
@@ -151,6 +152,7 @@ const NAVS = {
     ]},
     { label:"Platform", items:[
       { id:"fhir",       ic:"⚡", t:"FHIR sandbox" },
+      { id:"practice",   ic:"🏠", t:"Own your practice" },
       { id:"synthesis",  ic:"◎", t:"Physician health × Interop" },
       { id:"enterprise", ic:"🏛", t:"Enterprise & exchange" },
       { id:"ecosystem",  ic:"🔌", t:"Ecosystem connections" },
@@ -1371,6 +1373,52 @@ function vCME(){
 }
 
 /* ==========================================================================
+   OWN YOUR PRACTICE — the entrepreneur layer: doctors should be able to own
+   their clinics and manage healthcare, not be priced into employment
+   ========================================================================== */
+function vPractice(){
+  const done = PRACTICE_STEPS.filter((_,i) => state.practice[i]).length;
+  return `
+  <h1 class="page-title">🏠 Own your practice</h1>
+  <p class="page-sub">Doctors should be able to own their clinics and manage healthcare. The EHR should be the reason that's possible — not the expense that makes it impossible.</p>
+
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="card">
+      <h3>The independence crisis</h3>
+      <div class="small">Private practice is now a <b>minority</b> of U.S. physicians — and cost plus administrative burden are among the leading reasons doctors give up ownership for hospital employment.${aut("amaBenchmark")} Losing control of your own work is itself a burnout driver the Surgeon General names.${aut("sgAdvisory")}</div>
+    </div>
+    <div class="card">
+      <h3>The EHR expense, named</h3>
+      <div class="small">Implementing a traditional EHR cost a five-physician primary-care practice about <b>$162,000</b>, plus ~$85,000 in first-year maintenance — before per-interface fees, per-fax fees, and upgrade charges.${ev("fleming")} LumaChart's pricing principle is the opposite: <b>free to start, transparent tiers, and no interface ransom</b> — open FHIR APIs are included, never sold back to you (see <a data-nav-inline="plans" style="cursor:pointer">Plans &amp; value</a> and the information-blocking design rules in <a data-nav-inline="security" style="cursor:pointer">Security</a>).</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>🧰 A practice in a box — everything a 1–3 physician clinic needs</h3>
+    <div class="rowlist">
+      <div class="rowitem"><span class="chip green">built</span><div class="d" style="flex:1"><b>The clinical day</b> — <a data-nav-inline="dashboard" style="cursor:pointer">Today</a> + Focus mode + <a data-nav-inline="scribe" style="cursor:pointer">Scribe</a>: run on time, chart between patients, no homework.</div></div>
+      <div class="rowitem"><span class="chip green">built</span><div class="d" style="flex:1"><b>The front office</b> — staff-triaged <a data-nav-inline="inbox" style="cursor:pointer">batched inbox</a>, delegation protocols, patient portal with online payments.</div></div>
+      <div class="rowitem"><span class="chip green">built</span><div class="d" style="flex:1"><b>The back office</b> — <a data-nav-inline="billing" style="cursor:pointer">Encounter &amp; claim</a> with agent-drafted codes, clearinghouse path, <a data-nav-inline="analytics" style="cursor:pointer">revenue analytics</a>.</div></div>
+      <div class="rowitem"><span class="chip green">built</span><div class="d" style="flex:1"><b>The compliance binder</b> — Security Risk Analysis + SAFER templates, information-blocking posture, <a data-nav-inline="cme" style="cursor:pointer">CME &amp; licensure</a> tracking.</div></div>
+      <div class="rowitem"><span class="chip green">demoed</span><div class="d" style="flex:1"><b>The connections</b> — <a data-nav-inline="fhir" style="cursor:pointer">FHIR sandbox</a>: eligibility &amp; prior-auth, lab/genetic ordering, telehealth.</div></div>
+    </div>
+    <div class="evidence">Team-based delegation is what makes a small practice sustainable — the model that cut burnout from 53% to 13% while improving vaccination &amp; screening rates.${ev("wright")}</div>
+  </div>
+
+  <div class="card">
+    <h3>🚀 Startup copilot <span class="chip ${done===PRACTICE_STEPS.length?"green":"accent"}">${done}/${PRACTICE_STEPS.length} done</span></h3>
+    <div class="small" style="margin-bottom:8px">The critical path from employed physician to clinic owner — tracked like a care plan: specific, time-bound, owned.</div>
+    <div class="rowlist">
+      ${PRACTICE_STEPS.map((s,i)=>`<label class="rowitem" style="cursor:pointer">
+        <input type="checkbox" data-practice-step="${i}" ${state.practice[i]?"checked":""} style="margin-right:8px">
+        <div style="flex:1"><div class="t small">${s.t}</div><div class="d">${s.d}</div></div>
+      </label>`).join("")}
+    </div>
+    <div class="tiny" style="margin-top:8px">Educational guidance, not legal or financial advice — your attorney, accountant and broker stay on the team. LumaChart's job is making sure the EHR is the cheapest, calmest part of the plan.</div>
+  </div>`;
+}
+
+/* ==========================================================================
    BIBLIOGRAPHY — generated live from the evidence base, so every citation
    added with a feature appears here automatically (CWO tab)
    ========================================================================== */
@@ -2163,7 +2211,7 @@ function vHelix(){
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, biblio:vBiblio },
@@ -2248,6 +2296,10 @@ function wireView(){
     const g = state.gross.find(x => x.id === b.dataset.grossVote);
     if (g && !state.grossVoted[g.id]){ g.votes++; state.grossVoted[g.id] = true;
       store.set("gross", state.gross); store.set("grossVoted", state.grossVoted); render(); }
+  }));
+  $$("[data-practice-step]").forEach(c => c.addEventListener("change", () => {
+    state.practice[c.dataset.practiceStep] = c.checked;
+    store.set("practice", state.practice); render();
   }));
   const bo = $("[data-buddy-optin]"); if (bo) bo.addEventListener("click", () => {
     state.buddy = true; store.set("buddy", true); render();

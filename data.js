@@ -875,6 +875,7 @@ const ROUTES = {
    All PMIDs verified against PubMed esummary on 2026-08-03.
    ========================================================================== */
 Object.assign(EVIDENCE, {
+  fleming:   { pmid:"21383367", cite:"Fleming et al., Health Aff 2011 — implementing an EHR cost a five-physician primary-care practice about $162,000, plus ~$85,000 in first-year maintenance." },
   dolan:     { pmid:"25451989", cite:"Dolan et al., J Gen Intern Med 2015 — single-item burnout measure, validated against the MBI emotional-exhaustion scale." },
   ashton:    { pmid:"30403948", cite:"Ashton, N Engl J Med 2018 — “Getting Rid of Stupid Stuff”: staff nominate EHR tasks to eliminate." },
   dyrbyeLic: { pmid:"28982484", cite:"Dyrbye et al., Mayo Clin Proc 2017 — intrusive licensure questions make physicians reluctant to seek mental health care." },
@@ -901,7 +902,19 @@ const AUTHORITIES = {
     cite:"ONC Certified Health IT Product List (CHPL) — the official registry where buyers verify a product's certification status." },
   infoBlocking:{ label:"Info Blocking", url:"https://www.healthit.gov/topic/information-blocking",
     cite:"ONC Information Blocking rule (21st Century Cures Act) — providers, certified health-IT developers, and health information networks/exchanges may not interfere with access, exchange, or use of electronic health information unless a defined exception applies; developer violations carry civil monetary penalties up to $1M each." },
+  amaBenchmark:{ label:"AMA Survey", url:"https://www.ama-assn.org/about/research/physician-practice-benchmark-survey",
+    cite:"AMA Physician Practice Benchmark Survey — private practice has fallen to a minority of U.S. physicians, with cost and administrative burden among the leading drivers of the shift to hospital employment." },
 };
+
+/* ---------- Own your practice — the independence startup checklist ---------- */
+const PRACTICE_STEPS = [
+  { t:"Form the entity & get your EIN", d:"PLLC/PC per your state; a healthcare attorney reviews once, not monthly." },
+  { t:"NPI type 2 + payer enrollment & credentialing", d:"The 90–150 day critical path — start it before the lease. LumaChart tracks each payer's status." },
+  { t:"Malpractice + general liability coverage", d:"Occurrence vs claims-made decided with your broker; tail cost modeled before you sign." },
+  { t:"HIPAA program: BAA + Security Risk Analysis", d:"LumaChart ships SRA & SAFER templates — the same attestations big systems pay consultants for." },
+  { t:"Decide your Medicare posture", d:"MIPS Promoting Interoperability category, opt-out, or direct-care hybrid — an informed choice, not a default." },
+  { t:"Staff the batched-inbox model from day one", d:"One MA/RN triaging to protocols replaces the after-hours inbox — the APEX team model, small-practice sized." },
+];
 
 /* ---------- FHIR sandbox — REAL R4 round-trips to a public test server ---------- */
 const FHIR = {
