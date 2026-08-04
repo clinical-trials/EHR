@@ -1399,6 +1399,12 @@ const AUTHORITIES = {
     cite:"Dr. Lorna Breen Health Care Provider Protection Act (2022) — federal grants for health-worker mental health, non-punitive culture." },
   amaJoy:{ label:"AMA Joy", url:"https://www.ama-assn.org/system/files/joy-in-medicine-guidelines.pdf",
     cite:"AMA Joy in Medicine™ Health System Recognition Program Guidelines — the framework the CWO dashboard measures against (Bronze/Silver/Gold domains and criteria)." },
+  cmsPI:{ label:"CMS PI", url:"https://www.cms.gov/medicare/regulations-guidance/promoting-interoperability-programs",
+    cite:"CMS Medicare Promoting Interoperability Program — hospitals & critical access hospitals must be meaningful users of certified EHR technology (CEHRT) or take a downward Medicare payment adjustment; CEHRT = 2015 Edition, Cures Update, or a combination (CY2021 PFS final rule, 85 FR 84818–84828)." },
+  chpl:{ label:"CHPL", url:"https://chpl.healthit.gov/",
+    cite:"ONC Certified Health IT Product List (CHPL) — the official registry where buyers verify a product's certification status." },
+  infoBlocking:{ label:"Info Blocking", url:"https://www.healthit.gov/topic/information-blocking",
+    cite:"ONC Information Blocking rule (21st Century Cures Act) — providers, certified health-IT developers, and health information networks/exchanges may not interfere with access, exchange, or use of electronic health information unless a defined exception applies; developer violations carry civil monetary penalties up to $1M each." },
 };
 
 /* ---------- FHIR sandbox — REAL R4 round-trips to a public test server ---------- */
@@ -3030,7 +3036,7 @@ function vFhir(){
   <div class="card" style="margin-bottom:16px">
     <h3>What's real, what's simulated</h3>
     <div class="small">${FHIR.honesty}</div>
-    <div class="tiny" style="margin-top:8px">Endpoint: <b>${FHIR.base}</b> · every call is timed and logged to the <a data-nav-inline="burden" style="cursor:pointer">Burden lab</a>.</div>
+    <div class="tiny" style="margin-top:8px">Endpoint: <b>${FHIR.base}</b> · every call is timed and logged to the <a data-nav-inline="burden" style="cursor:pointer">Burden lab</a>. These are the exchanges the <b>Medicare Promoting Interoperability Program</b> requires of hospitals — certified-EHR interoperability is a payment condition, not a nice-to-have.${aut("cmsPI")}</div>
   </div>
 
   ${FHIR.workflows.map(w => `
@@ -3594,7 +3600,7 @@ function vSecurity(){
     </div>
     <div class="card"><h3>ONC SAFER — high-priority safety practices</h3>
       ${t.saferHighPriority.map(s=>`<div class="rowitem"><span class="chip accent">▲</span><div class="d" style="flex:1">${s}</div></div>`).join('')}
-      <div class="tiny" style="margin-top:8px">Nine SAFER Guides in all: ${t.saferGuides.join(' · ')}. <a class="pmid" href="${t.saferUrl}" target="_blank" rel="noopener" style="text-indent:0">SAFER Guides ↗</a></div>
+      <div class="tiny" style="margin-top:8px">Nine SAFER Guides in all: ${t.saferGuides.join(' · ')}. <a class="pmid" href="${t.saferUrl}" target="_blank" rel="noopener" style="text-indent:0">SAFER Guides ↗</a> The SAFER self-assessment is also a required annual attestation for hospitals in the Medicare Promoting Interoperability Program.${aut("cmsPI")}</div>
     </div>
   </div>
   <div class="section-gap"></div>
@@ -3606,6 +3612,16 @@ function vSecurity(){
       <tr><td class="cap">Challenges</td><td>${t.cloud.challenges.map(b=>'• '+b).join('<br>')}</td><td>${t.local.challenges.map(b=>'• '+b).join('<br>')}</td></tr>
     </table></div>
     <div class="evidence">LumaChart is cloud-native (lower cost, higher availability), so data-security responsibility is <b>shared</b> with the vendor — always backed by a signed BAA, an SLA, and ongoing monitoring. <a class="pmid" href="${t.apiPrivacyUrl}" target="_blank" rel="noopener" style="text-indent:0">API privacy &amp; security ↗</a></div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card"><h3>🚫 Information blocking — the data is never held hostage</h3>
+    <div class="small" style="margin-bottom:8px">Under the 21st Century Cures Act, providers, certified health-IT developers, and health information networks may not interfere with the <b>access, exchange, or use</b> of electronic health information unless a defined exception applies (preventing harm, privacy, security, infeasibility, health-IT performance, and the manner/fees/licensing exceptions). For developers, each violation carries civil monetary penalties of up to <b>$1&nbsp;million</b>.${aut("infoBlocking")}</div>
+    <div class="rowlist">
+      <div class="rowitem"><span class="chip green">design rule</span><div class="d" style="flex:1"><b>Open by default</b> — patient records flow to patients, other providers, and successor systems via standard FHIR APIs. No export fees, no proprietary lock-in, no "sunset ransom."</div></div>
+      <div class="rowitem"><span class="chip green">design rule</span><div class="d" style="flex:1"><b>Exceptions are named, never vague</b> — if LumaChart ever withholds EHI it cites the specific regulatory exception (e.g., preventing harm), logged and reviewable.</div></div>
+      <div class="rowitem"><span class="chip green">attestation-ready</span><div class="d" style="flex:1"><b>PI-program alignment</b> — hospitals attest annually that they don't information-block; an EHR that blocks by design makes its customers non-compliant. LumaChart's openness protects their attestation.${aut("cmsPI")}</div></div>
+    </div>
   </div>`;
 }
 
@@ -3616,6 +3632,18 @@ function vReadiness(){
   return `
   <h1 class="page-title">Readiness &amp; contracts</h1>
   <p class="page-sub">Implementation succeeds on people and paperwork, not just software. A 60-second readiness check and the contract terms that protect you.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>🏥 Medicare Promoting Interoperability Program — why certification is non-negotiable</h3>
+    <div class="small" style="margin-bottom:8px">Hospitals and critical access hospitals must be <b>meaningful users of certified EHR technology (CEHRT)</b> or take a <b>downward Medicare payment adjustment</b> — interoperability isn't a feature request, it's a revenue requirement.${aut("cmsPI")} CEHRT means the ONC 2015 Edition criteria, the 2015 Edition <b>Cures Update</b> (smartphone/API patient access, new privacy &amp; security criteria, USCDI updates), or a combination — with functionality in place on day one of the EHR reporting period and certification complete by its last day.</div>
+    <div class="rowlist">
+      <div class="rowitem"><span class="chip green">demoed</span><div class="d" style="flex:1"><b>Health information exchange &amp; APIs</b> — the FHIR R4 round-trips in the <a data-nav-inline="fhir" style="cursor:pointer">FHIR sandbox</a> are the exchanges this program scores.</div></div>
+      <div class="rowitem"><span class="chip green">demoed</span><div class="d" style="flex:1"><b>Provider-to-patient exchange</b> — the patient portal's records, results and API-first design.</div></div>
+      <div class="rowitem"><span class="chip amber">roadmap</span><div class="d" style="flex:1"><b>e-Prescribing + public-health data exchange</b> — immunization registries, electronic case reporting, reportable labs (see Roadmap &amp; gates).</div></div>
+      <div class="rowitem"><span class="chip green">designed-in</span><div class="d" style="flex:1"><b>Required attestations</b> — Security Risk Analysis, the SAFER Guides self-assessment, and the information-blocking attestations live in <a data-nav-inline="security" style="cursor:pointer">Security &amp; SAFER</a>.${aut("infoBlocking")}</div></div>
+    </div>
+    <div class="evidence"><b>Honest cost note:</b> ONC certification is strict and expensive — accredited-lab testing per criterion, ongoing surveillance, annual Real World Testing, and decision-support transparency under §170.315(b)(11). It is a real budget line on LumaChart's path to market (see docs/ONC-CERTIFICATION-ROADMAP.md), and buyers verify any vendor's status on the official product list.${aut("chpl")}${aut("onc2020")} Until certified, LumaChart cannot support a hospital's PI attestation — no prototype can.</div>
+  </div>
 
   <div class="grid g32">
     <div class="card"><h3>Implementation readiness self-check</h3>

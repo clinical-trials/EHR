@@ -133,3 +133,27 @@ The certification floor is necessary but not sufficient for the problem LumaChar
 ## Gates before real-world use (unchanged, restated)
 
 ONC-ACB certification testing (Inferno for g(10)) · HIPAA Security Rule risk analysis + SOC 2 + independent pen-test · IRB for the research layer · clinical validation of any Canary/DSI predictive threshold · coding-compliance review for the billing agent. Nothing here is a shortcut around those.
+
+## Why certification is non-negotiable: the Medicare Promoting Interoperability Program
+
+Hospitals and critical access hospitals participating in the Medicare Promoting Interoperability
+Program must be **meaningful users of certified EHR technology (CEHRT)** to avoid a **downward
+Medicare payment adjustment**. Per the CY2021 Physician Fee Schedule final rule (85 FR 84818–84828),
+CEHRT means technology certified to (1) the 2015 Edition criteria, (2) the 2015 Edition **Cures
+Update** criteria (API/smartphone patient access, new privacy & security criteria, USCDI updates),
+or (3) a combination. Timing rule (CY2022 fact sheet): functionality must be in place on the first
+day of the EHR reporting period and certified by its last day — "deployed but pending
+certification" is permitted in many situations.
+
+**Business consequences for LumaChart:**
+- No hospital can attest with an uncertified product — certification gates the entire hospital market.
+- **Certification is a material expense**: ONC-ACB/ATL per-criterion testing, ongoing surveillance,
+  annual Real World Testing plans/results, and §170.315(b)(11) decision-support transparency.
+  Budget it as a program, not a one-time fee.
+- Buyers verify status on the ONC Certified Health IT Product List (CHPL): https://chpl.healthit.gov/
+- Required hospital attestations LumaChart is designed to support: Security Risk Analysis and the
+  SAFER Guides self-assessment (see Security & SAFER view).
+
+Source: CMS Promoting Interoperability Programs —
+https://www.cms.gov/medicare/regulations-guidance/promoting-interoperability-programs
+(2022 CEHRT fact sheet provided by the founder, 2026-08-03.)

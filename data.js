@@ -895,6 +895,12 @@ const AUTHORITIES = {
     cite:"Dr. Lorna Breen Health Care Provider Protection Act (2022) — federal grants for health-worker mental health, non-punitive culture." },
   amaJoy:{ label:"AMA Joy", url:"https://www.ama-assn.org/system/files/joy-in-medicine-guidelines.pdf",
     cite:"AMA Joy in Medicine™ Health System Recognition Program Guidelines — the framework the CWO dashboard measures against (Bronze/Silver/Gold domains and criteria)." },
+  cmsPI:{ label:"CMS PI", url:"https://www.cms.gov/medicare/regulations-guidance/promoting-interoperability-programs",
+    cite:"CMS Medicare Promoting Interoperability Program — hospitals & critical access hospitals must be meaningful users of certified EHR technology (CEHRT) or take a downward Medicare payment adjustment; CEHRT = 2015 Edition, Cures Update, or a combination (CY2021 PFS final rule, 85 FR 84818–84828)." },
+  chpl:{ label:"CHPL", url:"https://chpl.healthit.gov/",
+    cite:"ONC Certified Health IT Product List (CHPL) — the official registry where buyers verify a product's certification status." },
+  infoBlocking:{ label:"Info Blocking", url:"https://www.healthit.gov/topic/information-blocking",
+    cite:"ONC Information Blocking rule (21st Century Cures Act) — providers, certified health-IT developers, and health information networks/exchanges may not interfere with access, exchange, or use of electronic health information unless a defined exception applies; developer violations carry civil monetary penalties up to $1M each." },
 };
 
 /* ---------- FHIR sandbox — REAL R4 round-trips to a public test server ---------- */
