@@ -1947,7 +1947,7 @@ function vScribe(){
         <h3>✍ First-draft note ${state.scribeSigned?'<span class="chip green">signed ✓</span>':'<span class="chip amber">awaiting your review</span>'}</h3>
         <textarea id="scribe-note" class="scribe-note" rows="7" ${state.scribeSigned?"disabled":""}>${SCRIBE.note}</textarea>
         ${state.scribeSigned?'<div class="small muted" style="margin-top:8px">Signed and filed while it was fresh. Nothing left for tonight.</div>':`<button class="btn primary" style="margin-top:10px" data-scribe-sign>Review &amp; sign — ~90 seconds</button>`}
-        <div class="evidence">Scribe writes the first pass; the physician stays the author. The note stays lean because billing justification lives in the claim layer — not the note.</div>
+        <div class="evidence">Scribe writes the first pass; the physician stays the author. This is a <b>patient note — nothing else</b>: billing justification lives in the claim layer, so the doctor is never the data clerk.${ev("sinskyTM")}</div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:16px">
@@ -2002,8 +2002,9 @@ function vChart(){
 
   <div class="card">
     <h3>Assessment <span class="chip green">billing decoupled — handled automatically</span></h3>
+    <div class="small" style="margin-bottom:8px"><b>This is a patient note — nothing else.</b> Doctors are not data clerks: the codes, the claim, and the quality reporting all fall out of the visit in background layers, never typed into the story of the patient.</div>
     <textarea class="note-editor" id="lean-note" style="min-height:110px">${CARE_PLAN.assessment}</textarea>
-    <div class="tiny" style="margin-top:8px"><span id="note-count"></span> — U.S. notes average ~4× the length of the same EHR abroad because billing data bloats them. LumaChart keeps the note clinical.${ev("downing")}</div>
+    <div class="tiny" style="margin-top:8px"><span id="note-count"></span> — U.S. notes average ~4× the length of the same EHR abroad because billing data bloats them. LumaChart keeps the note clinical.${ev("downing")} Clerical burden is the system's #1 named driver of burnout — ~2 hours of EHR/desk work per hour of patient care.${ev("sinskyTM")}${aut("nam2019")}</div>
   </div>
   <div class="section-gap"></div>
 
