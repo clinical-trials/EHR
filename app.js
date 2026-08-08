@@ -1601,6 +1601,18 @@ function vJoy(){
   <h1 class="page-title">Joy in Medicine <span class="muted" style="font-size:15px">organizational well-being</span></h1>
   <p class="page-sub">${a.program} — the system-level program a Chief Wellness Officer runs. LumaChart supplies the measurement.</p>
 
+  <div class="card" style="margin-bottom:16px">
+    <h3>🗺 Field notes — what 20 accelerator institutions actually did</h3>
+    <div class="small">NAM's inaugural Change Maker cohort published their results. The patterns LumaChart is built around are the ones that worked in the field:${aut("namAccel")}</div>
+    <div class="rowlist" style="margin-top:8px">
+      <div class="rowitem"><span class="chip green">✓ built</span><div class="d" style="flex:1"><b>Ambient documentation was the #1 measured technology win</b> — ~170 min/week returned and best-in-class “pajama time” at Ochsner; significant after-hours and cognitive-load reductions at Michigan Medicine (n=196). LumaChart: Scribe + Burden lab.</div></div>
+      <div class="rowitem"><span class="chip green">✓ built</span><div class="d" style="flex:1"><b>Leader-level well-being data</b> — Utah gives every leader a dashboard linking engagement, burnout, psychological safety, turnover and patient experience. LumaChart: this CWO role + equity-disaggregated extract.</div></div>
+      <div class="rowitem"><span class="chip green">✓ built</span><div class="d" style="flex:1"><b>Ease-of-practice committees</b> (MD Anderson) and efficiency as the #1 burnout driver (UNM: 40% faculty burnout) — LumaChart: “kill a stupid task” + the one-way design law.</div></div>
+      <div class="rowitem"><span class="chip amber">candidate</span><div class="d" style="flex:1"><b>Crisis &amp; onboarding infrastructure</b> — Code Lavender / Stress First Aid (Utah), same-day mental health (OhioHealth), and Nebraska's “Wellness Welcome” (a psychiatrist personally greets every new physician). On the roadmap.</div></div>
+    </div>
+    <div class="tiny" style="margin-top:8px">Honest note from the field: UC San Diego measured individual burnout <i>rising</i> 6 points despite real investment — which is exactly why LumaChart measures instead of claims. Full digest: docs/NAM-ACCELERATOR-DIGEST.md.</div>
+  </div>
+
   <div class="grid g2">
     <div class="card">
       <h3>Recognition level</h3>

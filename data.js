@@ -916,6 +916,8 @@ const AUTHORITIES = {
     cite:"NAM National Plan for Health Workforce Well-Being (2022) — seven priority areas; Priority Area 5 (effective technology tools) calls for health IT that is user-friendly, affordable, co-designed with users to shared standards, and works across disciplines." },
   namAICC:{ label:"NAM AI Code", url:"https://nam.edu/programs/value-science-driven-health-care/health-care-artificial-intelligence-code-of-conduct/",
     cite:"NAM Artificial Intelligence Code of Conduct for Health and Medicine (2025) — six Code Commitments (Advance Humanity, Ensure Equity, Engage Impacted Individuals, Improve Workforce Well-Being, Monitor Performance, Innovate & Learn) and ten Code Principles for trustworthy health AI." },
+  namAccel:{ label:"NAM Accelerator", url:"https://nam.edu/product/embedding-well-being-as-a-lasting-value-inaugural-accelerator-action-plans/",
+    cite:"NAM Inaugural Change Maker Accelerator Action Plans (2026) — 20 institutions' field results implementing the National Plan, incl. measured ambient-documentation wins (~170 min/wk at Ochsner; significant after-hours reductions at Michigan Medicine) and leader-level well-being dashboards (Utah)." },
 };
 
 /* ---------- Own your practice — the independence startup checklist ---------- */

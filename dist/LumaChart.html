@@ -1420,6 +1420,8 @@ const AUTHORITIES = {
     cite:"NAM National Plan for Health Workforce Well-Being (2022) — seven priority areas; Priority Area 5 (effective technology tools) calls for health IT that is user-friendly, affordable, co-designed with users to shared standards, and works across disciplines." },
   namAICC:{ label:"NAM AI Code", url:"https://nam.edu/programs/value-science-driven-health-care/health-care-artificial-intelligence-code-of-conduct/",
     cite:"NAM Artificial Intelligence Code of Conduct for Health and Medicine (2025) — six Code Commitments (Advance Humanity, Ensure Equity, Engage Impacted Individuals, Improve Workforce Well-Being, Monitor Performance, Innovate & Learn) and ten Code Principles for trustworthy health AI." },
+  namAccel:{ label:"NAM Accelerator", url:"https://nam.edu/product/embedding-well-being-as-a-lasting-value-inaugural-accelerator-action-plans/",
+    cite:"NAM Inaugural Change Maker Accelerator Action Plans (2026) — 20 institutions' field results implementing the National Plan, incl. measured ambient-documentation wins (~170 min/wk at Ochsner; significant after-hours reductions at Michigan Medicine) and leader-level well-being dashboards (Utah)." },
 };
 
 /* ---------- Own your practice — the independence startup checklist ---------- */
@@ -3194,6 +3196,18 @@ function vJoy(){
   return `
   <h1 class="page-title">Joy in Medicine <span class="muted" style="font-size:15px">organizational well-being</span></h1>
   <p class="page-sub">${a.program} — the system-level program a Chief Wellness Officer runs. LumaChart supplies the measurement.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>🗺 Field notes — what 20 accelerator institutions actually did</h3>
+    <div class="small">NAM's inaugural Change Maker cohort published their results. The patterns LumaChart is built around are the ones that worked in the field:${aut("namAccel")}</div>
+    <div class="rowlist" style="margin-top:8px">
+      <div class="rowitem"><span class="chip green">✓ built</span><div class="d" style="flex:1"><b>Ambient documentation was the #1 measured technology win</b> — ~170 min/week returned and best-in-class “pajama time” at Ochsner; significant after-hours and cognitive-load reductions at Michigan Medicine (n=196). LumaChart: Scribe + Burden lab.</div></div>
+      <div class="rowitem"><span class="chip green">✓ built</span><div class="d" style="flex:1"><b>Leader-level well-being data</b> — Utah gives every leader a dashboard linking engagement, burnout, psychological safety, turnover and patient experience. LumaChart: this CWO role + equity-disaggregated extract.</div></div>
+      <div class="rowitem"><span class="chip green">✓ built</span><div class="d" style="flex:1"><b>Ease-of-practice committees</b> (MD Anderson) and efficiency as the #1 burnout driver (UNM: 40% faculty burnout) — LumaChart: “kill a stupid task” + the one-way design law.</div></div>
+      <div class="rowitem"><span class="chip amber">candidate</span><div class="d" style="flex:1"><b>Crisis &amp; onboarding infrastructure</b> — Code Lavender / Stress First Aid (Utah), same-day mental health (OhioHealth), and Nebraska's “Wellness Welcome” (a psychiatrist personally greets every new physician). On the roadmap.</div></div>
+    </div>
+    <div class="tiny" style="margin-top:8px">Honest note from the field: UC San Diego measured individual burnout <i>rising</i> 6 points despite real investment — which is exactly why LumaChart measures instead of claims. Full digest: docs/NAM-ACCELERATOR-DIGEST.md.</div>
+  </div>
 
   <div class="grid g2">
     <div class="card">
