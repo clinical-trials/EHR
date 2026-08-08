@@ -987,6 +987,15 @@ const BURDEN_PROTOCOL = [
   { step:"Measure", d:"Re-run the same audit-log metrics at 90 days, plus a validated burnout instrument pre/post: Maslach Burnout Inventory, Mini-Z, or Stanford Professional Fulfillment Index (licensed instruments — named here, administered under license in production)." },
   { step:"Report", d:"Absolute minutes/day returned per feature, and change in burnout-positive rate. Published to the practice, not buried." },
 ];
+/* ---------- Burden lab — time-to-task harness: the demo measures itself ----------
+   Three canonical tasks, timed live in this browser (real seconds + real clicks).
+   No reference numbers ship with this table — whatever the user measures is the data. */
+const TIMED_TASKS = [
+  { id:"sign",     name:"Sign the draft note",       view:"scribe",    hint:"review Luma Scribe's draft, then Sign" },
+  { id:"delegate", name:"Delegate the inbox",        view:"inbox",     hint:"route the protocol items to the care team" },
+  { id:"followup", name:"Book a deferred follow-up", view:"dashboard", hint:"defer &amp; book from the run-on-time coach" },
+];
+
 const BURNOUT_ITEM = {
   q:"Overall, based on your definition of burnout, how would you rate your level of burnout?",
   anchors:[
@@ -1021,6 +1030,30 @@ const EQUITY_WELLBEING = [
   { group:"By gender",         segs:[["Women","44%"],["Men","35%"]] },
   { group:"By race/ethnicity", segs:[["Asian","40%"],["Black","45%"],["Hispanic/Latino","43%"],["White","38%"]] },
 ];
+/* Per-department drill-down (Utah leader-dashboard pattern) — synthetic demo values, aggregate-only */
+const EQUITY_BY_DEPT = {
+  all: { label:"All departments", rows:EQUITY_WELLBEING },
+  medicine: { label:"Medicine", rows:[
+    { group:"By role",           segs:[["Physicians","44%"],["Nurses","39%"],["MAs / techs","47%"],["Front desk","32%"]] },
+    { group:"By gender",         segs:[["Women","46%"],["Men","37%"]] },
+    { group:"By race/ethnicity", segs:[["Asian","42%"],["Black","47%"],["Hispanic/Latino","44%"],["White","40%"]] },
+  ]},
+  emergency: { label:"Emergency", rows:[
+    { group:"By role",           segs:[["Physicians","49%"],["Nurses","46%"],["MAs / techs","51%"],["Front desk","38%"]] },
+    { group:"By gender",         segs:[["Women","50%"],["Men","43%"]] },
+    { group:"By race/ethnicity", segs:[["Asian","45%"],["Black","52%"],["Hispanic/Latino","49%"],["White","44%"]] },
+  ]},
+  surgery: { label:"Surgery", rows:[
+    { group:"By role",           segs:[["Physicians","38%"],["Nurses","41%"],["MAs / techs","43%"],["Front desk","30%"]] },
+    { group:"By gender",         segs:[["Women","43%"],["Men","34%"]] },
+    { group:"By race/ethnicity", segs:[["Asian","37%"],["Black","44%"],["Hispanic/Latino","41%"],["White","35%"]] },
+  ]},
+  nursing: { label:"Nursing units", rows:[
+    { group:"By role",           segs:[["Nurses","44%"],["MAs / techs","49%"],["Unit clerks","36%"]] },
+    { group:"By gender",         segs:[["Women","45%"],["Men","39%"]] },
+    { group:"By race/ethnicity", segs:[["Asian","41%"],["Black","48%"],["Hispanic/Latino","45%"],["White","40%"]] },
+  ]},
+};
 
 /* ---------- Readmission predictive analytics (demo cohort) ----------
    Risk = validated clinical model (LACE) + social determinants. High/moderate
@@ -1088,5 +1121,6 @@ const PLANS = {
     { t:"Cloud-based access", d:"Secure access from any location, any device; no servers to buy or maintain — lower total cost of ownership over the life of the practice." },
     { t:"Compliance & security", d:"HIPAA-aligned by design: encryption in transit & at rest, audit trails, role-based access, MFA, and a signed Business Associate Agreement. (Formal SOC 2 + ONC certification are on the roadmap.)" },
     { t:"Future-ready technology", d:"Evidence-linked decision support, workflow automation, and revenue analytics that get more valuable as guidelines update and the consented research network grows." },
+    { t:"Fairness-optimized scheduling (managed service)", d:"Submit your constraints, receive a fair, compliant schedule. Sold per department, delivered as files your existing tools import — no IT project." },
   ],
 };

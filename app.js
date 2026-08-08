@@ -28,6 +28,9 @@ const state = {
   scribeOn:  store.get("scribeOn", true),// digital scribe on/off — the physician's call, per encounter
   fhirLog:   [],                         // real FHIR sandbox round-trips this session (resource, id, ms)
   burnoutSelf: store.get("burnoutSelf", {}), // single-item burnout measure: {baseline, followup}
+  taskTimer: null,                       // ⏲ time-to-task measurement in progress {id, start, clicks} — session only
+  taskResults: [],                       // ⏲ measured time-to-task results this session (real seconds + clicks)
+  equityDept: "all",                     // CWO equity drill-down department (session only)
   gross:     store.get("gross", GROSS_SEED), // "kill a stupid task" nominations
   grossVoted: store.get("grossVoted", {}),
   buddy:     store.get("buddy", false),  // Battle Buddy peer-support opt-in
@@ -276,6 +279,8 @@ function pacingCard(){
       <ul class="small muted" style="margin:6px 0 0 18px">${PACING.exits.map(x=>`<li style="margin-bottom:4px">${x}</li>`).join("")}</ul>
     </details>
     <div class="tiny" style="margin-top:8px">Don't tackle everything in one visit — a booked follow-up is better care than a rushed add-on.</div>
+    <div class="tiny" style="margin-top:8px; padding-top:8px; border-top:1px solid var(--line-strong)">⚖ Fairness: late-clinic load this month — you 22% · practice range 18–31% <span class="chip plain">synthetic demo</span><br>
+    Fair distribution of late clinics and call is a well-being lever — schedules should be optimized for fairness, not just coverage.${aut("natPlan")}</div>
   </div>`;
 }
 
@@ -1533,6 +1538,46 @@ function vFhir(){
 /* ==========================================================================
    BURDEN LAB — measure the reduction, don't just claim it
    ========================================================================== */
+/* --- Time-to-task harness: the demo measures itself (real seconds + real clicks).
+       The floating pill lives on document.body, outside render(), so it survives
+       re-renders; its Done handler is attached directly to the node. --- */
+let _taskClicksWired = false;
+function startTimedTask(id){
+  const t = TIMED_TASKS.find(x => x.id === id); if (!t) return;
+  if (!_taskClicksWired){
+    document.addEventListener("click", e => {
+      if (state.taskTimer && !(e.target.closest && e.target.closest("#task-pill"))) state.taskTimer.clicks++;
+    }, true);
+    _taskClicksWired = true;
+  }
+  state.taskTimer = { id, start: performance.now(), clicks: 0 };
+  const r = Object.keys(VIEWS).find(role => VIEWS[role][t.view]);          // task starts in the clinician role
+  if (r && r !== state.role){ state.role = r; $$(".role-btn").forEach(x => x.classList.toggle("active", x.dataset.role === r)); updateFocusUI(); }
+  state.view = t.view; render();
+  showTaskPill(t);
+}
+function showTaskPill(t){
+  removeTaskPill();
+  const pill = document.createElement("div");
+  pill.id = "task-pill";
+  pill.style.cssText = "position:fixed; left:16px; bottom:16px; z-index:9999; display:flex; gap:10px; align-items:center; background:var(--surface2); border:1px solid var(--line-strong); border-radius:12px; padding:10px 14px; box-shadow:0 8px 24px rgba(0,0,0,.35); font-size:13px; color:var(--text); max-width:min(420px, calc(100vw - 32px))";
+  pill.innerHTML = `<span>⏱ timing: <b>${t.name}</b> — click 'Done' when finished</span><button class="btn primary small" data-task-done>Done</button>`;
+  pill.querySelector("[data-task-done]").addEventListener("click", finishTimedTask);
+  document.body.appendChild(pill);
+}
+function removeTaskPill(){ const p = $("#task-pill"); if (p) p.remove(); }
+function finishTimedTask(){
+  const tm = state.taskTimer; if (!tm) return;
+  const t = TIMED_TASKS.find(x => x.id === tm.id);
+  const secs = Math.round((performance.now() - tm.start) / 100) / 10;
+  state.taskResults.push({ task: t.name, secs, clicks: tm.clicks });
+  state.taskTimer = null;
+  removeTaskPill();
+  state.role = "cwo"; $$(".role-btn").forEach(x => x.classList.toggle("active", x.dataset.role === "cwo")); updateFocusUI();
+  state.view = "burden"; render();
+  toast("Measured ⏲", `${t.name}: ${secs} s · ${tm.clicks} clicks — recorded in the Burden lab. Your numbers, measured live.`, "green");
+}
+
 function vBurden(){
   const b = state.burnoutSelf;
   const avgPajama = Math.round(PAJAMA_14D.reduce((a,x)=>a+x,0)/PAJAMA_14D.length);
@@ -1567,6 +1612,23 @@ function vBurden(){
       : `<div class="small muted">No calls yet — run a workflow in the <a data-nav-inline="fhir" style="cursor:pointer">FHIR sandbox</a> and real timings appear here.</div>`}
       ${state.fhirLog.length ? `<button class="btn ghost small" style="margin-top:10px" id="audit-download">Download audit log (JSON)</button>` : ""}
     </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>⏲ Time-to-task — measure this demo yourself <span class="chip green">measured live</span></h3>
+    <div class="small muted" style="margin-bottom:8px">Pick a task, do it, hit Done — LumaChart counts your real clicks and seconds in this browser. No reference numbers ship with this table: whatever you measure is the data.</div>
+    <div class="rowlist">
+      ${TIMED_TASKS.map(t=>`<div class="rowitem">
+        <div style="flex:1"><div class="t small">${t.name}</div><div class="d">${t.hint}</div></div>
+        ${state.taskTimer && state.taskTimer.id===t.id
+          ? `<span class="chip amber">timing…</span>`
+          : `<button class="btn ghost small" data-task-start="${t.id}">Start timing</button>`}
+      </div>`).join("")}
+    </div>
+    ${state.taskResults.length ? `<div class="divider"></div>
+      ${state.taskResults.map(r=>`<div class="small" style="margin-bottom:4px">${r.task} — <b>${r.secs} s</b> · <b>${r.clicks} click${r.clicks===1?"":"s"}</b> · measured live</div>`).join("")}`
+    : `<div class="tiny" style="margin-top:8px">No measurements yet this session.</div>`}
+    <div class="evidence">Usability is measurable — click counts and task times vary widely across EHRs and it affects safety.${ev("ratwani")}</div>
   </div>
 
   <div class="card">
@@ -1653,8 +1715,11 @@ function vEhr8(){
     </div>
     <div class="card">
       <h3>⚖ Well-being, disaggregated <span class="chip plain">aggregate-only · confidential</span></h3>
-      ${EQUITY_WELLBEING.map(r=>`<div class="small" style="margin-bottom:6px"><b>${r.group}:</b> ${r.segs.map(s=>`${s[0]} <span class="chip plain">${s[1]}</span>`).join(" ")}</div>`).join("")}
-      <div class="evidence">Burnout is not evenly distributed — the Advisory calls for well-being data disaggregated by role, gender, and race/ethnicity so interventions can be targeted, never individual-level.${aut("sgAdvisory")} Synthetic demo values (burnout-positive rate by group).</div>
+      <select class="cme-select" data-equity-dept style="margin-bottom:8px">
+        ${Object.entries(EQUITY_BY_DEPT).map(([k,d])=>`<option value="${k}" ${state.equityDept===k?"selected":""}>${d.label}</option>`).join("")}
+      </select>
+      ${(EQUITY_BY_DEPT[state.equityDept]||EQUITY_BY_DEPT.all).rows.map(r=>`<div class="small" style="margin-bottom:6px"><b>${r.group}:</b> ${r.segs.map(s=>`${s[0]} <span class="chip plain">${s[1]}</span>`).join(" ")}</div>`).join("")}
+      <div class="evidence">Burnout is not evenly distributed — the Advisory calls for well-being data disaggregated by role, gender, and race/ethnicity so interventions can be targeted, never individual-level.${aut("sgAdvisory")} Per-department view follows the Utah leader-dashboard pattern.${aut("namAccel")} Synthetic demo values (burnout-positive rate by group).</div>
     </div>
   </div>
 
@@ -1759,6 +1824,16 @@ function vActions(){
   <p class="page-sub">Measurement → intervention → recognition. Only <b>executed</b> activities count toward AMA recognition — this is your evidence trail.</p>
   <div class="card"><h3>Executed <span class="chip green">${executed.length}</span></h3>${executed.map(card).join('')}</div>
   ${pending.length?`<div class="section-gap"></div><div class="card"><h3>Planned / in progress</h3>${pending.map(card).join('')}<div class="tiny" style="margin-top:8px">Executing the peer-support program completes the Support domain — moving you from 5 of 6 to 6 of 6.</div></div>`:''}
+  <div class="section-gap"></div>
+  <div class="card">
+    <h3>🚨 Crisis &amp; connection protocols <span class="chip amber">candidate — from the NAM accelerator field results</span></h3>
+    <div class="rowlist">
+      <div class="rowitem"><span class="chip plain">respond</span><div class="d" style="flex:1"><b>Code Lavender–style rapid response</b> — a unit-level support activation after hard events (a death, an assault, an error), from the Utah field playbook.${aut("namAccel")}</div></div>
+      <div class="rowitem"><span class="chip plain">train</span><div class="d" style="flex:1"><b>Stress First Aid training, tracked</b> — peer-delivered psychological first aid for staff, with completion tracked here like any other executed intervention.${aut("namAccel")}</div></div>
+      <div class="rowitem"><span class="chip plain">pair</span><div class="d" style="flex:1"><b>Battle-Buddy pairing</b> — rapid peer-support pairing within a department; already live in the <a data-nav-inline="wellness" style="cursor:pointer">Wellness Center</a>.${ev("albott")}</div></div>
+      <div class="rowitem"><span class="chip plain">welcome</span><div class="d" style="flex:1">🤝 <b>Wellness Welcome</b> — every new clinician gets a personal 30-minute welcome meeting in year one (a psychiatrist-led model from the field).${aut("namAccel")}</div></div>
+    </div>
+  </div>
   ${state.supportExecuted?`<div class="evidence" style="margin-top:16px">All six domains now carry executed evidence — you're positioned to apply at a higher level. Regenerate the data extract report to include it.</div>`:''}`;
 }
 
@@ -2320,6 +2395,8 @@ function wireView(){
 
   /* --- FHIR sandbox + Burden lab + advisory features --- */
   $$("[data-fhir-run]").forEach(b => b.addEventListener("click", () => runFhirWorkflow(b.dataset.fhirRun)));
+  $$("[data-task-start]").forEach(b => b.addEventListener("click", () => startTimedTask(b.dataset.taskStart)));
+  const eqd = $("[data-equity-dept]"); if (eqd) eqd.addEventListener("change", () => { state.equityDept = eqd.value; render(); });
   $$("[data-burnout-save]").forEach(b => b.addEventListener("click", () => {
     const sel = $("input[name=biq]:checked");
     if (!sel){ toast("Pick an answer first", "Choose the statement that fits best, then save.", "amber"); return; }
