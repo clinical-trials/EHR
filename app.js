@@ -400,6 +400,23 @@ function vScribe(){
   </div>`;
 }
 
+/* --- Wave 1: measurement-based care — scores drawn over time (Osmind-inspired) --- */
+function sparkline(pts, max, w=190, h=46){
+  if (!pts || !pts.length) return "";
+  const xs = pts.map((p,i)=> pts.length===1 ? w/2 : 8 + i*(w-16)/(pts.length-1));
+  const ys = pts.map(p => h-8 - (p.s/max)*(h-16));
+  return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" style="overflow:visible" aria-hidden="true">
+    <polyline points="${xs.map((x,i)=>`${x.toFixed(1)},${ys[i].toFixed(1)}`).join(" ")}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    ${xs.map((x,i)=>`<circle cx="${x.toFixed(1)}" cy="${ys[i].toFixed(1)}" r="3" fill="var(--accent)"/>`).join("")}
+  </svg>`;
+}
+function scoreSeries(id){
+  const hist = (SCORE_HISTORY[id] || []).slice();
+  const live = state.screens[id];
+  if (live) hist.push({ d:live.date, s:live.score });
+  return hist;
+}
+
 function vChart(){
   const c = CHART;
   return `
@@ -438,6 +455,20 @@ function vChart(){
     <div class="small" style="margin-bottom:8px"><b>This is a patient note — nothing else.</b> Doctors are not data clerks: the codes, the claim, and the quality reporting all fall out of the visit in background layers, never typed into the story of the patient.</div>
     <textarea class="note-editor" id="lean-note" style="min-height:110px">${CARE_PLAN.assessment}</textarea>
     <div class="tiny" style="margin-top:8px"><span id="note-count"></span> — U.S. notes average ~4× the length of the same EHR abroad because billing data bloats them. LumaChart keeps the note clinical.${ev("downing")} Clerical burden is the system's #1 named driver of burnout — ~2 hours of EHR/desk work per hour of patient care.${ev("sinskyTM")}${aut("nam2019")}</div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card">
+    <h3>📈 Scores over time <span class="chip accent">measurement-based care</span></h3>
+    <div class="grid g2">
+      ${["phq9","gad7"].map(id => { const ins = INSTRUMENTS[id], pts = scoreSeries(id); const last = pts[pts.length-1];
+        return `<div>
+          <div class="small"><b>${ins.name}</b> · latest <b>${last.s}</b>/${instrumentMax(ins)} <span class="tiny">(${last.d})</span></div>
+          ${sparkline(pts, instrumentMax(ins))}
+          <div class="tiny">${pts.length} measurements · lower is better ${ins.ev ? ev(ins.ev) : ""}</div>
+        </div>`; }).join("")}
+    </div>
+    <div class="tiny" style="margin-top:8px">The trend is the treatment response — scores drawn over time turn every visit into evidence, not a buried table. Live results from the patient's own check-ins join this line automatically.</div>
   </div>
   <div class="section-gap"></div>
 
@@ -949,6 +980,18 @@ function vScreenings(){
   return `
   <h1 class="page-title">Mental health is health</h1>
   <p class="page-sub">Private questionnaires — the same ones doctors use everywhere, recommended by national prevention experts <span class="code-light">(USPSTF)</span>. You answer in a few minutes; your care team reviews the results; you get proven steps that help.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>📈 Your progress <span class="chip green">headed the right way</span></h3>
+    <div class="grid g2">
+      ${["phq9","gad7"].map(id => { const ins = INSTRUMENTS[id], pts = scoreSeries(id); const first = pts[0], last = pts[pts.length-1];
+        return `<div>
+          <div class="small"><b>${ins.short}</b> — your score went from <b>${first.s}</b> to <b>${last.s}</b> <span class="tiny">(lower is better)</span></div>
+          ${sparkline(pts, instrumentMax(ins))}
+        </div>`; }).join("")}
+    </div>
+    <div class="tiny" style="margin-top:8px">Every check-in you complete joins this picture — it's how you and your care team see that the plan is working, visit by visit.</div>
+  </div>
   <div class="note">These are <b>screening tools, not diagnoses.</b> If you're ever in crisis, call or text <b>988</b> (Suicide &amp; Crisis Lifeline, US) — free, confidential, any time.</div>
   <div class="grid g3" style="margin-top:16px">
     ${["phq9","gad7","auditc"].map(id=>{
@@ -1199,6 +1242,14 @@ function vCheckin(){
     <div class="small muted">✓ Confirmed ${done.conditions.length} active conditions<br>✓ Confirmed your medications<br>✓ ${done.idUploaded?"Photo ID uploaded":"Photo ID — skipped"}<br>✓ Verified your demographics &amp; insurance</div>
     <div class="evidence">This pre-loaded your chart and today's claim, so the clinician only adds what you discuss now — less typing, fewer errors, a faster visit.</div>
     <button class="btn ghost" data-checkin-redo="1" style="margin-top:10px">Redo check-in</button>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card"><h3>📱 Take your record home</h3>
+    <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap">
+      <div style="width:112px; flex:none">${QR_SVG}</div>
+      <div class="small" style="flex:1; min-width:220px">Point your phone's camera at this square — it opens your LumaChart patient portal: your results, your plan, your coverage helper. Nothing to install, nothing to remember.</div>
+    </div>
   </div>`;
   return `
   <h1 class="page-title">Welcome back, Maria 👋</h1>
@@ -1500,7 +1551,11 @@ async function runFhirWorkflow(id){
         <div style="flex:1"><div class="t small">${r.resource} → server id <a href="${FHIR.base}/${r.resource}/${r.id}" target="_blank" rel="noopener">${r.id}</a></div>
         <div class="d">real round-trip: <b>${r.ms} ms</b> · ${r.at}</div></div>
       </div>`).join("") +
-      (wf.simulated ? `<div class="tiny" style="margin-top:8px"><span class="chip amber">simulated</span> ${wf.simulated}</div>` : "");
+      (wf.simulated ? `
+      <div class="rowitem"><span class="chip amber">simulated</span>
+        <div class="d" style="flex:1"><b>Agent completed the loop:</b> tracked adjudication → ${wf.simulated}
+        You reviewed <b>1 outcome — and 0 status updates</b>. Watching a claim is not a job for a human.</div>
+      </div>` : "");
     toast("FHIR round-trip complete ⚡", `${wf.title}: ${results.length} resource(s) created on the public sandbox, ${results.reduce((a,r)=>a+r.ms,0)} ms total. Every call is in the Burden lab audit log.`, "green");
   }catch(e){
     if (out) out.innerHTML = `<div class="small" style="color:var(--amber)">Sandbox unreachable (offline or CORS). The exact request that would be sent is shown above — try again when online.</div>`;
@@ -2146,6 +2201,14 @@ function vSecurity(){
     </div>
   </div>
   <div class="section-gap"></div>
+
+  <div class="card" style="margin-bottom:16px"><h3>🔍 What each AI feature actually does with data — in plain words</h3>
+    <div class="small" style="margin-bottom:8px">No legalese: for every AI feature, here is what's captured, what persists, who can see it, and how to turn it off. Transparency is a Code commitment, not a courtesy.${aut("namAICC")}</div>
+    <div class="tablewrap"><table class="reg">
+      <tr><th></th><th>Captures</th><th>Persists</th><th>Who sees it</th><th>Off switch</th></tr>
+      ${AI_PRIVACY.map(p=>`<tr><td class="cap">${p.name}</td><td>${p.captures}</td><td>${p.persists}</td><td>${p.sees}</td><td>${p.off}</td></tr>`).join("")}
+    </table></div>
+  </div>
 
   <div class="card"><h3>🤖 AI governance — designed to the NAM Code of Conduct</h3>
     <div class="small" style="margin-bottom:8px">Every AI feature in LumaChart (Scribe, the coding agent, Canary, the assistant) is designed against the NAM Artificial Intelligence Code of Conduct's six commitments — an advantage of building AI-native from a blank page: the Code is architecture here, where a billing-first legacy system can only retrofit it.${aut("namAICC")}</div>
