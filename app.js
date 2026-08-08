@@ -2071,6 +2071,14 @@ function vPayments(){
     ${p.statements.map(s=>{ const isPaid = s.status==='paid' || (s.status==='due' && paid);
       return `<div class="rowitem"><div style="flex:1"><div class="t small">${s.desc}</div><div class="d">${s.date}${s.code?` · <span class="code-light">${s.code}</span>`:""}</div></div><span class="chip ${isPaid?'green':'amber'}">${isPaid?'paid':'due'} · $${s.amt.toFixed(2)}</span></div>`; }).join('')}
     <div class="tiny" style="margin-top:8px">The light-gray numbers are the standard billing codes your insurance company uses — you don't need to do anything with them, but they're yours to see.</div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card">
+    <h3>🛡 Keep your coverage <span class="chip green">renewal on track</span></h3>
+    <div class="small">Your Medicaid coverage renews every year — the state calls this a <span class="code-light">redetermination</span>. Yours is due <b>November 12</b>. We'll remind you a month ahead, and helping you re-enroll takes a few minutes, right from your phone, in your language.</div>
+    <div class="tiny" style="margin-top:8px">Why we watch this for you: <b>72% of people who lose Medicaid are actually still eligible</b> — they lose coverage to paperwork, not the rules. Losing coverage interrupts your care and your medicines, so keeping it is part of keeping you healthy.${aut("fortuna")}</div>
+    <button class="btn primary small" style="margin-top:10px" data-coverage-check>Check my renewal now</button>
   </div>`;
 }
 
@@ -2342,6 +2350,9 @@ function wireView(){
     if (g && !state.grossVoted[g.id]){ g.votes++; state.grossVoted[g.id] = true;
       store.set("gross", state.gross); store.set("grossVoted", state.grossVoted); render(); }
   }));
+  const cvg = $("[data-coverage-check]"); if (cvg) cvg.addEventListener("click", () => {
+    toast("Coverage looks good ✓", "Your Medicaid renewal is due November 12 — nothing to do yet. We'll remind you in October and walk you through it, step by step, in your language.", "green");
+  });
   $$("[data-practice-step]").forEach(c => c.addEventListener("change", () => {
     state.practice[c.dataset.practiceStep] = c.checked;
     store.set("practice", state.practice); render();

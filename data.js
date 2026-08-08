@@ -918,6 +918,8 @@ const AUTHORITIES = {
     cite:"NAM Artificial Intelligence Code of Conduct for Health and Medicine (2025) — six Code Commitments (Advance Humanity, Ensure Equity, Engage Impacted Individuals, Improve Workforce Well-Being, Monitor Performance, Innovate & Learn) and ten Code Principles for trustworthy health AI." },
   namAccel:{ label:"NAM Accelerator", url:"https://nam.edu/product/embedding-well-being-as-a-lasting-value-inaugural-accelerator-action-plans/",
     cite:"NAM Inaugural Change Maker Accelerator Action Plans (2026) — 20 institutions' field results implementing the National Plan, incl. measured ambient-documentation wins (~170 min/wk at Ochsner; significant after-hours reductions at Michigan Medicine) and leader-level well-being dashboards (Utah)." },
+  fortuna:{ label:"Fortuna", url:"https://www.fortunahealth.com/about-us",
+    cite:"Fortuna Health (Medicaid navigation) — 72% of people who lose Medicaid coverage remain eligible; average Medicaid call-center wait is 42 minutes. Coverage churn is administrative, not eligibility." },
 };
 
 /* ---------- Own your practice — the independence startup checklist ---------- */
