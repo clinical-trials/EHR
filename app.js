@@ -1548,7 +1548,7 @@ function vBurden(){
       ${BURDEN_PROTOCOL.map((p,i)=>`<div class="rowitem"><div class="avatar">${i+1}</div>
         <div style="flex:1"><div class="t small">${p.step}</div><div class="d">${p.d}</div></div></div>`).join("")}
     </div>
-    <div class="evidence">Audit-log methodology per the landmark time studies: ~2 hr of EHR/desk work per 1 hr of direct care,${ev("sinskyTM")} and ~1.4 hr/day of after-hours “pajama time.”${ev("arndt")} National goal: documentation burden to 25% of current within 5 years.${aut("x25")}</div>
+    <div class="evidence">Audit-log methodology per the landmark time studies: ~2 hr of EHR/desk work per 1 hr of direct care,${ev("sinskyTM")} and ~1.4 hr/day of after-hours “pajama time.”${ev("arndt")} National goal: documentation burden to 25% of current within 5 years.${aut("x25")} Instrument selection follows the NAM well-being program's validated-tools compendium.${aut("namWellbeing")}</div>
   </div>
 
   <div class="grid g2" style="margin-bottom:16px">
@@ -1801,6 +1801,28 @@ function vCompete(){
   <div class="banner" style="background:linear-gradient(100deg,#0f2a33,#1d4a4f); color:#e7f4f6">
     <h3 style="color:#fff">Not "AI on the EHR." Evidence on the EHR.</h3>
     <p style="color:#bcd8de">${c.thesis}</p>
+  </div>
+
+  <div class="card" style="margin:16px 0">
+    <h3>⚖ The design laws — one way, minimal, nothing redundant</h3>
+    <div class="small" style="margin-bottom:8px">Redundant and inefficient health-IT workflows are among the most frequently cited sources of frustration for health workers.${aut("namWellbeing")}${aut("nam2019")} So LumaChart is governed by three laws, enforced on every feature before it ships:</div>
+    <div class="rowlist">
+      <div class="rowitem"><div class="avatar">1</div><div style="flex:1"><div class="t small">One way to do everything</div><div class="d">Each task has exactly one canonical route. Many doors may lead to it — but there is never a second copy of the task. (See the inbox's one-route rule: a result is one actionable item, not four.)</div></div></div>
+      <div class="rowitem"><div class="avatar">2</div><div style="flex:1"><div class="t small">As minimal as possible to get the job done</div><div class="d">Focus mode is this law's interface: one patient, one action, silence around it. Anything that doesn't serve the task in front of the clinician must justify its pixels.</div></div></div>
+      <div class="rowitem"><div class="avatar">3</div><div style="flex:1"><div class="t small">Redundancy dies on sight</div><div class="d">“Kill a stupid task” gives every staff member a nomination button; leadership must answer. Duplicate documentation is a defect, not a habit.${ev("ashton")}</div></div></div>
+    </div>
+    <div class="evidence">These aren't aesthetics — reducing workflow redundancy and cognitive load is the specific health-IT ask of the NAM consensus report, the Surgeon General's advisory, and the ONC burden-reduction strategy.${aut("sgAdvisory")}${aut("onc2020")} It is also Priority Area 5 of the National Plan for Health Workforce Well-Being: health IT that is user-friendly, affordable, and co-designed with its users.${aut("natPlan")}</div>
+  </div>
+
+  <div class="card" style="margin:0 0 16px">
+    <h3>📉 The usability case — grade F is the incumbent baseline</h3>
+    <div class="rowlist">
+      <div class="rowitem"><span class="chip red">F</span><div class="d" style="flex:1">Physicians score EHR usability <b>45.9/100</b> on the System Usability Scale — a grade F, in the bottom 9% of all technologies studied. Each 1-point improvement ≈ <b>3% lower odds of burnout</b>.${ev("melnickSUS")}</div></div>
+      <div class="rowitem"><span class="chip amber">RN</span><div class="d" style="flex:1">Across 12,004 nurses in 343 hospitals, poorer EHR usability meant higher odds of burnout (<b>OR 1.41</b>), dissatisfaction (1.61), and intent to leave (1.31).${ev("kutneyLee")} Poor usability also tracks with stress and cognitive failures.${ev("kaihlanen")}</div></div>
+      <div class="rowitem"><span class="chip amber">⚠</span><div class="d" style="flex:1">Usability is a <b>patient-safety</b> issue: across sites running the same big-vendor products, clicks, task time and error rates vary widely.${ev("ratwani")}</div></div>
+      <div class="rowitem"><span class="chip plain">🌍</span><div class="d" style="flex:1">Even flagship implementations struggle: in Finland's national rollout of a leading U.S. EHR, only <b>4.7% of physicians</b> agreed patient information was easy to access, and only 9.3% agreed it improved care quality.${ev("hertzum")} (Measured with a validated national instrument.${ev("kaipio")})</div></div>
+    </div>
+    <div class="evidence">This is why usability isn't a polish item at LumaChart — it's the product. The Burden lab exists to prove the SUS score and the audit-log minutes move, not just claim it.</div>
   </div>
 
   <div class="card">
@@ -2101,6 +2123,17 @@ function vSecurity(){
       <div class="rowitem"><span class="chip green">design rule</span><div class="d" style="flex:1"><b>Open by default</b> — patient records flow to patients, other providers, and successor systems via standard FHIR APIs. No export fees, no proprietary lock-in, no "sunset ransom."</div></div>
       <div class="rowitem"><span class="chip green">design rule</span><div class="d" style="flex:1"><b>Exceptions are named, never vague</b> — if LumaChart ever withholds EHI it cites the specific regulatory exception (e.g., preventing harm), logged and reviewable.</div></div>
       <div class="rowitem"><span class="chip green">attestation-ready</span><div class="d" style="flex:1"><b>PI-program alignment</b> — hospitals attest annually that they don't information-block; an EHR that blocks by design makes its customers non-compliant. LumaChart's openness protects their attestation.${aut("cmsPI")}</div></div>
+    </div>
+  </div>
+  <div class="section-gap"></div>
+
+  <div class="card"><h3>🤖 AI governance — designed to the NAM Code of Conduct</h3>
+    <div class="small" style="margin-bottom:8px">Every AI feature in LumaChart (Scribe, the coding agent, Canary, the assistant) is designed against the NAM Artificial Intelligence Code of Conduct's six commitments — an advantage of building AI-native from a blank page: the Code is architecture here, where a billing-first legacy system can only retrofit it.${aut("namAICC")}</div>
+    <div class="rowlist">
+      <div class="rowitem"><span class="chip accent">1·2</span><div class="d" style="flex:1"><b>Advance Humanity · Ensure Equity</b> — evidence on the record for every patient; equity-disaggregated well-being and outcome data, aggregate-only.</div></div>
+      <div class="rowitem"><span class="chip accent">3</span><div class="d" style="flex:1"><b>Engage Impacted Individuals</b> — the scribe is per-encounter, patient-consented, physician-switchable; patients control research consent tier by tier.</div></div>
+      <div class="rowitem"><span class="chip accent">4</span><div class="d" style="flex:1"><b>Improve Workforce Well-Being</b> — the founding commitment: AI exists here to return time (no-homework charting, batched inbox), measured in the Burden lab.</div></div>
+      <div class="rowitem"><span class="chip accent">5·6</span><div class="d" style="flex:1"><b>Monitor Performance · Innovate &amp; Learn</b> — every decision-support intervention ships with §170.315(b)(11) source &amp; logic transparency, audit logging, and post-deployment surveillance.</div></div>
     </div>
   </div>`;
 }

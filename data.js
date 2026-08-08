@@ -876,6 +876,12 @@ const ROUTES = {
    ========================================================================== */
 Object.assign(EVIDENCE, {
   fleming:   { pmid:"21383367", cite:"Fleming et al., Health Aff 2011 — implementing an EHR cost a five-physician primary-care practice about $162,000, plus ~$85,000 in first-year maintenance." },
+  melnickSUS:{ pmid:"31735343", cite:"Melnick et al., Mayo Clin Proc 2020 — physicians rate EHR usability 45.9/100 on the System Usability Scale (grade F, bottom 9% of technologies); each 1-point improvement ≈ 3% lower odds of burnout." },
+  hertzum:   { pmid:"36194994", cite:"Hertzum, Ellingsen & Cajander, Int J Med Inform 2022 — Epic implementations in Denmark & Finland: in Finland only 4.7% of physicians agreed patient information was easy to access, and only 9.3% agreed the system improved care quality." },
+  kaipio:    { pmid:"31835158", cite:"Kaipio et al., Int J Med Inform 2020 — validated national usability survey of 3,013 physicians and 2,560 nurses (Finland)." },
+  ratwani:   { pmid:"29982549", cite:"Ratwani et al., JAMIA 2018 — multi-center EHR usability study: wide variability in clicks, time and error rates across sites — usability is a patient-safety issue." },
+  kutneyLee: { pmid:"33797506", cite:"Kutney-Lee, Brooks Carthon, Sloane et al., Med Care 2021 — 12,004 nurses, 343 hospitals: poorer EHR usability → higher odds of burnout (OR 1.41), job dissatisfaction (1.61), and intent to leave (1.31)." },
+  kaihlanen: { pmid:"33206050", cite:"Kaihlanen et al., JMIR Med Inform 2020 — 3,383 nurses: poor EHR usability associated with higher stress and cognitive failures." },
   dolan:     { pmid:"25451989", cite:"Dolan et al., J Gen Intern Med 2015 — single-item burnout measure, validated against the MBI emotional-exhaustion scale." },
   ashton:    { pmid:"30403948", cite:"Ashton, N Engl J Med 2018 — “Getting Rid of Stupid Stuff”: staff nominate EHR tasks to eliminate." },
   dyrbyeLic: { pmid:"28982484", cite:"Dyrbye et al., Mayo Clin Proc 2017 — intrusive licensure questions make physicians reluctant to seek mental health care." },
@@ -904,6 +910,12 @@ const AUTHORITIES = {
     cite:"ONC Information Blocking rule (21st Century Cures Act) — providers, certified health-IT developers, and health information networks/exchanges may not interfere with access, exchange, or use of electronic health information unless a defined exception applies; developer violations carry civil monetary penalties up to $1M each." },
   amaBenchmark:{ label:"AMA Survey", url:"https://www.ama-assn.org/about/research/physician-practice-benchmark-survey",
     cite:"AMA Physician Practice Benchmark Survey — private practice has fallen to a minority of U.S. physicians, with cost and administrative burden among the leading drivers of the shift to hospital employment." },
+  namWellbeing:{ label:"NAM Well-Being", url:"https://nam.edu/our-work/programs/clinician-resilience-and-well-being/",
+    cite:"NAM Clinician Resilience & Well-Being program (Action Collaborative) — names redundant and inefficient health-IT workflows among the most frequently cited sources of health-worker frustration; home of the National Plan for Health Workforce Well-Being and the validated-tools resource compendium." },
+  natPlan:{ label:"National Plan", url:"https://nam.edu/NationalPlan",
+    cite:"NAM National Plan for Health Workforce Well-Being (2022) — seven priority areas; Priority Area 5 (effective technology tools) calls for health IT that is user-friendly, affordable, co-designed with users to shared standards, and works across disciplines." },
+  namAICC:{ label:"NAM AI Code", url:"https://nam.edu/programs/value-science-driven-health-care/health-care-artificial-intelligence-code-of-conduct/",
+    cite:"NAM Artificial Intelligence Code of Conduct for Health and Medicine (2025) — six Code Commitments (Advance Humanity, Ensure Equity, Engage Impacted Individuals, Improve Workforce Well-Being, Monitor Performance, Innovate & Learn) and ten Code Principles for trustworthy health AI." },
 };
 
 /* ---------- Own your practice — the independence startup checklist ---------- */
