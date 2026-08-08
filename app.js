@@ -37,6 +37,7 @@ const state = {
   delegated: {},                         // delegation steps run this session (by index)
   checkin:   store.get("checkin", null), // patient iPad pre-visit intake
   claim:     { dxAdded:false, verified:{}, stage:"code" }, // encounter/claim workflow
+  myrecord:  store.get("myrecord", { step:0 }),  // patient-mediated record request (right of access)
   _idUploaded: false,
   cmeReqIdx: store.get("cmeReqIdx", 0),  // selected state requirement (default Puerto Rico)
   cmeBooked: store.get("cmeBooked", {}), // booked CME programs
@@ -174,6 +175,7 @@ const NAVS = {
       { id:"screenings",ic:"✎", t:"Screenings & questionnaires" },
       { id:"payments",  ic:"💳", t:"Billing & payments" },
       { id:"myplan",    ic:"☑", t:"My care plan" },
+      { id:"myrecord",  ic:"🔗", t:"My record" },
       { id:"longevity", ic:"↗", t:"Longevity tracker" },
       { id:"consent",   ic:"✔", t:"Research & consent" },
     ]},
@@ -974,6 +976,63 @@ function vMyPlan(){
   </div>`;
 }
 
+/* ---------- My record — patient-mediated unified timeline (right of access) ---------- */
+function vMyRecord(){
+  const step = state.myrecord.step;
+  const stepNames = ["Why you can","Verify it's you","Authorize","Your one record"];
+  const stepper = `<div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:16px">
+    ${stepNames.map((t,i)=>`<span class="chip ${i<step?"green":i===step?"accent":"plain"}">${i<step?"✓ ":""}${t}</span>`).join("")}
+    ${step>0?`<button class="btn ghost small" data-myrecord-reset style="margin-left:auto">start over</button>`:""}
+  </div>`;
+  let body = "";
+  if (step===0) body = `
+  <div class="card">
+    <h3>🔗 One record, gathered by YOUR right</h3>
+    <p class="small">Federal law (HIPAA) gives you the right to a copy of your records from every clinic, hospital, and lab you've ever visited <span class="code-light">(individual right of access)</span>. LumaChart helps you use that right — and blocking it is illegal for providers and EHR vendors.${aut("infoBlocking")}</p>
+    <button class="btn primary" data-myrecord-next>Start my request</button>
+  </div>`;
+  else if (step===1) body = `
+  <div class="card">
+    <h3>Verify it's really you</h3>
+    <p class="small">Your records go to you and no one else — so first, a government ID plus a selfie check <span class="code-light">(NIST IAL2)</span>.</p>
+    <p class="tiny muted" style="margin:0 0 10px">Demo simulation — no real ID is collected.</p>
+    <button class="btn primary" data-myrecord-next>I've verified (demo)</button>
+  </div>`;
+  else if (step===2) body = `
+  <div class="card">
+    <h3>Authorize your request</h3>
+    <div class="evidence" style="font-family:var(--font)">"I direct every clinic, hospital, lab, and pharmacy that holds records about me to provide a copy to my LumaChart. I make this request under my federal right of access <span class="code-light">(HIPAA, 45 CFR 164.524)</span>."</div>
+    <p class="small muted" style="margin:8px 0 10px">In plain words: you're asking for what is already yours. Providers must answer, and blocking your request is illegal.${aut("infoBlocking")}</p>
+    <button class="btn primary" data-myrecord-next>Authorize my request</button>
+  </div>`;
+  else body = `
+  <div class="card" style="margin-bottom:16px">
+    <h3>Your one record <span class="chip green">✓ assembled</span></h3>
+    <p class="small muted" style="margin:0 0 6px">Assembled from every system you've touched — this is the antidote to the fragmented patient experience.</p>
+    <div class="rowlist">
+      ${TIMELINE.map(t=>`
+      <div class="rowitem">
+        <span style="font-size:18px">${t.icon}</span>
+        <div style="flex:1"><div class="t small">${t.title}</div><div class="d">${t.detail}</div><div class="tiny muted" style="margin-top:2px">from: ${t.src}</div></div>
+        <div style="text-align:right"><span class="chip plain">${t.setting}</span><div class="tiny muted" style="margin-top:4px">${t.date}</div></div>
+      </div>`).join("")}
+    </div>
+  </div>
+  <div class="card">
+    <h3>Where should it go?</h3>
+    <div style="display:flex; gap:9px; flex-wrap:wrap">
+      <button class="btn primary" data-myrecord-dest="keep">Keep in my LumaChart</button>
+      <button class="btn" data-myrecord-dest="send">Send to a new doctor</button>
+      <button class="btn" data-myrecord-dest="download">Download a copy</button>
+    </div>
+    <div class="tiny" style="margin-top:8px">Demo simulation — a real request goes out to each provider with your authorization attached.</div>
+  </div>`;
+  return `
+  <h1 class="page-title">My record</h1>
+  <p class="page-sub">Every visit, lab, and hospital stay you've ever had — gathered into one place, by your legal right.</p>
+  ${stepper}${body}`;
+}
+
 function vScreenings(){
   if (state.activeInstrument) return vInstrument(state.activeInstrument);
   if (state.activeResult) return vResultView(state.activeResult);
@@ -1283,6 +1342,7 @@ function claimPipeline(ready){
     { k:"agent",     t:"🤖 Billing agent", d:"Assembles the 837P claim from codes + demographics" },
     { k:"biller",    t:"Biller review",   d:"Double-checks demographics, codes, payer" },
     { k:"submitted", t:"Clearinghouse",   d:CODING.clearinghouse },
+    { k:"ar",        t:"🤖 AR agent",     d:"Follows the claim to its outcome — payment or a won appeal" },
   ];
   const idx = steps.findIndex(s=>s.k===c.stage);
   const rows = steps.map((s,i)=>`<div class="rowitem"><span class="chip ${i<idx?'green':i===idx?'accent':'plain'}">${i<idx?'✓':i+1}</span>
@@ -1295,6 +1355,16 @@ function claimPipeline(ready){
   else if (c.stage==="biller") action = `<div class="evidence">Biller verified patient demographics, diagnosis &amp; procedure codes, and payer eligibility. Ready to submit.</div><button class="btn primary" id="claim-submit">Submit to clearinghouse</button>`;
   else if (c.stage==="submitted") action = `<div class="evidence" style="border-style:solid; border-color:var(--green)">✓ Submitted to ${CODING.clearinghouse}. Claim #LC-${String(Date.now()).slice(-6)}.</div>
     <div class="note" style="border-style:solid"><b>Puerto Rico bridge:</b> this member's plan is a PR payer. Mainland EHR claim formats aren't natively accepted by PR clearinghouses — and some PR payers still require <b>ICD-9</b> — so LumaChart routed the claim through the PR bridge connector, mapping each ICD-10 diagnosis to its ICD-9 crosswalk. See <b>docs/BILLING-AND-CLEARINGHOUSE-PLAN.md</b>.</div>
+    <button class="btn primary" id="claim-ar">🤖 AR agent: watch this claim</button>
+    <button class="btn ghost" id="claim-reset">Start a new claim</button>`;
+  else if (c.stage==="ar") action = `
+    <div class="t small" style="font-weight:700; margin-bottom:6px">Outcomes — not statuses <span class="chip amber">simulated</span></div>
+    <div class="rowlist">
+      <div class="rowitem"><span class="chip green">✓</span><div style="flex:1"><div class="t small">Outcome: PAID $412.80 in 11 days</div><div class="d">The agent checked the payer portal 3× and called once — you saw none of that.</div></div></div>
+      <div class="rowitem"><span class="chip green">✓</span><div style="flex:1"><div class="t small">Outcome: appeal WON on CO-197 denial</div><div class="d">The agent drafted the appeal from the chart — the biller approved it in one click.</div></div></div>
+    </div>
+    <div class="evidence">The team reviews <b>outcomes and decisions — never status updates</b>. Watching a claim is not a job for a human.</div>
+    <div class="tiny" style="margin:8px 0 10px">Simulated demo — a production AR agent posts references to the audit log.</div>
     <button class="btn ghost" id="claim-reset">Start a new claim</button>`;
   return `<div class="rowlist">${rows}</div><div style="margin-top:12px">${action}</div>`;
 }
@@ -2328,7 +2398,7 @@ function vHelix(){
    ========================================================================== */
 const VIEWS = {
   clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
-  patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, longevity:vLongevity, consent:vConsent },
+  patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, myrecord:vMyRecord, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, biblio:vBiblio },
 };
@@ -2435,7 +2505,24 @@ function wireView(){
   const ca = $("#claim-assemble"); if (ca) ca.addEventListener("click", () => { state.claim.stage = "agent"; render(); toast("🤖 Billing agent", "Claim assembled (837P) from your verified codes + demographics, and handed to the biller.", "green"); });
   const cb = $("#claim-biller"); if (cb) cb.addEventListener("click", () => { state.claim.stage = "biller"; render(); });
   const cs = $("#claim-submit"); if (cs) cs.addEventListener("click", () => { state.claim.stage = "submitted"; render(); toast("Claim submitted", "Routed to the clearinghouse through the Puerto Rico bridge connector.", "green"); });
+  const car = $("#claim-ar"); if (car) car.addEventListener("click", () => { state.claim.stage = "ar"; render(); toast("🤖 AR agent watching", "The agent follows this claim to its outcome — you'll hear about decisions, never statuses. (Simulated.)", "green"); });
   const cre = $("#claim-reset"); if (cre) cre.addEventListener("click", () => { state.claim = { dxAdded:false, verified:{}, stage:"code" }; render(); });
+
+  // --- my record (patient-mediated right of access) ---
+  const mrn = $("[data-myrecord-next]"); if (mrn) mrn.addEventListener("click", () => {
+    state.myrecord = { step: Math.min(state.myrecord.step + 1, 3) };
+    store.set("myrecord", state.myrecord);
+    render();
+    if (state.myrecord.step === 3) toast("Your record is assembled ✓", "A request went to every system that holds your records — gathered here under your right of access. (Demo simulation.)", "green");
+  });
+  const mrr = $("[data-myrecord-reset]"); if (mrr) mrr.addEventListener("click", () => { state.myrecord = { step:0 }; store.set("myrecord", state.myrecord); render(); });
+  $$("[data-myrecord-dest]").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.myrecordDest;
+    const msg = k==="keep" ? "Your unified record lives in LumaChart and stays current as new care happens. (Demo simulation.)"
+      : k==="send" ? "A complete copy is on its way to your new doctor, with your authorization attached. (Demo simulation.)"
+      : "Your record is being packaged as a readable copy for you to keep. (Demo simulation.)";
+    toast(k==="keep" ? "Kept in your LumaChart ✓" : k==="send" ? "Sent to your new doctor ✓" : "Copy ready to download ✓", msg, "green");
+  }));
 
   // --- patient check-in (iPad) ---
   const ciu = $("#ci-upload"); if (ciu) ciu.addEventListener("click", () => { state._idUploaded = true; ciu.textContent = "✓ Photo ID uploaded"; ciu.disabled = true; const s=$("#ci-upload-state"); if (s) s.textContent = "captured"; });
