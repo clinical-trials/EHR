@@ -877,6 +877,8 @@ const ROUTES = {
 Object.assign(EVIDENCE, {
   fleming:   { pmid:"21383367", cite:"Fleming et al., Health Aff 2011 — implementing an EHR cost a five-physician primary-care practice about $162,000, plus ~$85,000 in first-year maintenance." },
   melnickSUS:{ pmid:"31735343", cite:"Melnick et al., Mayo Clin Proc 2020 — physicians rate EHR usability 45.9/100 on the System Usability Scale (grade F, bottom 9% of technologies); each 1-point improvement ≈ 3% lower odds of burnout." },
+  adamsTrews:{ pmid:"35864252", cite:"Adams et al., Nat Med 2022 — prospective 5-site study of the TREWS machine-learning sepsis early-warning system: 89% adoption; earlier antibiotics and reduced mortality when alerts were evaluated promptly." },
+  henryTrews:{ pmid:"26246167", cite:"Henry et al., Sci Transl Med 2015 — TREWScore: a targeted real-time early-warning score for septic shock from routine EHR data." },
   hertzum:   { pmid:"36194994", cite:"Hertzum, Ellingsen & Cajander, Int J Med Inform 2022 — Epic implementations in Denmark & Finland: in Finland only 4.7% of physicians agreed patient information was easy to access, and only 9.3% agreed the system improved care quality." },
   kaipio:    { pmid:"31835158", cite:"Kaipio et al., Int J Med Inform 2020 — validated national usability survey of 3,013 physicians and 2,560 nurses (Finland)." },
   ratwani:   { pmid:"29982549", cite:"Ratwani et al., JAMIA 2018 — multi-center EHR usability study: wide variability in clicks, time and error rates across sites — usability is a patient-safety issue." },
@@ -920,6 +922,39 @@ const AUTHORITIES = {
     cite:"NAM Inaugural Change Maker Accelerator Action Plans (2026) — 20 institutions' field results implementing the National Plan, incl. measured ambient-documentation wins (~170 min/wk at Ochsner; significant after-hours reductions at Michigan Medicine) and leader-level well-being dashboards (Utah)." },
   fortuna:{ label:"Fortuna", url:"https://www.fortunahealth.com/about-us",
     cite:"Fortuna Health (Medicaid navigation) — 72% of people who lose Medicaid coverage remain eligible; average Medicaid call-center wait is 42 minutes. Coverage churn is administrative, not eligibility." },
+  bayesian:{ label:"Bayesian", url:"https://www.bayesianhealth.com",
+    cite:"Bayesian Health — industry precedent: FDA-cleared continuous AI sepsis monitoring; 89% adoption with mortality and length-of-stay reductions in the 5-site Nature Medicine study. Proof that validated, adopted clinical AI is achievable." },
+};
+
+/* ---------- Standards we speak + privacy law we honor ---------- */
+const STANDARDS = {
+  interop: [
+    { s:"HL7 v2", d:"ADT, orders (ORM/OMG), results (ORU), scheduling (SIU) — the inpatient/ED/lab interface language." },
+    { s:"FHIR R4 + US Core", d:"The modern API surface — every resource USCDI defines; the §170.315(g)(10) standardized API." },
+    { s:"SMART on FHIR", d:"Standards-based app launch & OAuth2 scopes — third-party apps plug in without proprietary lock-in." },
+    { s:"USCDI v6", d:"The required national data classes — the data model LumaChart is built to." },
+    { s:"C-CDA", d:"Transitions-of-care documents (§170.315(b)(1)) — the unified care timeline reconciles these." },
+    { s:"X12 837P / 5010", d:"The claim format the encounter/claim workflow produces." },
+  ],
+  privacy: [
+    { s:"HIPAA", scope:"United States", d:"Security Risk Analysis, BAAs, minimum-necessary access, audit logging, and the individual right of access (45 CFR 164.524) that powers “My record”.", tag:"designed-in" },
+    { s:"GDPR", scope:"EU / EEA", d:"Data-subject rights — access, portability, rectification, erasure, and consent that is specific, informed and revocable. LumaChart's consent tiers and patient-mediated record map directly onto these rights.", tag:"architecture-ready" },
+    { s:"Encryption", scope:"All regions", d:"TLS 1.2+ in transit, AES-256 at rest; role- and purpose-based access on a FHIR-native store.", tag:"designed-in" },
+  ],
+};
+
+/* ---------- Wave 4: deterioration early warning + alert stewardship (synthetic) ---------- */
+const DETERIORATION = {
+  alert: {
+    pt:"Earl Bishop (71M, COPD)", risk:"rising", window:"last 6 hours",
+    factors:[
+      "Respiratory rate 24 → 28 /min over 4 h",
+      "Temp 38.4 °C, new since morning",
+      "WBC 13.2 (was 9.8 yesterday)",
+      "Lactate pending — drawn 20 min ago",
+    ],
+  },
+  stewardship: { perDay:1.8, override:"9%", timeToEval:"11 min", adoption:"93%" }, // synthetic demo values
 };
 
 /* ---------- Own your practice — the independence startup checklist ---------- */

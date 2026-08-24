@@ -41,6 +41,7 @@ const state = {
   checkin:   store.get("checkin", null), // patient iPad pre-visit intake
   claim:     { dxAdded:false, verified:{}, stage:"code" }, // encounter/claim workflow
   myrecord:  store.get("myrecord", { step:0 }),  // patient-mediated record request (right of access)
+  deterDismissed: false,                 // deterioration early-warning alert acted/dismissed this session
   _idUploaded: false,
   cmeReqIdx: store.get("cmeReqIdx", 0),  // selected state requirement (default Puerto Rico)
   cmeBooked: store.get("cmeBooked", {}), // booked CME programs
@@ -143,7 +144,7 @@ const NAVS = {
       { id:"chart",     ic:"▤", t:"Patient chart" },
       { id:"scribe",   ic:"🎙️", t:"Luma Scribe", badge:() => state.scribeSigned ? null : 1 },
       { id:"inbox",     ic:"✉", t:"Inbox", badge:() => INBOX.length },
-      { id:"readmit",   ic:"⤾", t:"Readmission risk", badge:() => READMIT.patients.filter((p,i)=>p.risk==="High" && !state.chwAssigned[i]).length || null },
+      { id:"readmit",   ic:"⤾", t:"Risk & early warning", badge:() => state.deterDismissed ? null : "!" },
       { id:"billing",   ic:"⛁", t:"Encounter & claim" },
       { id:"analytics", ic:"📊", t:"Revenue & analytics" },
     ]},
@@ -2186,9 +2187,41 @@ function vReadmit(){
   const high = pts.filter(p=>p.risk==="High").length;
   const assigned = pts.filter((p,i)=>state.chwAssigned[i]).length;
   const tone = r => r==="High"?"red":r==="Moderate"?"amber":"green";
+  const d = DETERIORATION, s = d.stewardship;
+  const dismissed = state.deterDismissed;
   return `
-  <h1 class="page-title">Readmission risk</h1>
-  <p class="page-sub">Predict who's likely to come back — using clinical <i>and</i> social data — and act with a follow-up that's proven to work.</p>
+  <h1 class="page-title">Risk &amp; early warning</h1>
+  <p class="page-sub">Watch every patient continuously, surface only the ones who need you now, and act with a step that's proven to work.</p>
+
+  <div class="card" style="margin-bottom:16px; border-color:var(--red)">
+    <h3><span class="spark" style="color:var(--red)">◉</span> Deterioration alert — ${d.alert.pt}
+      <span class="chip red">${d.alert.risk} risk</span>
+      <span class="chip amber" style="margin-left:auto">simulated</span></h3>
+    ${dismissed ? `<div class="small muted">Evaluated ✓ — sepsis bundle started, lactate re-checked. The alert closed itself; no pop-up will ask you again.</div>`
+    : `<div class="small" style="margin-bottom:8px">The model flags a rising risk of sepsis over the <b>${d.alert.window}</b>. Here's <i>why</i> — the contributing factors, so you can judge in seconds:</div>
+    <div class="rowlist">
+      ${d.alert.factors.map(f=>`<div class="rowitem"><span class="chip plain">▲</span><div class="d" style="flex:1">${f}</div></div>`).join("")}
+    </div>
+    <div style="display:flex; gap:9px; margin-top:12px; flex-wrap:wrap">
+      <button class="btn primary small" data-deter-act>Evaluate now → open sepsis order set</button>
+      <button class="btn ghost small" data-deter-dismiss>Not sepsis — dismiss &amp; tell the model why</button>
+    </div>
+    <div class="evidence">One alert, one action, its reasons attached — never a pop-up chain. A validated early-warning model (TREWS) cut time to antibiotics and mortality when alerts were evaluated promptly, in a prospective 5-site study.${ev("adamsTrews")}${ev("henryTrews")} Industry precedent: FDA-cleared continuous monitoring is achievable.${aut("bayesian")}</div>`}
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>🎯 Alert stewardship <span class="chip plain">synthetic demo</span></h3>
+    <div class="gauge-wrap">
+      <div class="metric"><div class="v">${s.perDay}</div><div class="l">alerts / clinician / day — few, because only the ones that matter fire</div></div>
+      <div class="metric"><div class="v" style="color:var(--green)">${s.override}</div><div class="l">override rate — low means the model earns trust</div></div>
+      <div class="metric"><div class="v">${s.timeToEval}</div><div class="l">median time to evaluation</div></div>
+      <div class="metric"><div class="v" style="color:var(--green)">${s.adoption}</div><div class="l">clinician adoption</div></div>
+    </div>
+    <div class="evidence">Adoption is the metric that mattered in the research — a model no one trusts saves no one. Alert volume and override rate are tracked here because alert fatigue is both a safety risk and a burnout driver.${aut("sgAdvisory")} These numbers also surface on the CWO dashboard.</div>
+  </div>
+
+  <h3 style="margin:6px 0 10px">Post-discharge readmission risk</h3>
+  <p class="page-sub" style="margin-bottom:16px">Predict who's likely to come back — using clinical <i>and</i> social data — and act with a follow-up that's proven to work.</p>
 
   <div class="grid g3">
     <div class="card"><div class="metric"><div class="v" style="color:var(--red)">${high}</div><div class="l">high-risk after discharge</div></div></div>
@@ -2315,6 +2348,20 @@ function vSecurity(){
   return `
   <h1 class="page-title">Security &amp; patient-data protection</h1>
   <p class="page-sub">Protecting health information is the foundation, not a bolt-on: HIPAA safeguards, ONC SAFER safety practices, and a clear hosting choice.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>🔗 Standards we speak &amp; privacy law we honor</h3>
+    <div class="small" style="margin-bottom:8px"><b>Interoperability</b> — LumaChart is standards-native, not a walled garden. The live <a data-nav-inline="fhir" style="cursor:pointer">FHIR sandbox</a> and <a data-nav-inline="enterprise" style="cursor:pointer">Enterprise &amp; exchange</a> views show these working.</div>
+    <div class="rowlist">
+      ${STANDARDS.interop.map(x=>`<div class="rowitem"><span class="chip accent">${x.s}</span><div class="d" style="flex:1">${x.d}</div></div>`).join("")}
+    </div>
+    <div class="small" style="margin:14px 0 8px"><b>Privacy &amp; security regimes</b> — built to serve patients on both sides of the Atlantic, and the enterprises that answer to regulators.</div>
+    <div class="rowlist">
+      ${STANDARDS.privacy.map(x=>`<div class="rowitem"><span class="chip ${x.tag==="designed-in"?"green":"amber"}">${x.s}</span>
+        <div class="d" style="flex:1"><b>${x.scope}.</b> ${x.d}</div><span class="chip plain">${x.tag}</span></div>`).join("")}
+    </div>
+    <div class="evidence">GDPR's data-subject rights and HIPAA's right of access point the same way LumaChart already does — the patient owns the record (see <a data-nav-inline="synthesis" style="cursor:pointer">the interop thesis</a> and the patient's “My record” request). Building AI-native and FHIR-native from a blank page means these are architecture, not retrofit.${aut("onc2020")}</div>
+  </div>
 
   <div class="grid g2">
     <div class="card"><h3>HIPAA safeguards <span class="chip green">by design</span></h3>
@@ -2582,6 +2629,8 @@ function wireView(){
   const ca = $("#claim-assemble"); if (ca) ca.addEventListener("click", () => { state.claim.stage = "agent"; render(); toast("🤖 Billing agent", "Claim assembled (837P) from your verified codes + demographics, and handed to the biller.", "green"); });
   const cb = $("#claim-biller"); if (cb) cb.addEventListener("click", () => { state.claim.stage = "biller"; render(); });
   const cs = $("#claim-submit"); if (cs) cs.addEventListener("click", () => { state.claim.stage = "submitted"; render(); toast("Claim submitted", "Routed to the clearinghouse through the Puerto Rico bridge connector.", "green"); });
+  const dact = $("[data-deter-act]"); if (dact) dact.addEventListener("click", () => { state.deterDismissed = true; render(); toast("Sepsis order set opened", "Antibiotics, fluids and a lactate re-check queued — one tap, from one alert. The model learns this was a true positive. (Simulated.)", "green"); });
+  const ddis = $("[data-deter-dismiss]"); if (ddis) ddis.addEventListener("click", () => { state.deterDismissed = true; render(); toast("Dismissed — thank you", "Your reason tunes the model so it earns trust. A dismissed alert never nags you again. (Simulated.)", "green"); });
   const car = $("#claim-ar"); if (car) car.addEventListener("click", () => { state.claim.stage = "ar"; render(); toast("🤖 AR agent watching", "The agent follows this claim to its outcome — you'll hear about decisions, never statuses. (Simulated.)", "green"); });
   const cre = $("#claim-reset"); if (cre) cre.addEventListener("click", () => { state.claim = { dxAdded:false, verified:{}, stage:"code" }; render(); });
 

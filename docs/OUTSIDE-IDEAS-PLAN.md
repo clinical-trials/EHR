@@ -45,6 +45,26 @@ Already shipped from the sweep: ✅ **Keep your coverage** (Fortuna → patient 
 | 11 | **Department-level go-to-market** | Scheduling Wizard | Sell to departments/practices with zero-IT deliverables — the single-file `dist/LumaChart.html` demo is already the artifact; keep it sacred. |
 | 12 | **Mobile charting parity** | DrChrono | Before pilot: responsive audit of chart + Scribe on phone viewports (CSS exists; needs a verification pass). |
 
+## Wave 4 — validated early warning + alert stewardship (Bayesian Health, added 2026-08-03)
+
+What Bayesian Health proves: clinical AI can be **prospectively validated** (TREWS sepsis early
+warning — 5-site study, *Nature Medicine* 2022, PMID 35864252; TREWScore, *Sci Transl Med* 2015,
+PMID 26246167), **FDA-cleared** (continuous AI sepsis monitoring), and **adopted** (89% in-study;
+adoption mediated the mortality benefit). Their design credo matches ours: "monitors every
+patient continuously, surfaces only those who need attention."
+
+| # | Borrow | Improve (the LumaChart angle) |
+|---|---|---|
+| 13 | Continuous deterioration/sepsis early warning in the record | **The alert IS the action** (one-route law): a single evaluate-now item with the order set attached — never a pop-up chain. |
+| 14 | Evidence-first: publish prospective outcomes | Every alert carries its **citation chip + patient-specific contributing factors** in the alert body (§170.315(b)(11) source & logic). |
+| 15 | Adoption as the headline metric | **Alert stewardship, measured**: alerts/clinician/day, override rate, median time-to-evaluation — tracked in the Burden lab and on the CWO side, because alert fatigue is a safety *and* burnout metric. |
+| 16 | FDA clearance path (SaMD) | Named on the roadmap as the regulatory bar for any production early-warning model — demo stays labeled synthetic/simulated. |
+
+Build: extend the existing Readmission-risk view into **Risk & early warning** (one route — no new
+nav item): a TREWS-style deterioration alert card (synthetic, labeled) with contributing factors +
+one evaluate action, and an alert-stewardship strip. Cites: 35864252, 26246167, Bayesian (industry
+precedent link), SG Advisory (interruption reduction).
+
 ## Sequence & effort guess
 
 Wave 1 ≈ one working session (all four are small, verified patterns exist).
