@@ -924,7 +924,15 @@ const AUTHORITIES = {
     cite:"Fortuna Health (Medicaid navigation) — 72% of people who lose Medicaid coverage remain eligible; average Medicaid call-center wait is 42 minutes. Coverage churn is administrative, not eligibility." },
   bayesian:{ label:"Bayesian", url:"https://www.bayesianhealth.com",
     cite:"Bayesian Health — industry precedent: FDA-cleared continuous AI sepsis monitoring; 89% adoption with mortality and length-of-stay reductions in the 5-site Nature Medicine study. Proof that validated, adopted clinical AI is achievable." },
+  apiConditions:{ label:"API Conditions", url:"https://healthit.gov/certification-health-it/conditions-ccg/application-programming-interfaces",
+    cite:"ONC/ASTP API Conditions & Maintenance of Certification (§170.404), Cures Act — certified API developers must publish transparent business/technical docs & terms, charge only fair/reasonable/non-discriminatory fees (with prohibited fees barred), impose no anti-competitive conditions, verify & register apps within 10/5 business days, and publish a public FHIR endpoint directory." },
+  namCWO:{ label:"NAM Change Maker", url:"https://nam.edu/programs/clinician-resilience-and-well-being/change-maker-campaign/",
+    cite:"NAM Change Maker in Action Series — How Well-Being Leaders Get the Work Done (2026): operationalize well-being by integrating it into existing organizational priorities and reporting it alongside quality metrics; start small and demonstrate value via awareness/utilization/outcome tracking; tailor by role while holding a shared vision; and build distributed 'we-suite' ownership through champion networks." },
 };
+
+Object.assign(EVIDENCE, {
+  shanafelt9:{ pmid:"27871627", cite:"Shanafelt & Noseworthy, Mayo Clin Proc 2017 — nine evidence-based organizational strategies executive leaders can use to reduce burnout and promote engagement." },
+});
 
 /* ---------- Standards we speak + privacy law we honor ---------- */
 const STANDARDS = {

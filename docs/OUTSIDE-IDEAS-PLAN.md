@@ -65,6 +65,26 @@ nav item): a TREWS-style deterioration alert card (synthetic, labeled) with cont
 one evaluate action, and an alert-stewardship strip. Cites: 35864252, 26246167, Bayesian (industry
 precedent link), SG Advisory (interruption reduction).
 
+## Wave 5 — CWO operationalization (NAM Change Maker in Action, added 2026-08-29)
+
+Source: NAM *Change Maker in Action Series — How Well-Being Leaders Get the Work Done* (Aug 2026, 4-pp
+infographic) + Shanafelt & Noseworthy's Nine Organizational Strategies (PMID 27871627). The through-line:
+well-being succeeds when it's **operationalized** — integrated into existing priorities, measured next to
+quality metrics, tailored by role, and owned by a distributed network ("Wellness starts with we"). LumaChart's
+CWO surface should make that operational, not aspirational. All CWO-side; zero clinician clutter.
+
+| # | Idea from the field | LumaChart feature |
+|---|---|---|
+| 17 | **Report well-being *alongside* quality metrics** — MD Anderson connects well-being to patient access & workflow; NYC H+H reports burnout/anxiety next to system quality. | A CWO "Well-being × Operations" panel that pairs EHR8/WOW8/burnout with quality/access/turnover on one screen — the business case, built in. Extends the existing feeling-valued + equity cards. |
+| 18 | **Adoption is the proof** — track awareness of programming, utilization, and workforce outcomes to build momentum. | An "Adoption & utilization" strip (awareness %, utilization %, outcome trend) — mirrors the Bayesian alert-stewardship "adoption is the metric that mattered" theme; reuses the Burden-lab measure-first stance. |
+| 19 | **Tailor by role, hold a shared vision** — shadow frontline; one-size-fits-all fails. | Already partly built (equity + per-department drill-down). Add a role-tailored "what this role needs" note per department segment. |
+| 20 | **"We-suite" / distributed ownership** — champion networks (SCPMG: 100+ leaders; NYC H+H: 1→45 staff). | A lightweight "Well-being champions" roster on the CWO Action plan — who owns what, across departments. |
+| 21 | **Nine Organizational Strategies as the playbook** | Map the CWO Action-plan items to Shanafelt's nine strategies (PMID 27871627) so the plan is evidence-anchored, and link the AMA CWO Road Map toolkit. |
+
+Pick a few (17 + 18 are the highest-leverage and reuse existing components). Cite: namCWO, shanafelt9,
+plus the existing namAccel/sgAdvisory/natPlan. Quotable for the deck: "The influence you have may be more
+valuable than the budget line" (Ripp); "Wellness starts with we" (Segall).
+
 ## Sequence & effort guess
 
 Wave 1 ≈ one working session (all four are small, verified patterns exist).

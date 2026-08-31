@@ -1,6 +1,6 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "lumachart", "runtimeExecutable": "python3", "runtimeArgs": ["-m", "http.server", "8123"], "port": 8123 }
+    { "name": "lumachart", "runtimeExecutable": "python3", "runtimeArgs": ["-m", "http.server", "8199"], "port": 8199, "autoPort": false }
   ]
 }

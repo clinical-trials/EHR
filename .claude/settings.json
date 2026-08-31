@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "extraKnownMarketplaces": {
+    "healthcare": {
+      "source": { "source": "github", "repo": "anthropics/healthcare" }
+    },
+    "life-sciences": {
+      "source": { "source": "github", "repo": "anthropics/life-sciences" }
+    }
+  },
+  "enabledPlugins": {
+    "fhir-developer@healthcare": true
+  }
+}
