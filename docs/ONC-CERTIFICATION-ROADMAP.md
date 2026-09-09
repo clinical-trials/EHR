@@ -1,7 +1,9 @@
-# LumaChart — Requirements-Complete EHR Roadmap (ONC §170.315)
+# LumaChart — Requirements-Complete EHR Roadmap (45 CFR Part 170)
 
-**A design plan that maps LumaChart against the *entire* ONC Health IT Certification Program (45 CFR 170.315), not just the Base EHR API.**
-Prepared 2026-07-10 · branch `new-feature` · companion to `INTEROPERABILITY-PLAN.md` (USCDI/US Core) and `BILLING-AND-CLEARINGHOUSE-PLAN.md`.
+**A design plan that maps LumaChart against the *entire* ONC Health IT Certification Program — 45 CFR Part 170: Subpart B (standards & implementation specifications, §170.205/207/210), Subpart C (certification criteria, §170.315), and Subpart D (Conditions & Maintenance of Certification, §170.401–406) — not just the Base EHR API.**
+Prepared 2026-07-10 · updated 2026-09-09 · companion to `INTEROPERABILITY-PLAN.md` (USCDI/US Core) and `BILLING-AND-CLEARINGHOUSE-PLAN.md`; surfaced in-app on the clinician **Certification (Part 170)** view.
+
+**Regulatory currency (as of 2026-09-09).** Built to the program as revised through the HTI rules: **HTI-1** (Jan 9 2024 — Decision Support Interventions §170.315(b)(11) *replaces* the legacy (a)(9) CDS criterion; **USCDI v3** adopted as the certification baseline effective **Jan 1 2026**, with v4–v6 adoptable via SVAP; Insights Condition; (g)(10) API & (b)(1) updated), **HTI-2** (Dec 16 2024 — TEFCA + program updates), **HTI-3** (Dec 17 2024 — information blocking), **HTI-4** (Aug 4 2025 — electronic prior authorization + e-prescribing). Subpart D Conditions of Certification LumaChart addresses: §170.401 information blocking, §170.402 assurances + Insights, §170.403 communications ("no gag clauses"), §170.404 API Conditions, §170.405 Real World Testing, §170.406 attestations.
 
 > **Honest framing.** LumaChart is a dependency-free front-end prototype. This roadmap enumerates every certification criterion so the design is *complete by construction* — you can see exactly what is prototyped, what is a partner module, and what is still a gap. Certification is achieved by **composition**: one or more Certified Health IT Modules, most of it built on a FHIR-native backend (Medplum/Aidbox) with certified modules bought for the specialized pieces.
 

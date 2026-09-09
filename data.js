@@ -935,7 +935,9 @@ const AUTHORITIES = {
   oncTestTools:{ label:"ONC Test Tools", url:"https://healthit.gov/certification-health-it/certification-process/onc-conformance-test-tools",
     cite:"ONC Conformance Test Tools — the official test suites (Inferno for the §170.315(g)(10) standardized FHIR API, and others) an EHR must pass to certify. The concrete gate between LumaChart's FHIR sandbox and real certification." },
   cfr170:{ label:"45 CFR 170", url:"https://www.ecfr.gov/current/title-45/subtitle-A/subchapter-D/part-170",
-    cite:"45 CFR Part 170 — the federal EHR standards, implementation specifications, and certification criteria (the HITECH Act's ONC Health IT Certification Program) LumaChart is built to." },
+    cite:"45 CFR Part 170 — the federal EHR standards, implementation specifications, and certification criteria (the HITECH Act's ONC Health IT Certification Program): Subpart B standards (§170.205/207/210), Subpart C criteria (§170.315), Subpart D Conditions & Maintenance of Certification (§170.401–406). LumaChart is built to this structure." },
+  hti1:{ label:"HTI-1..4", url:"https://www.healthit.gov/topic/laws-regulation-and-policy/health-data-technology-and-interoperability-certification-program-hti-1-final-rule",
+    cite:"ASTP/ONC HTI final rules updating 45 CFR Part 170 — HTI-1 (2024): Decision Support Interventions §170.315(b)(11) replacing (a)(9), USCDI v3 baseline (eff. Jan 1 2026), Insights Condition; HTI-2/3 (2024): TEFCA + information-blocking; HTI-4 (2025): electronic prior authorization + e-prescribing." },
   patientAccess:{ label:"Patient Access", url:"https://healthit.gov/patient-access-to-health-records/developers",
     cite:"ONC patient-access developer guidance — patients have a right to their electronic health information through standards-based APIs; the foundation of LumaChart's patient-mediated record and SMART on FHIR app access." },
   apiConditions:{ label:"API Conditions", url:"https://healthit.gov/certification-health-it/conditions-ccg/application-programming-interfaces",
@@ -953,8 +955,8 @@ const STANDARDS = {
   interop: [
     { s:"HL7 v2", d:"ADT, orders (ORM/OMG), results (ORU), scheduling (SIU) — the inpatient/ED/lab interface language." },
     { s:"FHIR R4 + US Core", d:"The modern API surface — every resource USCDI defines; the §170.315(g)(10) standardized API." },
-    { s:"SMART on FHIR", d:"Standards-based app launch & OAuth2 scopes — third-party apps plug in without proprietary lock-in." },
-    { s:"USCDI v6", d:"The required national data classes — the data model LumaChart is built to." },
+    { s:"USCDI v3", d:"The adopted certification baseline (effective Jan 1, 2026 under HTI-1). Newer versions (v4–v6) are published and adoptable via ONC's Standards Version Advancement Process (SVAP)." },
+    { s:"SMART on FHIR + Bulk Data", d:"Standards-based app launch & OAuth2 scopes plus population-level export — the §170.315(g)(10) API surface; third-party apps plug in without proprietary lock-in." },
     { s:"C-CDA", d:"Transitions-of-care documents (§170.315(b)(1)) — the unified care timeline reconciles these." },
     { s:"X12 837P / 5010", d:"The claim format the encounter/claim workflow produces." },
   ],
@@ -962,6 +964,46 @@ const STANDARDS = {
     { s:"HIPAA", scope:"United States", d:"Security Risk Analysis, BAAs, minimum-necessary access, audit logging, and the individual right of access (45 CFR 164.524) that powers “My record”.", tag:"designed-in" },
     { s:"GDPR", scope:"EU / EEA", d:"Data-subject rights — access, portability, rectification, erasure, and consent that is specific, informed and revocable. LumaChart's consent tiers and patient-mediated record map directly onto these rights.", tag:"architecture-ready" },
     { s:"Encryption", scope:"All regions", d:"TLS 1.2+ in transit, AES-256 at rest; role- and purpose-based access on a FHIR-native store.", tag:"designed-in" },
+  ],
+};
+
+/* ==========================================================================
+   45 CFR PART 170 — the ONC Health IT Certification Program, built to.
+   Current through HTI-1 (2024) … HTI-4 (2025). Status legend matches the
+   ONC-CERTIFICATION-ROADMAP.md doc: proto / partial / partner / gap.
+   ========================================================================== */
+const CERT170 = {
+  rules: [
+    { r:"HTI-1", date:"Jan 9, 2024", d:"Decision Support Interventions §170.315(b)(11) replaces (a)(9) CDS; USCDI v3 adopted; Insights Condition; §170.315(g)(10) API & (b)(1) updated." },
+    { r:"HTI-2", date:"Dec 16, 2024", d:"TEFCA framework + certification program updates." },
+    { r:"HTI-3", date:"Dec 17, 2024", d:"Information-blocking enhancements." },
+    { r:"HTI-4", date:"Aug 4, 2025", d:"Electronic prior authorization + e-prescribing certification criteria." },
+  ],
+  // Subpart B — standards & implementation specifications LumaChart adopts
+  standardsB: [
+    { s:"§170.205 Content exchange", d:"C-CDA R2.1, HL7 FHIR R4 (US Core), NCPDP SCRIPT (e-Rx), QRDA (quality)." , st:"partial" },
+    { s:"§170.207 Vocabulary", d:"SNOMED CT US Edition, LOINC, RxNorm, ICD-10-CM/PCS, CVX, UCUM, USCDI v3 data classes.", st:"partial" },
+    { s:"§170.210 Security", d:"Encryption (AES), hashing (SHA-2), audit-log content, end-user device encryption.", st:"partial" },
+  ],
+  // Subpart C — §170.315 certification criteria, by group (honest status)
+  criteria: [
+    { g:"(a) Clinical", st:"partial", base:true, d:"CPOE (meds/labs/imaging), demographics (a)(5) ✓, patient education, implantable device UDI, social/behavioral data (a)(15) ✓ — PHQ-9/GAD-7/AUDIT-C + SDOH." },
+    { g:"(b) Care coordination", st:"partial", base:true, d:"Transitions of care (b)(1, C-CDA), reconciliation (b)(2), e-Rx (b)(3, partner), EHI export (b)(10), and Decision Support Interventions (b)(11) ✓ — Canary + prevention engine designed as transparent DSIs." },
+    { g:"(c) Clinical quality measures", st:"partial", d:"CQM record/export/import/report (QRDA) — the 'assess the Plan prospectively' thesis." },
+    { g:"(d) Privacy & security", st:"partial", base:true, d:"Authentication, access control, audit, encryption, integrity, end-user encryption, ToCU, patient consent — Phase 1, non-negotiable." },
+    { g:"(e) Patient engagement", st:"proto", d:"View/download/transmit + patient-mediated 'My record' + SMART app access ✓." },
+    { g:"(f) Public health", st:"gap", d:"Immunization (IIS), electronic case reporting (eCR), syndromic & reportable labs — the public-health mission's certification surface." },
+    { g:"(g) Design & performance", st:"proto", base:true, d:"(g)(10) Standardized FHIR API ✓ (live sandbox), (g)(4) QMS, (g)(5) accessibility, (g)(6) CCG conformance, (g)(7)-(g)(9) app APIs." },
+    { g:"(h) Transport", st:"gap", d:"Direct Project (h)(1)/(h)(2) secure messaging — partner/HISP." },
+  ],
+  // Subpart D — Conditions & Maintenance of Certification (§170.401–406)
+  conditions: [
+    { s:"§170.401 Information blocking", st:"designed-in", d:"No interfering with access/exchange/use of EHI absent an exception — open by default.", nav:"security" },
+    { s:"§170.402 Assurances + Insights Condition", st:"planned", d:"Assurances the developer won't inhibit interoperability; the Insights Condition reports interoperability metrics.", nav:"security" },
+    { s:"§170.403 Communications", st:"designed-in", d:"No gag clauses — customers may speak freely about usability, security, and cost." },
+    { s:"§170.404 API Conditions", st:"designed-in", d:"Transparent docs, fair/non-discriminatory fees, no anti-competitive terms, 10/5-day app onboarding, public FHIR endpoint directory.", nav:"security" },
+    { s:"§170.405 Real World Testing", st:"planned", d:"Annual plans + results proving the certified API works in production, not just the lab." },
+    { s:"§170.406 Attestations", st:"planned", d:"Semiannual attestations to the Conditions of Certification, on the CHPL." },
   ],
 };
 

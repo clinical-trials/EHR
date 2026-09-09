@@ -1,6 +1,6 @@
 # LumaChart — Annotated Bibliography
 
-Auto-generated from the running evidence base (data.js) — the same sources the software cites inline and lists on the CWO tab. 52 peer-reviewed sources + 25 reports, standards & legislation.
+Auto-generated from the running evidence base (data.js). 52 peer-reviewed sources + 26 reports, standards & legislation.
 
 ## Peer-reviewed literature (PubMed)
 
@@ -60,9 +60,10 @@ Auto-generated from the running evidence base (data.js) — the same sources the
 ## Reports, standards, regulation & industry precedent
 
 - **25×5** — 25×5 initiative — national goal to reduce clinician documentation burden to 25% of current within 5 years. <https://amia.org/community/25x5-task-force> _(key: `x25`)_
-- **45 CFR 170** — 45 CFR Part 170 — the federal EHR standards, implementation specifications, and certification criteria (the HITECH Act's ONC Health IT Certification Program) LumaChart is built to. <https://www.ecfr.gov/current/title-45/subtitle-A/subchapter-D/part-170> _(key: `cfr170`)_
+- **45 CFR 170** — 45 CFR Part 170 — the federal EHR standards, implementation specifications, and certification criteria (the HITECH Act's ONC Health IT Certification Program): Subpart B standards (§170.205/207/210), Subpart C criteria (§170.315), Subpart D Conditions & Maintenance of Certification (§170.401–406). LumaChart is built to this structure. <https://www.ecfr.gov/current/title-45/subtitle-A/subchapter-D/part-170> _(key: `cfr170`)_
 - **AMA Joy** — AMA Joy in Medicine™ Health System Recognition Program Guidelines — the framework the CWO dashboard measures against (Bronze/Silver/Gold domains and criteria). <https://www.ama-assn.org/system/files/joy-in-medicine-guidelines.pdf> _(key: `amaJoy`)_
 - **AMA Survey** — AMA Physician Practice Benchmark Survey — private practice has fallen to a minority of U.S. physicians, with cost and administrative burden among the leading drivers of the shift to hospital employment. <https://www.ama-assn.org/about/research/physician-practice-benchmark-survey> _(key: `amaBenchmark`)_
+- **HTI-1..4** — ASTP/ONC HTI final rules updating 45 CFR Part 170 — HTI-1 (2024): Decision Support Interventions §170.315(b)(11) replacing (a)(9), USCDI v3 baseline (eff. Jan 1 2026), Insights Condition; HTI-2/3 (2024): TEFCA + information-blocking; HTI-4 (2025): electronic prior authorization + e-prescribing. <https://www.healthit.gov/topic/laws-regulation-and-policy/health-data-technology-and-interoperability-certification-program-hti-1-final-rule> _(key: `hti1`)_
 - **Bayesian FDA** — Bayesian Health — first-ever FDA 510(k) clearance for continuous AI sepsis monitoring (May 12, 2026): 82% sensitivity, 5.7-hour lead time, 89% clinician adoption, and 18% lower in-hospital mortality when clinicians act on alerts in time (764,707 encounters, 5 hospitals). Proof that validated, adopted clinical AI can clear the FDA bar. <https://www.prnewswire.com/news-releases/bayesian-health-receives-first-ever-fda-clearance-for-continuous-ai-sepsis-monitoring-302769190.html> _(key: `bayesian`)_
 - **CMS PI** — CMS Medicare Promoting Interoperability Program — hospitals & critical access hospitals must be meaningful users of certified EHR technology (CEHRT) or take a downward Medicare payment adjustment; CEHRT = 2015 Edition, Cures Update, or a combination (CY2021 PFS final rule, 85 FR 84818–84828). <https://www.cms.gov/medicare/regulations-guidance/promoting-interoperability-programs> _(key: `cmsPI`)_
 - **Breen Act** — Dr. Lorna Breen Health Care Provider Protection Act (2022) — federal grants for health-worker mental health, non-punitive culture. <https://www.congress.gov/bill/117th-congress/house-bill/1667> _(key: `breenAct`)_

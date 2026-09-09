@@ -164,6 +164,7 @@ const NAVS = {
       { id:"helix",      ic:"🧬", t:"Helix Hub (app store)" },
       { id:"compete",    ic:"◆", t:"Best ideas, improved" },
       { id:"plans",      ic:"◈", t:"Plans & value" },
+      { id:"cert",       ic:"📜", t:"Certification (Part 170)" },
       { id:"roadmap",    ic:"⛭", t:"Roadmap & gates" },
     ]},
     { label:"Trust & deploy", items:[
@@ -729,6 +730,53 @@ function vCanary(){
 /* ==========================================================================
    ROADMAP — gates, ONC §170.315 tracker, build-vs-buy, plan thesis
    ========================================================================== */
+/* ---------- Certification (45 CFR Part 170) — the full program, honestly mapped ---------- */
+function certChip(st){
+  const m = { proto:["green","✓ proto"], "designed-in":["green","designed-in"], partial:["amber","partial"],
+    planned:["amber","planned"], partner:["accent","partner"], gap:["plain","gap"] };
+  const [tone,label] = m[st] || ["plain", st];
+  return `<span class="chip ${tone}">${label}</span>`;
+}
+function vCert(){
+  const c = CERT170;
+  return `
+  <h1 class="page-title">Certification — built to 45 CFR Part 170</h1>
+  <p class="page-sub">The ONC Health IT Certification Program in full: Subpart B standards, Subpart C §170.315 criteria, and Subpart D Conditions of Certification. Honest status throughout — proto, partial, partner, or gap — because naming the gap is part of building to the standard.${aut("cfr170")}</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>📜 The rules that shape Part 170 today</h3>
+    <div class="rowlist">
+      ${c.rules.map(r=>`<div class="rowitem"><span class="chip accent">${r.r}</span><div style="flex:1"><div class="t small">${r.date}</div><div class="d">${r.d}</div></div></div>`).join("")}
+    </div>
+    <div class="tiny" style="margin-top:8px">Current through HTI-4 (Aug 2025).${aut("hti1")} The certification data model is <b>USCDI v3</b> (baseline effective Jan 1, 2026), with v4–v6 adoptable via SVAP.</div>
+  </div>
+
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="card">
+      <h3>Subpart B — standards adopted</h3>
+      <div class="rowlist">${c.standardsB.map(x=>`<div class="rowitem">${certChip(x.st)}<div class="d" style="flex:1"><b>${x.s}</b> — ${x.d}</div></div>`).join("")}</div>
+    </div>
+    <div class="card">
+      <h3>Subpart D — Conditions of Certification</h3>
+      <div class="rowlist">${c.conditions.map(x=>`<div class="rowitem">${certChip(x.st)}<div class="d" style="flex:1"><b>${x.s}</b> — ${x.d}${x.nav?` <a data-nav-inline="${x.nav}" style="cursor:pointer">→</a>`:""}</div></div>`).join("")}</div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Subpart C — §170.315 certification criteria</h3>
+    <div class="rowlist">
+      ${c.criteria.map(x=>`<div class="rowitem">${certChip(x.st)}
+        <div class="d" style="flex:1"><b>${x.g}</b>${x.base?` <span class="chip plain">Base EHR</span>`:""} — ${x.d}</div></div>`).join("")}
+    </div>
+    <div class="evidence">Certification is achieved by <b>composition</b> — one or more Certified Health IT Modules, most on a FHIR-native backend (Medplum/Aidbox) with certified modules bought for the specialized pieces. The full criterion-by-criterion map is in docs/ONC-CERTIFICATION-ROADMAP.md; the live <a data-nav-inline="fhir" style="cursor:pointer">FHIR sandbox</a> exercises the (g)(10) API, and the ONC conformance tools (Inferno) are the gate.${aut("oncTestTools")}</div>
+  </div>
+
+  <div class="card">
+    <h3>Where it connects</h3>
+    <div class="small">The Conditions of Certification aren't abstract here — <a data-nav-inline="security" style="cursor:pointer">Security &amp; SAFER</a> carries information blocking (§170.401), the API Conditions (§170.404), and the regulatory architecture; the <a data-nav-inline="fhir" style="cursor:pointer">FHIR sandbox</a> is the (g)(10) surface; and the whole program exists in service of the mission — less clinician burden, a real patient note, quiet successful billing.</div>
+  </div>`;
+}
+
 function vRoadmap(){
   return `
   <h1 class="page-title">Roadmap — gates before real-world use</h1>
@@ -2541,7 +2589,7 @@ function vHelix(){
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, cert:vCert, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, myrecord:vMyRecord, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, biblio:vBiblio },
