@@ -922,8 +922,22 @@ const AUTHORITIES = {
     cite:"NAM Inaugural Change Maker Accelerator Action Plans (2026) — 20 institutions' field results implementing the National Plan, incl. measured ambient-documentation wins (~170 min/wk at Ochsner; significant after-hours reductions at Michigan Medicine) and leader-level well-being dashboards (Utah)." },
   fortuna:{ label:"Fortuna", url:"https://www.fortunahealth.com/about-us",
     cite:"Fortuna Health (Medicaid navigation) — 72% of people who lose Medicaid coverage remain eligible; average Medicaid call-center wait is 42 minutes. Coverage churn is administrative, not eligibility." },
-  bayesian:{ label:"Bayesian", url:"https://www.bayesianhealth.com",
-    cite:"Bayesian Health — industry precedent: FDA-cleared continuous AI sepsis monitoring; 89% adoption with mortality and length-of-stay reductions in the 5-site Nature Medicine study. Proof that validated, adopted clinical AI is achievable." },
+  bayesian:{ label:"Bayesian FDA", url:"https://www.prnewswire.com/news-releases/bayesian-health-receives-first-ever-fda-clearance-for-continuous-ai-sepsis-monitoring-302769190.html",
+    cite:"Bayesian Health — first-ever FDA 510(k) clearance for continuous AI sepsis monitoring (May 12, 2026): 82% sensitivity, 5.7-hour lead time, 89% clinician adoption, and 18% lower in-hospital mortality when clinicians act on alerts in time (764,707 encounters, 5 hospitals). Proof that validated, adopted clinical AI can clear the FDA bar." },
+  fdaCDS:{ label:"FDA CDS", url:"https://www.fda.gov/regulatory-information/search-fda-guidance-documents/clinical-decision-support-software",
+    cite:"FDA Clinical Decision Support Software guidance (2022) — CDS that displays the basis of its recommendation so a clinician can independently review it is Non-Device CDS, outside FDA device regulation (21st Century Cures Act §3060). LumaChart's evidence cards and §170.315(b)(11) transparency are designed to this safe harbor." },
+  fdaPCCP:{ label:"FDA PCCP", url:"https://www.fda.gov/regulatory-information/search-fda-guidance-documents/marketing-submission-recommendations-predetermined-change-control-plan-artificial-intelligence",
+    cite:"FDA Predetermined Change Control Plan guidance for AI-enabled device software (2024) — an adaptive model may be pre-authorized to update within a specified, validated envelope, so a learning algorithm can improve post-market without a new submission for each change." },
+  fdaSaMD:{ label:"FDA SaMD", url:"https://www.fda.gov/medical-devices/software-medical-device-samd/artificial-intelligence-software-medical-device",
+    cite:"FDA — Artificial Intelligence in Software as a Medical Device: predictive models that flag a patient before clinical suspicion (like sepsis early warning) are devices requiring 510(k)/De Novo clearance with Good Machine Learning Practice." },
+  ehignite:{ label:"EHIgnite", url:"https://healthit.gov/blog/interoperability/nine-teams-one-mission-meet-the-ehignite-phase-1-winners",
+    cite:"ONC EHIgnite Challenge (Phase 1 winners, 2026) — nine teams bringing a patient's critical health data to whoever needs it: the patient preparing for a new doctor, a family member in an emergency, a clinician reconciling conflicting information. The same mission as LumaChart's patient-mediated 'My record'." },
+  oncTestTools:{ label:"ONC Test Tools", url:"https://healthit.gov/certification-health-it/certification-process/onc-conformance-test-tools",
+    cite:"ONC Conformance Test Tools — the official test suites (Inferno for the §170.315(g)(10) standardized FHIR API, and others) an EHR must pass to certify. The concrete gate between LumaChart's FHIR sandbox and real certification." },
+  cfr170:{ label:"45 CFR 170", url:"https://www.ecfr.gov/current/title-45/subtitle-A/subchapter-D/part-170",
+    cite:"45 CFR Part 170 — the federal EHR standards, implementation specifications, and certification criteria (the HITECH Act's ONC Health IT Certification Program) LumaChart is built to." },
+  patientAccess:{ label:"Patient Access", url:"https://healthit.gov/patient-access-to-health-records/developers",
+    cite:"ONC patient-access developer guidance — patients have a right to their electronic health information through standards-based APIs; the foundation of LumaChart's patient-mediated record and SMART on FHIR app access." },
   apiConditions:{ label:"API Conditions", url:"https://healthit.gov/certification-health-it/conditions-ccg/application-programming-interfaces",
     cite:"ONC/ASTP API Conditions & Maintenance of Certification (§170.404), Cures Act — certified API developers must publish transparent business/technical docs & terms, charge only fair/reasonable/non-discriminatory fees (with prohibited fees barred), impose no anti-competitive conditions, verify & register apps within 10/5 business days, and publish a public FHIR endpoint directory." },
   namCWO:{ label:"NAM Change Maker", url:"https://nam.edu/programs/clinician-resilience-and-well-being/change-maker-campaign/",
@@ -948,6 +962,18 @@ const STANDARDS = {
     { s:"HIPAA", scope:"United States", d:"Security Risk Analysis, BAAs, minimum-necessary access, audit logging, and the individual right of access (45 CFR 164.524) that powers “My record”.", tag:"designed-in" },
     { s:"GDPR", scope:"EU / EEA", d:"Data-subject rights — access, portability, rectification, erasure, and consent that is specific, informed and revocable. LumaChart's consent tiers and patient-mediated record map directly onto these rights.", tag:"architecture-ready" },
     { s:"Encryption", scope:"All regions", d:"TLS 1.2+ in transit, AES-256 at rest; role- and purpose-based access on a FHIR-native store.", tag:"designed-in" },
+  ],
+};
+
+/* ---------- Regulatory architecture — two tracks, kept honestly separate ---------- */
+const REGULATORY = {
+  tracks: [
+    { name:"ONC Health IT Certification (§170.315)", who:"the EHR itself", auth:"cfr170",
+      d:"Interoperability, the standardized FHIR API, USCDI, security — tested with the ONC conformance tools (Inferno) and certified by an ONC-ACB. This is what CEHRT and Medicare Promoting Interoperability require. Not the FDA.", chip:"the record" },
+    { name:"Non-Device CDS safe harbor", who:"evidence display & guideline cards", auth:"fdaCDS",
+      d:"Because LumaChart shows the basis of every recommendation (the PMID, the logic) so a clinician can independently review it, the evidence layer is Non-Device CDS — outside FDA device regulation by design (Cures Act §3060).", chip:"exempt by design" },
+    { name:"FDA 510(k)/De Novo + PCCP", who:"the predictive early-warning module", auth:"fdaSaMD",
+      d:"A model that flags a patient before clinical suspicion (deterioration/sepsis) is a device. It goes through FDA clearance with Good Machine Learning Practice, and its adaptive learning is bounded by a Predetermined Change Control Plan — the path Bayesian Health just proved with the first-ever clearance.", chip:"cleared path" },
   ],
 };
 

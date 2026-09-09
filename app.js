@@ -2206,7 +2206,7 @@ function vReadmit(){
       <button class="btn primary small" data-deter-act>Evaluate now → open sepsis order set</button>
       <button class="btn ghost small" data-deter-dismiss>Not sepsis — dismiss &amp; tell the model why</button>
     </div>
-    <div class="evidence">One alert, one action, its reasons attached — never a pop-up chain. A validated early-warning model (TREWS) cut time to antibiotics and mortality when alerts were evaluated promptly, in a prospective 5-site study.${ev("adamsTrews")}${ev("henryTrews")} Industry precedent: FDA-cleared continuous monitoring is achievable.${aut("bayesian")}</div>`}
+    <div class="evidence">One alert, one action, its reasons attached — never a pop-up chain. A validated early-warning model (TREWS) cut time to antibiotics and mortality when alerts were evaluated promptly, in a prospective 5-site study.${ev("adamsTrews")}${ev("henryTrews")} This is now an <b>FDA-cleared</b> category: the first-ever 510(k) for continuous AI sepsis monitoring (May 2026) reported 5.7-hour lead time and 18% lower mortality when clinicians act in time.${aut("bayesian")} LumaChart's predictive module is designed for that same pathway — see the regulatory architecture in <a data-nav-inline="security" style="cursor:pointer">Security</a>.</div>`}
   </div>
 
   <div class="card" style="margin-bottom:16px">
@@ -2413,6 +2413,15 @@ function vSecurity(){
       <tr><th></th><th>Captures</th><th>Persists</th><th>Who sees it</th><th>Off switch</th></tr>
       ${AI_PRIVACY.map(p=>`<tr><td class="cap">${p.name}</td><td>${p.captures}</td><td>${p.persists}</td><td>${p.sees}</td><td>${p.off}</td></tr>`).join("")}
     </table></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px"><h3>🏛 Regulatory architecture — national standards, two honest tracks</h3>
+    <div class="small" style="margin-bottom:8px">Being a serious platform means meeting the law precisely — and keeping the tracks separate rather than blurring them. All of it is in service of the mission: less clinician burden, a real patient note, and billing that succeeds quietly in the background.</div>
+    <div class="rowlist">
+      ${REGULATORY.tracks.map(t=>`<div class="rowitem"><span class="chip accent">${t.chip}</span>
+        <div class="d" style="flex:1"><b>${t.name}</b> <span class="tiny">(${t.who})</span><br>${t.d}${aut(t.auth)}</div></div>`).join("")}
+    </div>
+    <div class="evidence">The conformance gate is concrete: LumaChart's FHIR sandbox must pass the ONC test suites (Inferno for the §170.315(g)(10) API) to certify.${aut("oncTestTools")} Patients' right to their data via standard APIs underpins the patient-mediated record.${aut("patientAccess")} And the EHIgnite challenge names the same mission LumaChart's 'My record' already serves.${aut("ehignite")}</div>
   </div>
 
   <div class="card"><h3>🤖 AI governance — designed to the NAM Code of Conduct</h3>
