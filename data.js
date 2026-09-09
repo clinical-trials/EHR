@@ -1007,6 +1007,29 @@ const CERT170 = {
   ],
 };
 
+/* ---------- §170.315 criterion registry — cite the law like a PMID (reg()) ---------- */
+const REG170_URL = "https://www.ecfr.gov/current/title-45/section-170.315";
+const REG170_MAP = {
+  a5:  { code:"§170.315(a)(5)",  title:"Demographics" },
+  a9:  { code:"§170.315(a)(9)",  title:"Clinical decision support (legacy — superseded by (b)(11))" },
+  a14: { code:"§170.315(a)(14)", title:"Implantable device list (UDI)" },
+  a15: { code:"§170.315(a)(15)", title:"Social, psychological & behavioral data" },
+  b1:  { code:"§170.315(b)(1)",  title:"Transitions of care (C-CDA)" },
+  b2:  { code:"§170.315(b)(2)",  title:"Clinical information reconciliation & incorporation" },
+  b3:  { code:"§170.315(b)(3)",  title:"Electronic prescribing (NCPDP SCRIPT)" },
+  b10: { code:"§170.315(b)(10)", title:"Electronic Health Information (EHI) export" },
+  b11: { code:"§170.315(b)(11)", title:"Decision Support Interventions (DSI) + source-attribute transparency" },
+  c1:  { code:"§170.315(c)(1)",  title:"Clinical quality measures — record & export" },
+  e1:  { code:"§170.315(e)(1)",  title:"View, download & transmit to 3rd party (patient access)" },
+  f1:  { code:"§170.315(f)(1)",  title:"Transmission to immunization registries" },
+  f5:  { code:"§170.315(f)(5)",  title:"Electronic case reporting (public health)" },
+  g9:  { code:"§170.315(g)(9)",  title:"Application access — all data request" },
+  g10: { code:"§170.315(g)(10)", title:"Standardized API for patient & population services (FHIR)" },
+  d:   { code:"§170.315(d)",     title:"Privacy & security (authentication, audit, encryption, consent)" },
+  cond404: { code:"§170.404",    title:"API Conditions & Maintenance of Certification" },
+  cond401: { code:"§170.401",    title:"Information blocking Condition of Certification" },
+};
+
 /* ---------- Regulatory architecture — two tracks, kept honestly separate ---------- */
 const REGULATORY = {
   tracks: [

@@ -76,6 +76,11 @@ const aut = key => {
   const a = AUTHORITIES[key];
   return ` <a class="pmid" href="${a.url}" target="_blank" rel="noopener" title="${a.cite} — click to open the source">${a.label}</a>`;
 };
+/* regulatory-basis chips — cite the §170.315 criterion a feature satisfies, like a PMID */
+const reg = (...keys) => keys.filter(k => REG170_MAP[k]).map(k => {
+  const r = REG170_MAP[k];
+  return ` <a class="reg" href="${REG170_URL}" target="_blank" rel="noopener" title="${r.code} — ${r.title} (45 CFR Part 170; click to open the regulation)">${r.code}</a>`;
+}).join("");
 const evidenceCard = key => {
   if (!key || !EVIDENCE[key]) return "";
   const e = EVIDENCE[key];
@@ -687,7 +692,7 @@ function vCanary(){
   const backlog = INBOX.length;
   return `
   <h1 class="page-title">🐦 Canary <span class="chip green">private to you</span></h1>
-  <p class="page-sub">Your early-warning companion. Canary reads your own workload signals against your baseline and speaks up gently — like a canary in a coal mine, it warns before harm.</p>
+  <p class="page-sub">Your early-warning companion. Canary reads your own workload signals against your baseline and speaks up gently — like a canary in a coal mine, it warns before harm. Built as a transparent Decision Support Intervention.${reg("b11")}</p>
 
   <div class="grid g3">
     <div class="card"><div class="metric"><div class="v" id="canary-session">${fmtMin(m)}</div><div class="l">this session (demo clock: 1 s = 1 min)</div></div>
@@ -1083,7 +1088,7 @@ function vMyRecord(){
   </div>`;
   return `
   <h1 class="page-title">My record</h1>
-  <p class="page-sub">Every visit, lab, and hospital stay you've ever had — gathered into one place, by your legal right.</p>
+  <p class="page-sub">Every visit, lab, and hospital stay you've ever had — gathered into one place, by your legal right. Standards-based patient access.${reg("e1","g10")}</p>
   ${stepper}${body}`;
 }
 
@@ -1092,7 +1097,7 @@ function vScreenings(){
   if (state.activeResult) return vResultView(state.activeResult);
   return `
   <h1 class="page-title">Mental health is health</h1>
-  <p class="page-sub">Private questionnaires — the same ones doctors use everywhere, recommended by national prevention experts <span class="code-light">(USPSTF)</span>. You answer in a few minutes; your care team reviews the results; you get proven steps that help.</p>
+  <p class="page-sub">Private questionnaires — the same ones doctors use everywhere, recommended by national prevention experts <span class="code-light">(USPSTF)</span>. You answer in a few minutes; your care team reviews the results; you get proven steps that help. Social, psychological &amp; behavioral data, structured.${reg("a15")}</p>
 
   <div class="card" style="margin-bottom:16px">
     <h3>📈 Your progress <span class="chip green">headed the right way</span></h3>
@@ -1689,7 +1694,7 @@ async function runFhirWorkflow(id){
 
 function vFhir(){
   return `
-  <h1 class="page-title">⚡ FHIR sandbox <span class="chip green">live · real server</span></h1>
+  <h1 class="page-title">⚡ FHIR sandbox <span class="chip green">live · real server</span> ${reg("g10","g9")}</h1>
   <p class="page-sub">Interoperability you can watch happen: LumaChart posts real FHIR R4 resources to the public HAPI test server and shows the server's response — payer prior-auth, lab &amp; genetic ordering, telehealth.${aut("onc2020")}${aut("nam2019")}</p>
 
   <div class="card" style="margin-bottom:16px">
@@ -2243,7 +2248,7 @@ function vReadmit(){
 
   <div class="card" style="margin-bottom:16px; border-color:var(--red)">
     <h3><span class="spark" style="color:var(--red)">◉</span> Deterioration alert — ${d.alert.pt}
-      <span class="chip red">${d.alert.risk} risk</span>
+      <span class="chip red">${d.alert.risk} risk</span>${reg("b11")}
       <span class="chip amber" style="margin-left:auto">simulated</span></h3>
     ${dismissed ? `<div class="small muted">Evaluated ✓ — sepsis bundle started, lactate re-checked. The alert closed itself; no pop-up will ask you again.</div>`
     : `<div class="small" style="margin-bottom:8px">The model flags a rising risk of sepsis over the <b>${d.alert.window}</b>. Here's <i>why</i> — the contributing factors, so you can judge in seconds:</div>
