@@ -1150,6 +1150,17 @@ const MAID = {
     { t:"Mandatory state reporting", d:"Report filed with the Department of Health as the statute requires." },
   ],
   deathCert:"On the death certificate the cause of death is the underlying terminal illness — by statute MAID is not classified as suicide.",
+  // Post-prescription follow-up reporting cycle (jurisdiction-specific intervals; demo values)
+  followup: {
+    rxDate:"2026-09-01",
+    milestones: [
+      { day:0,   who:"Provider", t:"Prescription issued (online form)", d:"The attending files the initial prescription form with the state administration; the follow-up clock starts.", role:"provider" },
+      { day:30,  who:"Provider", t:"30-day status due", d:"If the patient has not died, the provider files a secondary status to the state: “not yet ingested, or unknown.”", role:"provider" },
+      { day:120, who:"State", t:"4-month reminder", d:"The state administration sends the clinician a reminder to complete the outstanding follow-up.", role:"state" },
+      { day:180, who:"Provider", t:"6-month follow-up deadline", d:"The provider must have filed the follow-up report within six months of the initial prescription.", role:"provider" },
+    ],
+    note:"Follow-up reporting keeps the state's public-health record accurate even when a prescription is never used. Exact intervals and forms vary by jurisdiction — shown here for a representative state; LumaChart generates the reminder and the form from the same structured data, so nothing is a separate paper chore.",
+  },
 };
 
 /* ---------- §170.315 criterion registry — cite the law like a PMID (reg()) ---------- */

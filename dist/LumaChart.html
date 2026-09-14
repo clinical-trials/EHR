@@ -1660,6 +1660,17 @@ const MAID = {
     { t:"Mandatory state reporting", d:"Report filed with the Department of Health as the statute requires." },
   ],
   deathCert:"On the death certificate the cause of death is the underlying terminal illness — by statute MAID is not classified as suicide.",
+  // Post-prescription follow-up reporting cycle (jurisdiction-specific intervals; demo values)
+  followup: {
+    rxDate:"2026-09-01",
+    milestones: [
+      { day:0,   who:"Provider", t:"Prescription issued (online form)", d:"The attending files the initial prescription form with the state administration; the follow-up clock starts.", role:"provider" },
+      { day:30,  who:"Provider", t:"30-day status due", d:"If the patient has not died, the provider files a secondary status to the state: “not yet ingested, or unknown.”", role:"provider" },
+      { day:120, who:"State", t:"4-month reminder", d:"The state administration sends the clinician a reminder to complete the outstanding follow-up.", role:"state" },
+      { day:180, who:"Provider", t:"6-month follow-up deadline", d:"The provider must have filed the follow-up report within six months of the initial prescription.", role:"provider" },
+    ],
+    note:"Follow-up reporting keeps the state's public-health record accurate even when a prescription is never used. Exact intervals and forms vary by jurisdiction — shown here for a representative state; LumaChart generates the reminder and the form from the same structured data, so nothing is a separate paper chore.",
+  },
 };
 
 /* ---------- §170.315 criterion registry — cite the law like a PMID (reg()) ---------- */
@@ -1978,6 +1989,7 @@ const state = {
   deterDismissed: false,                 // deterioration early-warning alert acted/dismissed this session
   deathStage: "pronounce",               // EDRS death-certificate workflow stage
   maidOpen: false,                        // MAID module expanded (sensitive; collapsed by default)
+  maidFollowupFiled: false,               // MAID 30-day post-Rx follow-up status filed (demo)
   bcmaScanned: false,                     // VA-style closed-loop medication scan verified (demo)
   selfLog: store.get("selfLog", { week:[30,0,45,20,0,60,15], nourished:4 }), // clinician's own private movement/nutrition log
   _idUploaded: false,
@@ -2749,6 +2761,21 @@ function vEndOfLife(){
     <div class="rowlist">${MAID.steps.map((s,i)=>`<div class="rowitem"><span class="chip accent">${i+1}</span>
       <div class="d" style="flex:1"><b>${s.t}</b> — ${s.d}</div></div>`).join("")}</div>
     <div class="evidence">${MAID.deathCert} The mandatory Department of Health report is generated from the same structured data — no separate paperwork. Related venture context: the Luminaria MAID care-coordination work (NM).</div>
+
+    ${(() => { const f = MAID.followup, filed = state.maidFollowupFiled;
+      return `<h4 style="margin:14px 0 4px; font-size:12px">Post-prescription follow-up reporting — a shared clinician/state duty</h4>
+      <div class="rowlist">
+        ${f.milestones.map(m => `<div class="rowitem">
+          <span class="chip ${m.role==='state'?'accent':'plain'}">${m.day===0?'day 0':m.day<180?('day '+m.day):'6 mo'}</span>
+          <div style="flex:1"><div class="t small">${m.t} <span class="tiny">· ${m.who}</span>${(m.day===30 && filed)?` <span class="chip green">filed ✓</span>`:""}</div><div class="d">${m.d}</div></div>
+        </div>`).join("")}
+      </div>
+      <div style="display:flex; gap:8px; margin-top:10px; flex-wrap:wrap">
+        ${filed
+          ? `<span class="chip green">✓ 30-day status filed: “not yet ingested / unknown”</span> <button class="btn ghost small" data-maid-fu-reset>Reset</button>`
+          : `<button class="btn primary small" data-maid-followup>File 30-day status — “not yet ingested / unknown”</button>`}
+      </div>
+      <div class="tiny" style="margin-top:8px">${f.note}${aut("maidNM")}</div>`; })()}
     ` : ""}
   </div>`;
 }
@@ -4844,6 +4871,8 @@ function wireView(){
   const eolReset = $("[data-eol-reset]"); if (eolReset) eolReset.addEventListener("click", () => { state.deathStage = "pronounce"; render(); });
   const eolPolst = $("[data-eol-polst]"); if (eolPolst) eolPolst.addEventListener("click", () => toast("POLST started", "Portable medical orders drafted with the patient; will exchange via the PACIO ADI FHIR IG so the orders travel across settings. (Demo.)", "green"));
   const maidT = $("[data-maid-toggle]"); if (maidT) maidT.addEventListener("click", () => { state.maidOpen = !state.maidOpen; render(); });
+  const maidFu = $("[data-maid-followup]"); if (maidFu) maidFu.addEventListener("click", () => { state.maidFollowupFiled = true; render(); toast("Follow-up filed", "30-day status “not yet ingested / unknown” filed with the state administration. The 6-month deadline is met; the state's 4-month reminder is now moot. (Demo.)", "green"); });
+  const maidFuR = $("[data-maid-fu-reset]"); if (maidFuR) maidFuR.addEventListener("click", () => { state.maidFollowupFiled = false; render(); });
 
   const dact = $("[data-deter-act]"); if (dact) dact.addEventListener("click", () => { state.deterDismissed = true; render(); toast("Sepsis order set opened", "Antibiotics, fluids and a lactate re-check queued — one tap, from one alert. The model learns this was a true positive. (Simulated.)", "green"); });
   const ddis = $("[data-deter-dismiss]"); if (ddis) ddis.addEventListener("click", () => { state.deterDismissed = true; render(); toast("Dismissed — thank you", "Your reason tunes the model so it earns trust. A dismissed alert never nags you again. (Simulated.)", "green"); });
