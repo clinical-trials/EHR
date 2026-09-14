@@ -214,6 +214,7 @@ const NAVS = {
       { id:"burden",  ic:"🧪", t:"Burden lab" },
       { id:"actions", ic:"🎯", t:"Action plan" },
       { id:"report",  ic:"📄", t:"Data extract report" },
+      { id:"aigov",   ic:"🛡", t:"AI governance & assurance" },
       { id:"biblio",  ic:"📚", t:"Bibliography" },
     ]},
   ],
@@ -818,6 +819,49 @@ function vEndOfLife(){
   </div>`;
 }
 
+/* ==========================================================================
+   AI GOVERNANCE & ASSURANCE — the model registry a CIO governs from
+   ========================================================================== */
+function govDecision(d){
+  const m = { "scale":["green","▲ scale"], "pilot":["amber","◐ pilot"], "pause-until-cleared":["red","⏸ pause — until cleared"] };
+  const [tone,label] = m[d] || ["plain", d];
+  return `<span class="chip ${tone}">${label}</span>`;
+}
+function vAIGov(){
+  return `
+  <h1 class="page-title">🛡 AI governance &amp; assurance</h1>
+  <p class="page-sub">One screen to govern every AI feature — intended use, what it's grounded in, how it's monitored, its FDA change-control status, and a scale / pause / kill decision. This ties the NAM AI Code of Conduct, the FDA pathway, and the RSI research loop into a single, auditable view.${aut("namAICC")}${reg("b11")}</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>📋 Model registry <span class="chip plain">synthetic demo</span></h3>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Feature</th><th>Intended use</th><th>Class</th><th>Grounded in (source attributes)</th><th>Monitoring</th><th>PCCP</th><th>Decision</th></tr>
+      ${AI_REGISTRY.map(m=>`<tr>
+        <td class="cap">${m.name}</td><td>${m.use}</td><td>${m.kind}</td><td>${m.src}</td>
+        <td>adoption ${m.adoption} · override ${m.override} · ${m.drift}</td><td>${m.pccp}</td><td>${govDecision(m.decision)}</td></tr>`).join("")}
+    </table></div>
+    <div class="evidence">"Scale, pause, or kill" isn't a slogan here — it's a field on every model, with the monitoring metrics that justify it. Predictive/device models (the deterioration model) stay <b>paused until FDA-cleared</b> and change only inside a Predetermined Change Control Plan.${aut("fdaPCCP")}${aut("fdaSaMD")} Non-device CDS stays in the safe harbor by showing its basis.${aut("fdaCDS")}</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>🎓 The human side — credentialing &amp; vendor assurance</h3>
+    <div class="rowlist">
+      <div class="rowitem"><span class="chip accent">people</span><div class="d" style="flex:1"><b>Clinician AI competence</b> — align with board credentialing in medical AI (ABAIM), so the humans governing and using these tools are certified, not just the software.${aut("abaim")}</div></div>
+      <div class="rowitem"><span class="chip accent">vendors</span><div class="d" style="flex:1"><b>Vendor security assurance</b> — every third-party AI (e.g., ambient-scribe partners like Nabla) meets the same PHI-minimization + audit bar as our own features.${aut("nabla")}</div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>🚀 Pilot → systemwide — escaping "pilot purgatory"</h3>
+    <div class="small" style="margin-bottom:8px">The CIO pain of 2026 is pilots that never scale. LumaChart's answer is a measured, gated arc — the same shape as an SBIR Phase I → Phase II.</div>
+    <div class="rowlist">
+      ${PILOT_SCALE.map((p,i)=>`<div class="rowitem"><div class="avatar">${i+1}</div>
+        <div style="flex:1"><div class="t small">${p.s}</div><div class="d">${p.d}</div><div class="tiny" style="color:var(--accent)">${p.sbir}</div></div></div>`).join("")}
+    </div>
+    <div class="evidence">The evidence comes from the <a data-nav-inline="burden" style="cursor:pointer">Burden lab</a> — measured adoption and minutes-returned — so a pilot graduates on data, not enthusiasm.${aut("namAccel")}</div>
+  </div>`;
+}
+
 /* ---------- Certification (45 CFR Part 170) — the full program, honestly mapped ---------- */
 function certChip(st){
   const m = { proto:["green","✓ proto"], "designed-in":["green","designed-in"], partial:["amber","partial"],
@@ -1368,6 +1412,15 @@ function vConsole(){
   <h1 class="page-title">Public-health research console</h1>
   <p class="page-sub">Prospective, consented, de-identified — the population layer the National Academy of Medicine called for. Nothing leaves without IRB approval.</p>
 
+  <div class="card" style="margin-bottom:16px">
+    <h3>🌍 Underserved communities &amp; AI capacity</h3>
+    <div class="small" style="margin-bottom:8px">The greatest need — and the clearest public-health mission — is where AI capacity is thinnest. LumaChart is built to serve underserved communities and under-resourced institutions, in the spirit of NIH AIM-AHEAD.${aut("aimAhead")}</div>
+    <div class="rowlist">
+      ${UNDERSERVED.points.map(x=>`<div class="rowitem"><span class="chip green">✓</span><div class="d" style="flex:1"><b>${x.t}</b> — ${x.d}</div></div>`).join("")}
+    </div>
+    <div class="evidence">This is the deliberate beachhead: the small, rural, safety-net and FQHC providers big systems leave behind. It strengthens the AHRQ/NLM SBIR narrative and the equity commitment of the NAM AI Code of Conduct.${aut("namAICC")}${aut("fortuna")}</div>
+  </div>
+
   <div class="grid g3">
     <div class="card"><div class="metric"><div class="v">${r.consented.toLocaleString()}</div><div class="l">consented participants</div></div>
       <div class="bar" style="margin-top:10px"><i class="green" style="width:${r.consented/r.total*100}%"></i></div>
@@ -1530,6 +1583,16 @@ function vBilling(){
         <div class="tiny" style="margin-top:6px">${dxCount<totalDx?`${totalDx-dxCount} discussed diagnosis(es) not yet coded.`:cptDone<CODING.cpt.length?`${CODING.cpt.length-cptDone} CPT code(s) awaiting verification.`:"Full complexity captured — coded and verified."}</div></div>
     </div>
     ${state.checkin?`<div class="tiny" style="margin-top:8px">✓ Patient pre-loaded ${activePre.length} conditions and demographics at check-in — you only add what you discussed today.</div>`:`<div class="tiny" style="margin-top:8px">Patient hasn't checked in yet — the Patient role → Check-in pre-loads these conditions and demographics for you.</div>`}
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>🛡 Denial prevention — caught before it happens <span class="chip green">clean</span></h3>
+    <div class="rowlist">
+      <div class="rowitem"><span class="chip green">✓</span><div class="d" style="flex:1"><b>Eligibility verified</b> — coverage active, plan &amp; copay confirmed at check-in (real-time eligibility).</div></div>
+      <div class="rowitem"><span class="chip green">✓</span><div class="d" style="flex:1"><b>Coding edits pass</b> — dx↔CPT medical-necessity match, no missing modifiers, no NCCI conflicts.</div></div>
+      <div class="rowitem"><span class="chip green">✓</span><div class="d" style="flex:1"><b>Prior-auth check</b> — no service on this claim requires authorization.</div></div>
+    </div>
+    <div class="evidence">The cheapest denial is the one that never happens. These front-end checks run quietly at the encounter — the same agent that later works the <a data-nav-inline="readmit" style="cursor:pointer">AR queue</a> prevents the denial upstream. Not one word of it interrupts the note: billing stays in the background.</div>
   </div>
 
   <div class="grid g2">
@@ -2473,6 +2536,18 @@ function vPlans(){
   return `
   <h1 class="page-title">Plans &amp; long-term value</h1>
   <p class="page-sub">Doctors and health systems buy value over years, not a checklist of features. Here's the long-term case.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>🧩 Build vs. Buy vs. Platform — the answer to vendor sprawl</h3>
+    <div class="small" style="margin-bottom:8px">The CIO's real question isn't features — it's architecture. LumaChart is <b>composition</b>: build the differentiator, buy the certified commodities, keep it open.</div>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Need</th><th>Approach</th><th>How</th><th>Why</th></tr>
+      ${BUILD_BUY.rows.map(r=>`<tr><td class="cap">${r.need}</td>
+        <td><span class="chip ${r.approach.startsWith('BUILD')?'green':r.approach.startsWith('BUY')?'accent':'plain'}">${r.approach}</span></td>
+        <td>${r.how}</td><td class="tiny">${r.note}</td></tr>`).join("")}
+    </table></div>
+    <div class="evidence">${BUILD_BUY.thesis} Maps to the <a data-nav-inline="cert" style="cursor:pointer">Certification (Part 170)</a> view (certification by composition) and the <a data-nav-inline="fhir" style="cursor:pointer">FHIR sandbox</a> (the open (g)(10) core).${aut("vaEhrm")}</div>
+  </div>
   <div class="grid g3">
     ${p.tiers.map(t=>`<div class="card" style="${t.featured?'border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent)':''}">
       <h3>${t.name} ${t.featured?'<span class="chip accent">popular</span>':''}</h3>
@@ -2575,6 +2650,14 @@ function vSecurity(){
         <div class="d" style="flex:1"><b>${t.name}</b> <span class="tiny">(${t.who})</span><br>${t.d}${aut(t.auth)}</div></div>`).join("")}
     </div>
     <div class="evidence">The conformance gate is concrete: LumaChart's FHIR sandbox must pass the ONC test suites (Inferno for the §170.315(g)(10) API) to certify.${aut("oncTestTools")} Patients' right to their data via standard APIs underpins the patient-mediated record.${aut("patientAccess")} And the EHIgnite challenge names the same mission LumaChart's 'My record' already serves.${aut("ehignite")}</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px"><h3>🛡 AI security — your data is the attack surface ${reg("d")}</h3>
+    <div class="small" style="margin-bottom:8px">AI widens the attack surface; LumaChart narrows it by design. The VA's own experience is the warning — its new EHR routed orders to an undetectable queue and caused 149 patient-harm events.${aut("vaOig")} Controls:</div>
+    <div class="rowlist">
+      ${AI_SECURITY.map(x=>`<div class="rowitem"><span class="chip green">✓</span><div class="d" style="flex:1"><b>${x.t}</b> — ${x.d}</div></div>`).join("")}
+    </div>
+    <div class="evidence">These map to the §170.315(d) privacy &amp; security criteria and the AI-governance registry on the <a data-nav-inline="aigov" style="cursor:pointer">CWO's AI governance view</a>; benchmarked against vendor security practice.${aut("nabla")}</div>
   </div>
 
   <div class="card"><h3>🤖 AI governance — designed to the NAM Code of Conduct</h3>
@@ -2697,7 +2780,7 @@ const VIEWS = {
   clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, eol:vEndOfLife, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, cert:vCert, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, myrecord:vMyRecord, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
-  cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, biblio:vBiblio },
+  cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, aigov:vAIGov, biblio:vBiblio },
 };
 
 function render(){

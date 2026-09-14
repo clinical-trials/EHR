@@ -918,6 +918,12 @@ const AUTHORITIES = {
     cite:"NAM National Plan for Health Workforce Well-Being (2022) — seven priority areas; Priority Area 5 (effective technology tools) calls for health IT that is user-friendly, affordable, co-designed with users to shared standards, and works across disciplines." },
   namAICC:{ label:"NAM AI Code", url:"https://nam.edu/programs/value-science-driven-health-care/health-care-artificial-intelligence-code-of-conduct/",
     cite:"NAM Artificial Intelligence Code of Conduct for Health and Medicine (2025) — six Code Commitments (Advance Humanity, Ensure Equity, Engage Impacted Individuals, Improve Workforce Well-Being, Monitor Performance, Innovate & Learn) and ten Code Principles for trustworthy health AI." },
+  abaim:{ label:"ABAIM", url:"https://abaim.org/",
+    cite:"American Board of Artificial Intelligence in Medicine (ABAIM) — clinician credentialing/certification in medical AI; the emerging standard for the human competence side of AI governance." },
+  nabla:{ label:"Nabla", url:"https://www.nabla.com/",
+    cite:"Nabla — an ambient-AI documentation vendor whose security posture (AI security & governance in healthcare) is a useful benchmark for closed-loop, PHI-minimizing AI features." },
+  aimAhead:{ label:"AIM-AHEAD", url:"https://www.aim-ahead.net/",
+    cite:"NIH AIM-AHEAD (Artificial Intelligence/Machine Learning Consortium to Advance Health Equity and Researcher Diversity) — builds AI/ML capacity across underserved health and research institutions; the model for LumaChart's underserved-capacity and health-equity commitments." },
   namAccel:{ label:"NAM Accelerator", url:"https://nam.edu/product/embedding-well-being-as-a-lasting-value-inaugural-accelerator-action-plans/",
     cite:"NAM Inaugural Change Maker Accelerator Action Plans (2026) — 20 institutions' field results implementing the National Plan, incl. measured ambient-documentation wins (~170 min/wk at Ochsner; significant after-hours reductions at Michigan Medicine) and leader-level well-being dashboards (Utah)." },
   fortuna:{ label:"Fortuna", url:"https://www.fortunahealth.com/about-us",
@@ -1029,6 +1035,50 @@ const CERT170 = {
     { s:"§170.404 API Conditions", st:"designed-in", d:"Transparent docs, fair/non-discriminatory fees, no anti-competitive terms, 10/5-day app onboarding, public FHIR endpoint directory.", nav:"security" },
     { s:"§170.405 Real World Testing", st:"planned", d:"Annual plans + results proving the certified API works in production, not just the lab." },
     { s:"§170.406 Attestations", st:"planned", d:"Semiannual attestations to the Conditions of Certification, on the CHPL." },
+  ],
+};
+
+/* ==========================================================================
+   AI GOVERNANCE & ASSURANCE — a leadership model registry (Becker's #1)
+   + pilot-to-scale dossier (#2). Synthetic demo values.
+   ========================================================================== */
+const AI_REGISTRY = [
+  { name:"Luma Scribe", use:"Draft the visit note + suggest questions/codes (clinician signs).", kind:"Non-device CDS", src:"Consented audio; §170.315(b)(11) source attributes shown", adoption:"—", override:"—", drift:"n/a (physician is author)", pccp:"n/a", decision:"scale" },
+  { name:"Coding agent", use:"Draft ICD-10/CPT for one-tap verification.", kind:"Non-device CDS", src:"Signed note + structured data", adoption:"—", override:"biller verifies every claim", drift:"monitored vs coder baseline", pccp:"n/a", decision:"scale" },
+  { name:"Canary", use:"Private clinician burnout early-warning.", kind:"Non-device (well-being)", src:"Own EHR-time signals; PMID 28893811", adoption:"opt-in", override:"snooze/dismiss", drift:"thresholds = demo defaults, need validation", pccp:"n/a", decision:"pilot" },
+  { name:"Deterioration model", use:"Flag rising sepsis risk before clinical suspicion.", kind:"Device (SaMD) — 510(k) path", src:"Contributing factors shown; TREWS/Bayesian precedent", adoption:"93% (demo)", override:"9% (demo)", drift:"monitored; retrain gated", pccp:"required before any model change", decision:"pause-until-cleared" },
+  { name:"Luma assistant", use:"Scripted side-by-side helper (demo).", kind:"Non-device CDS", src:"Only what the user types", adoption:"—", override:"—", drift:"n/a", pccp:"n/a", decision:"scale" },
+];
+const PILOT_SCALE = [
+  { s:"Baseline", d:"4 weeks of audit-log metrics + a validated burnout instrument before any feature is on.", sbir:"SBIR Phase I aim: measure the problem." },
+  { s:"Single-feature rollout", d:"Enable one feature (e.g., Scribe) for one specialty; everything else unchanged so the effect is attributable.", sbir:"Phase I feasibility." },
+  { s:"90-day measured result", d:"Re-run audit-log + instrument; report absolute minutes/day returned and change in burnout-positive rate.", sbir:"Phase I go/no-go evidence." },
+  { s:"PCCP-bounded expansion", d:"Scale to more sites/specialties within a pre-validated envelope; predictive models change only via the PCCP.", sbir:"Phase II scale-up." },
+];
+const AI_SECURITY = [
+  { t:"PHI minimization", d:"Model inputs carry the minimum necessary; audio is processed and discarded, not stored." },
+  { t:"Untrusted-content handling", d:"Notes, messages and external data are treated as data, never instructions — prompt-injection is contained." },
+  { t:"Audit every model call", d:"Each AI invocation is logged with inputs' provenance, version, and output — reviewable and reproducible." },
+  { t:"Data provenance", d:"Every evidence card traces to a real PMID/source; nothing is asserted without a checkable origin." },
+  { t:"Access & isolation", d:"Role/purpose-based access on a FHIR-native store; each artifact origin-isolated." },
+];
+const BUILD_BUY = {
+  rows: [
+    { need:"Core record + FHIR API (g)(10)", approach:"BUILD-ON", how:"FHIR-native platform (Medplum/Aidbox) — open-source, no lock-in.", note:"12+ months saved vs from scratch" },
+    { need:"e-Prescribing / EPCS, RTPB", approach:"BUY (certified)", how:"DrFirst / MDToolbox certified module.", note:"specialized certification bought, not rebuilt" },
+    { need:"Labs / genetics network", approach:"BUY (partner)", how:"Health Gorilla network.", note:"" },
+    { need:"Evidence + burnout-reduction layer", approach:"BUILD (our IP)", how:"PubMed CDS, Canary, Focus, Scribe, Burden lab.", note:"the differentiator — the part worth building" },
+    { need:"Claims / clearinghouse", approach:"BUY (partner)", how:"Clearinghouse + PR bridge connector.", note:"" },
+  ],
+  thesis:"Composition, not monolith: build the differentiator, buy the certified commodities, keep it open. This is the direct answer to vendor sprawl — and the opposite of the big-bang replacement that stalled the VA's Oracle/Cerner program.",
+};
+const UNDERSERVED = {
+  points: [
+    { t:"Safety-net-first, not last", d:"LumaChart's economics (free-to-start, no interface ransom) target the small, independent, rural, and FQHC providers big systems leave behind." },
+    { t:"Coverage continuity", d:"Medicaid renewal navigation keeps eligible patients covered (72% who lose Medicaid remain eligible)." },
+    { t:"Capacity building", d:"Open standards + a vetted app store (Helix Hub) let under-resourced sites adopt AI without a large IT shop." },
+    { t:"Equity by construction", d:"Well-being and outcome data are disaggregated by role, gender, and race/ethnicity so interventions never optimize for the majority at a subgroup's expense." },
+    { t:"Language-first", d:"Patient portal built for language-first communication." },
   ],
 };
 
