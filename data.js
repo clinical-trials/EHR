@@ -1159,8 +1159,21 @@ const MAID = {
       { day:120, who:"State", t:"4-month reminder", d:"The state administration sends the clinician a reminder to complete the outstanding follow-up.", role:"state" },
       { day:180, who:"Provider", t:"6-month follow-up deadline", d:"The provider must have filed the follow-up report within six months of the initial prescription.", role:"provider" },
     ],
-    note:"Follow-up reporting keeps the state's public-health record accurate even when a prescription is never used. Exact intervals and forms vary by jurisdiction — shown here for a representative state; LumaChart generates the reminder and the form from the same structured data, so nothing is a separate paper chore.",
+    jurisdiction:"New Mexico (Elizabeth Whitefield End-of-Life Options Act)",
+    note:"These intervals are New Mexico's specifically. Follow-up reporting keeps the state's public-health record accurate even when a prescription is never used. Every other authorizing jurisdiction has its own intervals and forms — LumaChart carries each as a per-state rule set and generates the reminder and the form from the same structured data, so nothing is a separate paper chore. NM is shown here in full detail as the worked example of that granularity.",
   },
+};
+
+/* ---------- 50-state + PR compliance & deadline engine ---------- */
+const COMPLIANCE = {
+  scope:"LumaChart is a 50-state + Puerto Rico platform. Statutory rules and their deadlines differ by jurisdiction, so compliance can't be hard-coded once — LumaChart carries per-jurisdiction rule sets and treats every deadline as first-class data with active reminders, not dates buried in a policy binder. Missing a statutory deadline is a compliance failure and a patient-trust failure; the record must take both seriously.",
+  deadlines: [
+    { t:"Medical aid in dying follow-up", scope:"10 authorizing jurisdictions", ex:"NM: 30-day status → 6-month filing, with the state's 4-month reminder (worked example)" },
+    { t:"Death registration (EDRS)", scope:"50 states + PR", ex:"Certifier cause-of-death filing windows vary by state; VRDR FHIR to each" },
+    { t:"CME & licensure renewal", scope:"per state board", ex:"e.g., Texas 48 cr/2 yr; Puerto Rico 40 cr/3 yr" },
+    { t:"Medicaid redetermination", scope:"per state", ex:"annual renewal window; reminder ahead of the date" },
+    { t:"ONC Conditions of Certification", scope:"federal", ex:"Real World Testing (annual), attestations (semiannual), API app onboarding (10/5 business days)" },
+  ],
 };
 
 /* ---------- §170.315 criterion registry — cite the law like a PMID (reg()) ---------- */

@@ -776,6 +776,16 @@ function vEndOfLife(){
   <h1 class="page-title">🕊 End of life &amp; vital records</h1>
   <p class="page-sub">A full record serves the end of life with dignity — honoring the patient's wishes, easing one of medicine's heaviest paperwork burdens, and meeting the public-health duty of accurate mortality data. Everything here is synthetic demonstration.</p>
 
+  <div class="card" style="margin-bottom:16px; border-color:var(--accent)">
+    <h3>⚖ 50 states + Puerto Rico — a jurisdiction-aware compliance engine</h3>
+    <div class="small" style="margin-bottom:8px">${COMPLIANCE.scope}</div>
+    <div class="rowlist">
+      ${COMPLIANCE.deadlines.map(x=>`<div class="rowitem"><span class="chip plain">${x.scope}</span>
+        <div class="d" style="flex:1"><b>${x.t}</b> — ${x.ex}</div></div>`).join("")}
+    </div>
+    <div class="tiny" style="margin-top:8px">The MAID follow-up below is shown for <b>New Mexico</b> in full detail — the worked example of that granularity. Death registration runs in all 50 states + PR; MAID only in the jurisdictions that authorize it.</div>
+  </div>
+
   <div class="card" style="margin-bottom:16px">
     <h3>📜 Advance directives &amp; code status ${aut("adi")}</h3>
     <div class="rowlist">
@@ -801,7 +811,7 @@ function vEndOfLife(){
     ${done
       ? `<div class="evidence" style="border-color:var(--green)">✓ Filed to ${d.states[0].edrs} via VRDR FHIR and forwarded to CDC/NCHS. The family's copy and the burial-transit permit are released automatically. <button class="btn ghost small" data-eol-reset style="margin-left:8px">Start over</button></div>`
       : `<button class="btn primary small" style="margin-top:10px" data-eol-advance>${idx<d.steps.length-1 ? d.steps[idx+1].t + " →" : "File →"}</button>`}
-    <div class="tiny" style="margin-top:10px">Connected state systems (demo): ${d.states.map(s=>`<span class="chip green">${s.s}</span>`).join(" ")} — the same connector pattern as the Puerto Rico payer bridge, extended to vital records. Not a current §170.315 criterion; VRDR is the emerging national standard.</div>
+    <div class="tiny" style="margin-top:10px">Connected state systems (demo shown): ${d.states.map(s=>`<span class="chip green">${s.s}</span>`).join(" ")} — designed for <b>all 50 states + Puerto Rico</b>, one VRDR-FHIR connector per jurisdiction (the same pattern as the PR payer bridge, extended to vital records). Not a current §170.315 criterion; VRDR is the emerging national standard.</div>
   </div>
 
   <div class="card">
@@ -818,7 +828,7 @@ function vEndOfLife(){
     <div class="evidence">${MAID.deathCert} The mandatory Department of Health report is generated from the same structured data — no separate paperwork. Related venture context: the Luminaria MAID care-coordination work (NM).</div>
 
     ${(() => { const f = MAID.followup, filed = state.maidFollowupFiled;
-      return `<h4 style="margin:14px 0 4px; font-size:12px">Post-prescription follow-up reporting — a shared clinician/state duty</h4>
+      return `<h4 style="margin:14px 0 4px; font-size:12px">Post-prescription follow-up reporting — a shared clinician/state duty <span class="chip accent">New Mexico</span></h4>
       <div class="rowlist">
         ${f.milestones.map(m => `<div class="rowitem">
           <span class="chip ${m.role==='state'?'accent':'plain'}">${m.day===0?'day 0':m.day<180?('day '+m.day):'6 mo'}</span>
