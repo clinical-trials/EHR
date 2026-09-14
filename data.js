@@ -969,6 +969,8 @@ Object.assign(EVIDENCE, {
   bcma:{ pmid:"20445181", cite:"Poon et al., N Engl J Med 2010 — bar-code medication administration (a VA-pioneered practice) cut non-timing administration errors ~41% and potential adverse drug events ~51%, and eliminated transcription errors." },
   reachVet:{ pmid:"36039552", cite:"Matarazzo et al., Psychiatr Serv 2022 — the VA's REACH VET suicide-prediction model, deployed across the nation's largest health system; 98% of 6,579 identified veterans were contacted and had care reviewed — a real, monitored, population-level predictive model." },
   pact:{ pmid:"25539056", cite:"Ladebue & Helfrich et al., Health Care Manage Rev 2016 — VA Patient Aligned Care Teams (PACT/PCMH 'teamlet') improved patient relationships and satisfaction, but understaffing drove burnout: team-based care helps only when adequately staffed." },
+  lobelo:{ pmid:"26213523", cite:"Lobelo & de Quevedo, Am J Lifestyle Med 2016 — physicians who are physically active counsel patients on activity more effectively and are credible role models; a clinician's own health behaviors matter to their patients and to themselves." },
+  lifestyle:{ pmid:"29712712", cite:"Li et al., Circulation 2018 — five low-risk lifestyle factors (never smoking, healthy weight, ≥30 min/day activity, high diet quality, moderate alcohol) were associated with ~14 more years of life expectancy at age 50 for women and ~12 for men; the cohorts included the Health Professionals Follow-up Study, so the evidence speaks directly to clinicians' own nutrition and exercise." },
 });
 
 /* ---------- Standards we speak + privacy law we honor ---------- */

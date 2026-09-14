@@ -1,6 +1,6 @@
 # LumaChart — Annotated Bibliography
 
-Auto-generated from the running evidence base (data.js). 55 peer-reviewed sources + 35 reports, standards & legislation.
+Auto-generated from the running evidence base (data.js). 57 peer-reviewed sources + 35 reports, standards & legislation.
 
 ## Peer-reviewed literature (PubMed)
 
@@ -39,6 +39,8 @@ Auto-generated from the running evidence base (data.js). 55 peer-reviewed source
 - **Kroenke, Spitzer & Williams, J Gen Intern Med 2001** — the PHQ-9, a validated brief depression severity measure. [PMID 11556941](https://pubmed.ncbi.nlm.nih.gov/11556941/) _(key: `phq9`)_
 - **Kutney-Lee, Brooks Carthon, Sloane et al., Med Care 2021** — 12,004 nurses, 343 hospitals: poorer EHR usability → higher odds of burnout (OR 1.41), job dissatisfaction (1.61), and intent to leave (1.31). [PMID 33797506](https://pubmed.ncbi.nlm.nih.gov/33797506/) _(key: `kutneyLee`)_
 - **Ladebue & Helfrich et al., Health Care Manage Rev 2016** — VA Patient Aligned Care Teams (PACT/PCMH 'teamlet') improved patient relationships and satisfaction, but understaffing drove burnout: team-based care helps only when adequately staffed. [PMID 25539056](https://pubmed.ncbi.nlm.nih.gov/25539056/) _(key: `pact`)_
+- **Li et al., Circulation 2018** — five low-risk lifestyle factors (never smoking, healthy weight, ≥30 min/day activity, high diet quality, moderate alcohol) were associated with ~14 more years of life expectancy at age 50 for women and ~12 for men; the cohorts included the Health Professionals Follow-up Study, so the evidence speaks directly to clinicians' own nutrition and exercise. [PMID 29712712](https://pubmed.ncbi.nlm.nih.gov/29712712/) _(key: `lifestyle`)_
+- **Lobelo & de Quevedo, Am J Lifestyle Med 2016** — physicians who are physically active counsel patients on activity more effectively and are credible role models; a clinician's own health behaviors matter to their patients and to themselves. [PMID 26213523](https://pubmed.ncbi.nlm.nih.gov/26213523/) _(key: `lobelo`)_
 - **Mafi et al., Ann Intern Med 2018** — patients contributing to notes can increase efficiency & engagement. [PMID 29132154](https://pubmed.ncbi.nlm.nih.gov/29132154/) _(key: `mafi`)_
 - **Matarazzo et al., Psychiatr Serv 2022** — the VA's REACH VET suicide-prediction model, deployed across the nation's largest health system; 98% of 6,579 identified veterans were contacted and had care reviewed — a real, monitored, population-level predictive model. [PMID 36039552](https://pubmed.ncbi.nlm.nih.gov/36039552/) _(key: `reachVet`)_
 - **Melnick et al., Mayo Clin Proc 2020** — physicians rate EHR usability 45.9/100 on the System Usability Scale (grade F, bottom 9% of technologies); each 1-point improvement ≈ 3% lower odds of burnout. [PMID 31735343](https://pubmed.ncbi.nlm.nih.gov/31735343/) _(key: `melnickSUS`)_

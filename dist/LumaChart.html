@@ -1479,6 +1479,8 @@ Object.assign(EVIDENCE, {
   bcma:{ pmid:"20445181", cite:"Poon et al., N Engl J Med 2010 — bar-code medication administration (a VA-pioneered practice) cut non-timing administration errors ~41% and potential adverse drug events ~51%, and eliminated transcription errors." },
   reachVet:{ pmid:"36039552", cite:"Matarazzo et al., Psychiatr Serv 2022 — the VA's REACH VET suicide-prediction model, deployed across the nation's largest health system; 98% of 6,579 identified veterans were contacted and had care reviewed — a real, monitored, population-level predictive model." },
   pact:{ pmid:"25539056", cite:"Ladebue & Helfrich et al., Health Care Manage Rev 2016 — VA Patient Aligned Care Teams (PACT/PCMH 'teamlet') improved patient relationships and satisfaction, but understaffing drove burnout: team-based care helps only when adequately staffed." },
+  lobelo:{ pmid:"26213523", cite:"Lobelo & de Quevedo, Am J Lifestyle Med 2016 — physicians who are physically active counsel patients on activity more effectively and are credible role models; a clinician's own health behaviors matter to their patients and to themselves." },
+  lifestyle:{ pmid:"29712712", cite:"Li et al., Circulation 2018 — five low-risk lifestyle factors (never smoking, healthy weight, ≥30 min/day activity, high diet quality, moderate alcohol) were associated with ~14 more years of life expectancy at age 50 for women and ~12 for men; the cohorts included the Health Professionals Follow-up Study, so the evidence speaks directly to clinicians' own nutrition and exercise." },
 });
 
 /* ---------- Standards we speak + privacy law we honor ---------- */
@@ -1925,6 +1927,7 @@ const state = {
   deathStage: "pronounce",               // EDRS death-certificate workflow stage
   maidOpen: false,                        // MAID module expanded (sensitive; collapsed by default)
   bcmaScanned: false,                     // VA-style closed-loop medication scan verified (demo)
+  selfLog: store.get("selfLog", { week:[30,0,45,20,0,60,15], nourished:4 }), // clinician's own private movement/nutrition log
   _idUploaded: false,
   cmeReqIdx: store.get("cmeReqIdx", 0),  // selected state requirement (default Puerto Rico)
   cmeBooked: store.get("cmeBooked", {}), // booked CME programs
@@ -2510,6 +2513,29 @@ function vWellness(){
   return `
   <h1 class="page-title">Wellness Center</h1>
   <p class="page-sub">Evidence-based practices, built into the workday — because individual <i>and</i> organizational interventions both work.${ev("west")}</p>
+
+  ${(() => { const w = state.selfLog.week, total = w.reduce((a,b)=>a+b,0), goal = 150, pct = Math.min(Math.round(total/goal*100),100);
+    return `<div class="card" style="margin-bottom:16px">
+    <h3>🥗 Your movement &amp; nutrition <span class="chip green">private to you</span></h3>
+    <div class="small" style="margin-bottom:8px">A healthier clinician is a better clinician — physically active physicians counsel patients more effectively and are credible role models.${ev("lobelo")} This log is <b>yours alone</b>: on your device, never wired to productivity, scheduling, or employment — the same promise as Canary. Use it to nudge your own behavior toward what you'd prescribe. Nutrition and exercise are among the biggest levers on a healthy life for everyone, clinicians included — five low-risk lifestyle factors added ~12–14 years of life expectancy in cohorts that included health professionals.${ev("lifestyle")}</div>
+    <div class="grid g2">
+      <div>
+        <div class="metric"><div class="v ${total>=goal?'':''}" style="color:${total>=goal?'var(--green)':'var(--amber)'}">${total} <span style="font-size:15px">min/wk</span></div><div class="l">of the ${goal}-min WHO weekly goal · even 15 min/day added ~3 years of life in a 416,000-person cohort${ev("activity")}</div></div>
+        <div class="bar" style="margin-top:6px"><i class="${total>=goal?'green':'amber'}" style="width:${pct}%"></i></div>
+      </div>
+      <div>
+        ${sparkline(w.map((m,i)=>({s:m})), Math.max(...w,30))}
+        <div class="tiny">Last 7 days · ${state.selfLog.nourished}/7 nourishing-eating days logged</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap">
+      <button class="btn primary small" data-self="15">+15 min moved today</button>
+      <button class="btn small" data-self="30">+30 min</button>
+      <button class="btn ghost small" data-self="nourish">🥗 Logged a nourishing day</button>
+      <button class="btn ghost small" data-self="reset" style="margin-left:auto">Reset week</button>
+    </div>
+    <div class="tiny" style="margin-top:8px">No streaks-as-pressure, no leaderboards — a quiet mirror, not another scoreboard. Delete it any time; it never leaves your device in this demo.</div>
+  </div>`; })()}
 
   <div class="grid g2">
     <div class="card">
@@ -4660,6 +4686,15 @@ function wireView(){
   const ca = $("#claim-assemble"); if (ca) ca.addEventListener("click", () => { state.claim.stage = "agent"; render(); toast("🤖 Billing agent", "Claim assembled (837P) from your verified codes + demographics, and handed to the biller.", "green"); });
   const cb = $("#claim-biller"); if (cb) cb.addEventListener("click", () => { state.claim.stage = "biller"; render(); });
   const cs = $("#claim-submit"); if (cs) cs.addEventListener("click", () => { state.claim.stage = "submitted"; render(); toast("Claim submitted", "Routed to the clearinghouse through the Puerto Rico bridge connector.", "green"); });
+  // --- clinician's own private movement/nutrition log ---
+  $$("[data-self]").forEach(b => b.addEventListener("click", () => {
+    const v = b.dataset.self, sl = state.selfLog;
+    if (v === "15" || v === "30") { sl.week[sl.week.length-1] += +v; toast("Logged — nice", `+${v} minutes today. Private to you; a quiet mirror, not a scoreboard.`, "green"); }
+    else if (v === "nourish") { sl.nourished = Math.min(sl.nourished + 1, 7); toast("Noted 🥗", "A nourishing day logged — for you, not for anyone to review.", "green"); }
+    else if (v === "reset") { state.selfLog = { week:[0,0,0,0,0,0,0], nourished:0 }; }
+    store.set("selfLog", state.selfLog); render();
+  }));
+
   // --- VA-inspired: closed-loop medication safety (BCMA) ---
   const bcmaScan = $("[data-bcma-scan]"); if (bcmaScan) bcmaScan.addEventListener("click", () => { state.bcmaScanned = true; render(); toast("Five rights verified ✓", "Right patient · drug · dose · route · time. The VA-pioneered barcode check that cut administration errors ~41% (Poon, NEJM 2010). Recorded to the MAR. (Demo.)", "green"); });
   const bcmaReset = $("[data-bcma-reset]"); if (bcmaReset) bcmaReset.addEventListener("click", () => { state.bcmaScanned = false; render(); });
