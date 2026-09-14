@@ -938,6 +938,14 @@ const AUTHORITIES = {
     cite:"45 CFR Part 170 — the federal EHR standards, implementation specifications, and certification criteria (the HITECH Act's ONC Health IT Certification Program): Subpart B standards (§170.205/207/210), Subpart C criteria (§170.315), Subpart D Conditions & Maintenance of Certification (§170.401–406). LumaChart is built to this structure." },
   hti1:{ label:"HTI-1..4", url:"https://www.healthit.gov/topic/laws-regulation-and-policy/health-data-technology-and-interoperability-certification-program-hti-1-final-rule",
     cite:"ASTP/ONC HTI final rules updating 45 CFR Part 170 — HTI-1 (2024): Decision Support Interventions §170.315(b)(11) replacing (a)(9), USCDI v3 baseline (eff. Jan 1 2026), Insights Condition; HTI-2/3 (2024): TEFCA + information-blocking; HTI-4 (2025): electronic prior authorization + e-prescribing." },
+  vrdr:{ label:"VRDR FHIR", url:"https://hl7.org/fhir/us/vrdr/",
+    cite:"HL7 Vital Records Death Reporting (VRDR) FHIR Implementation Guide — the standard for exchanging death-certificate data between EHRs, jurisdictional Electronic Death Registration Systems (EDRS), and CDC/NCHS." },
+  nvss:{ label:"CDC NVSS", url:"https://www.cdc.gov/nchs/nvss/index.htm",
+    cite:"CDC/NCHS National Vital Statistics System — the federal system that aggregates state death records; cause of death is coded to ICD-10 (via NCHS MICAR/ACME) and feeds national mortality statistics and public health surveillance." },
+  adi:{ label:"ADI FHIR", url:"https://hl7.org/fhir/us/pacio-adi/",
+    cite:"HL7 PACIO Advance Directives Interoperability (ADI) FHIR IG — exchanging advance directives, healthcare-agent designations, and portable medical orders (POLST); Advance Directive Information is a USCDI data class." },
+  maidNM:{ label:"NM EOL Act", url:"https://www.nmlegis.gov/",
+    cite:"New Mexico Elizabeth Whitefield End-of-Life Options Act (2021) — authorizes medical aid in dying with defined eligibility, request, and reporting requirements; per statute the underlying terminal illness (not suicide) is the cause of death on the certificate. Ten U.S. jurisdictions authorize MAID." },
   patientAccess:{ label:"Patient Access", url:"https://healthit.gov/patient-access-to-health-records/developers",
     cite:"ONC patient-access developer guidance — patients have a right to their electronic health information through standards-based APIs; the foundation of LumaChart's patient-mediated record and SMART on FHIR app access." },
   apiConditions:{ label:"API Conditions", url:"https://healthit.gov/certification-health-it/conditions-ccg/application-programming-interfaces",
@@ -1005,6 +1013,65 @@ const CERT170 = {
     { s:"§170.405 Real World Testing", st:"planned", d:"Annual plans + results proving the certified API works in production, not just the lab." },
     { s:"§170.406 Attestations", st:"planned", d:"Semiannual attestations to the Conditions of Certification, on the CHPL." },
   ],
+};
+
+/* ==========================================================================
+   END OF LIFE — advance directives, death registration (EDRS/VRDR), and MAID.
+   A full EHR must serve the end of life with dignity, compliance, and the
+   public-health duty of accurate mortality data. All synthetic / demo.
+   ========================================================================== */
+const EOL = {
+  directives: [
+    { t:"Code status", v:"DNR / DNI on file", who:"patient + Dr. Chen", date:"2026-03-02", tone:"amber" },
+    { t:"Healthcare agent (proxy)", v:"Designated — daughter, M. Alvarez", who:"notarized", date:"2025-11-14", tone:"green" },
+    { t:"Advance directive / living will", v:"On file", who:"patient", date:"2025-11-14", tone:"green" },
+    { t:"POLST (portable medical orders)", v:"Not yet completed", who:"—", date:"", tone:"plain" },
+  ],
+  note:"Advance Directive Information is a USCDI data class; LumaChart exchanges it as FHIR (Consent / DocumentReference) via the PACIO ADI IG, so a patient's wishes travel with them across settings — the antidote to the too-common story of directives that never arrive when they matter.",
+};
+
+// Electronic Death Registration — the medical certifier's workflow, EDRS-connected
+const DEATHCERT = {
+  patient:"Earl Bishop (71M)", pronounced:"2026-09-10 04:12",
+  steps: [
+    { k:"pronounce", t:"Pronounce & confirm", d:"Date/time of death, place, attending certifier identity." },
+    { k:"cause",     t:"Cause-of-death statement", d:"The causal chain — immediate → underlying — plus contributing conditions and manner." },
+    { k:"certify",   t:"Certify & code", d:"Certifier attests; cause is coded to ICD-10 (NCHS ACME/MICAR)." },
+    { k:"filed",     t:"File to state EDRS", d:"Transmitted to the jurisdiction's vital-records system via VRDR FHIR → CDC/NCHS." },
+  ],
+  cause: {
+    immediate:"a. Acute respiratory failure",
+    due1:"b. due to COPD exacerbation",
+    underlying:"c. due to chronic obstructive pulmonary disease (J44.1)",
+    contributing:"Type 2 diabetes; hypertension",
+    manner:"Natural",
+  },
+  states: [
+    { s:"New Mexico", edrs:"NM-EDRS", status:"connected" },
+    { s:"California", edrs:"CA-EDRS (CalEDRS)", status:"connected" },
+    { s:"Texas", edrs:"TX-EDRS (TxEVER)", status:"connected" },
+    { s:"Puerto Rico", edrs:"PR Registro Demográfico", status:"connected" },
+  ],
+};
+
+// Medical Aid in Dying — a compliance-first, statute-bound workflow (where legal)
+const MAID = {
+  legalNote:"Authorized in 10 U.S. jurisdictions (CA, CO, DC, HI, ME, NJ, NM, OR, VT, WA; MT via court). LumaChart enables the workflow only in jurisdictions where it is lawful and only for clinicians who choose to participate — participation is voluntary for patient and clinician alike.",
+  eligibility: [
+    "Adult, capable of making health decisions, and a resident of an authorizing jurisdiction",
+    "Terminal illness with a prognosis (commonly ≤6 months), confirmed by attending + consulting clinicians",
+    "Acting voluntarily; able to self-administer per statute",
+  ],
+  steps: [
+    { t:"First oral request", d:"Recorded; the statutory clock begins." },
+    { t:"Consulting clinician confirmation", d:"Independent confirmation of diagnosis, prognosis, capacity, and voluntariness." },
+    { t:"Written request", d:"Signed, witnessed per the jurisdiction's form and witness rules." },
+    { t:"Waiting period(s)", d:"Statutory intervals observed (varies by state; NM streamlined vs Oregon's 15-day)." },
+    { t:"Informed consent & alternatives", d:"Hospice, palliative care, and pain management offered and documented." },
+    { t:"Attending attestation & prescription", d:"Final eligibility attested; the patient self-administers." },
+    { t:"Mandatory state reporting", d:"Report filed with the Department of Health as the statute requires." },
+  ],
+  deathCert:"On the death certificate the cause of death is the underlying terminal illness — by statute MAID is not classified as suicide.",
 };
 
 /* ---------- §170.315 criterion registry — cite the law like a PMID (reg()) ---------- */

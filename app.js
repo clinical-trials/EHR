@@ -42,6 +42,8 @@ const state = {
   claim:     { dxAdded:false, verified:{}, stage:"code" }, // encounter/claim workflow
   myrecord:  store.get("myrecord", { step:0 }),  // patient-mediated record request (right of access)
   deterDismissed: false,                 // deterioration early-warning alert acted/dismissed this session
+  deathStage: "pronounce",               // EDRS death-certificate workflow stage
+  maidOpen: false,                        // MAID module expanded (sensitive; collapsed by default)
   _idUploaded: false,
   cmeReqIdx: store.get("cmeReqIdx", 0),  // selected state requirement (default Puerto Rico)
   cmeBooked: store.get("cmeBooked", {}), // booked CME programs
@@ -151,6 +153,7 @@ const NAVS = {
       { id:"inbox",     ic:"✉", t:"Inbox", badge:() => INBOX.length },
       { id:"readmit",   ic:"⤾", t:"Risk & early warning", badge:() => state.deterDismissed ? null : "!" },
       { id:"billing",   ic:"⛁", t:"Encounter & claim" },
+      { id:"eol",       ic:"🕊", t:"End of life & vital records" },
       { id:"analytics", ic:"📊", t:"Revenue & analytics" },
     ]},
     { label:"Professional", items:[
@@ -735,6 +738,61 @@ function vCanary(){
 /* ==========================================================================
    ROADMAP — gates, ONC §170.315 tracker, build-vs-buy, plan thesis
    ========================================================================== */
+/* ==========================================================================
+   END OF LIFE & VITAL RECORDS — advance directives, EDRS death filing, MAID
+   ========================================================================== */
+function vEndOfLife(){
+  const d = DEATHCERT, idx = d.steps.findIndex(s => s.k === state.deathStage);
+  const done = state.deathStage === "filed";
+  const dChip = t => `<span class="chip ${t}">${t==="green"?"on file":t==="amber"?"active":"—"}</span>`;
+  return `
+  <h1 class="page-title">🕊 End of life &amp; vital records</h1>
+  <p class="page-sub">A full record serves the end of life with dignity — honoring the patient's wishes, easing one of medicine's heaviest paperwork burdens, and meeting the public-health duty of accurate mortality data. Everything here is synthetic demonstration.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>📜 Advance directives &amp; code status ${aut("adi")}</h3>
+    <div class="rowlist">
+      ${EOL.directives.map(x=>`<div class="rowitem">${dChip(x.tone)}
+        <div style="flex:1"><div class="t small">${x.t} — <b>${x.v}</b></div><div class="d">${x.who}${x.date?` · ${x.date}`:""}</div></div></div>`).join("")}
+    </div>
+    <div class="evidence">${EOL.note}</div>
+    ${EOL.directives.some(x=>x.tone==="plain") ? `<button class="btn ghost small" style="margin-top:10px" data-eol-polst>Start POLST with the patient</button>` : ""}
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>⚰ Death certificate — electronic filing (EDRS) ${aut("vrdr")}</h3>
+    <p class="small" style="margin-bottom:8px">Decedent: <b>${d.patient}</b> · pronounced ${d.pronounced}. The medical certifier completes the cause-of-death statement; LumaChart files it to the state's Electronic Death Registration System and on to CDC/NCHS — replacing the fax-and-paper process that delays families and distorts mortality data.</p>
+    <div class="rowlist">
+      ${d.steps.map((s,i)=>`<div class="rowitem"><span class="chip ${i<idx?'green':i===idx?'accent':'plain'}">${i<idx?'✓':i+1}</span>
+        <div style="flex:1"><div class="t small">${s.t}</div><div class="d">${s.d}</div></div></div>`).join("")}
+    </div>
+    <div class="box" style="margin-top:10px; background:var(--surface2); border:1px solid var(--line); border-radius:10px; padding:10px 12px">
+      <div class="tiny" style="text-transform:uppercase; letter-spacing:.08em; color:var(--text-3)">Cause of death — causal chain</div>
+      <div class="small">${d.cause.immediate}<br>&nbsp;&nbsp;${d.cause.due1}<br>&nbsp;&nbsp;&nbsp;&nbsp;${d.cause.underlying}</div>
+      <div class="tiny" style="margin-top:6px">Contributing: ${d.cause.contributing} · Manner: <b>${d.cause.manner}</b> · coded to ICD-10 automatically ${aut("nvss")}</div>
+    </div>
+    ${done
+      ? `<div class="evidence" style="border-color:var(--green)">✓ Filed to ${d.states[0].edrs} via VRDR FHIR and forwarded to CDC/NCHS. The family's copy and the burial-transit permit are released automatically. <button class="btn ghost small" data-eol-reset style="margin-left:8px">Start over</button></div>`
+      : `<button class="btn primary small" style="margin-top:10px" data-eol-advance>${idx<d.steps.length-1 ? d.steps[idx+1].t + " →" : "File →"}</button>`}
+    <div class="tiny" style="margin-top:10px">Connected state systems (demo): ${d.states.map(s=>`<span class="chip green">${s.s}</span>`).join(" ")} — the same connector pattern as the Puerto Rico payer bridge, extended to vital records. Not a current §170.315 criterion; VRDR is the emerging national standard.</div>
+  </div>
+
+  <div class="card">
+    <h3>🤝 Medical aid in dying (MAID) <span class="chip plain">jurisdiction-limited · voluntary</span>
+      <button class="btn ghost small" style="margin-left:auto" data-maid-toggle>${state.maidOpen?"Hide":"Open module"}</button></h3>
+    <div class="small">Where it is lawful, medical aid in dying is a legitimate end-of-life option — and it demands rigorous, auditable documentation. LumaChart supports the workflow with compliance and neutrality: no advocacy, statute-bound, and voluntary for patient and clinician alike.${aut("maidNM")}</div>
+    ${state.maidOpen ? `
+    <div class="tiny" style="margin:10px 0">${MAID.legalNote}</div>
+    <h4 style="margin:8px 0 4px; font-size:12px">Eligibility (confirmed by attending + consulting clinicians)</h4>
+    <ul class="small" style="margin:0 0 8px 18px">${MAID.eligibility.map(e=>`<li>${e}</li>`).join("")}</ul>
+    <h4 style="margin:8px 0 4px; font-size:12px">Statutory workflow — every step timestamped &amp; audit-logged</h4>
+    <div class="rowlist">${MAID.steps.map((s,i)=>`<div class="rowitem"><span class="chip accent">${i+1}</span>
+      <div class="d" style="flex:1"><b>${s.t}</b> — ${s.d}</div></div>`).join("")}</div>
+    <div class="evidence">${MAID.deathCert} The mandatory Department of Health report is generated from the same structured data — no separate paperwork. Related venture context: the Luminaria MAID care-coordination work (NM).</div>
+    ` : ""}
+  </div>`;
+}
+
 /* ---------- Certification (45 CFR Part 170) — the full program, honestly mapped ---------- */
 function certChip(st){
   const m = { proto:["green","✓ proto"], "designed-in":["green","designed-in"], partial:["amber","partial"],
@@ -2594,7 +2652,7 @@ function vHelix(){
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, cert:vCert, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, eol:vEndOfLife, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, cert:vCert, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, myrecord:vMyRecord, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, biblio:vBiblio },
@@ -2704,6 +2762,17 @@ function wireView(){
   const ca = $("#claim-assemble"); if (ca) ca.addEventListener("click", () => { state.claim.stage = "agent"; render(); toast("🤖 Billing agent", "Claim assembled (837P) from your verified codes + demographics, and handed to the biller.", "green"); });
   const cb = $("#claim-biller"); if (cb) cb.addEventListener("click", () => { state.claim.stage = "biller"; render(); });
   const cs = $("#claim-submit"); if (cs) cs.addEventListener("click", () => { state.claim.stage = "submitted"; render(); toast("Claim submitted", "Routed to the clearinghouse through the Puerto Rico bridge connector.", "green"); });
+  // --- end of life & vital records ---
+  const eolAdv = $("[data-eol-advance]"); if (eolAdv) eolAdv.addEventListener("click", () => {
+    const order = ["pronounce","cause","certify","filed"];
+    const i = order.indexOf(state.deathStage);
+    state.deathStage = order[Math.min(i+1, order.length-1)]; render();
+    if (state.deathStage === "filed") toast("Death certificate filed", "Transmitted to the state EDRS via VRDR FHIR and forwarded to CDC/NCHS. Family copy + burial-transit permit released. (Demo.)", "green");
+  });
+  const eolReset = $("[data-eol-reset]"); if (eolReset) eolReset.addEventListener("click", () => { state.deathStage = "pronounce"; render(); });
+  const eolPolst = $("[data-eol-polst]"); if (eolPolst) eolPolst.addEventListener("click", () => toast("POLST started", "Portable medical orders drafted with the patient; will exchange via the PACIO ADI FHIR IG so the orders travel across settings. (Demo.)", "green"));
+  const maidT = $("[data-maid-toggle]"); if (maidT) maidT.addEventListener("click", () => { state.maidOpen = !state.maidOpen; render(); });
+
   const dact = $("[data-deter-act]"); if (dact) dact.addEventListener("click", () => { state.deterDismissed = true; render(); toast("Sepsis order set opened", "Antibiotics, fluids and a lactate re-check queued — one tap, from one alert. The model learns this was a true positive. (Simulated.)", "green"); });
   const ddis = $("[data-deter-dismiss]"); if (ddis) ddis.addEventListener("click", () => { state.deterDismissed = true; render(); toast("Dismissed — thank you", "Your reason tunes the model so it earns trust. A dismissed alert never nags you again. (Simulated.)", "green"); });
   const car = $("#claim-ar"); if (car) car.addEventListener("click", () => { state.claim.stage = "ar"; render(); toast("🤖 AR agent watching", "The agent follows this claim to its outcome — you'll hear about decisions, never statuses. (Simulated.)", "green"); });
