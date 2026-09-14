@@ -944,6 +944,16 @@ const AUTHORITIES = {
     cite:"CDC/NCHS National Vital Statistics System — the federal system that aggregates state death records; cause of death is coded to ICD-10 (via NCHS MICAR/ACME) and feeds national mortality statistics and public health surveillance." },
   adi:{ label:"ADI FHIR", url:"https://hl7.org/fhir/us/pacio-adi/",
     cite:"HL7 PACIO Advance Directives Interoperability (ADI) FHIR IG — exchanging advance directives, healthcare-agent designations, and portable medical orders (POLST); Advance Directive Information is a USCDI data class." },
+  vista:{ label:"VA VistA", url:"https://www.va.gov/health/",
+    cite:"U.S. Department of Veterans Affairs VistA/CPRS — the most-studied public, open/public-domain EHR, run across the nation's largest integrated health system; source of BCMA, clinical reminders, the VA↔DoD lifelong record, Whole Health, and Blue Button." },
+  blueButton:{ label:"Blue Button", url:"https://www.healthit.gov/topic/health-it-initiatives/blue-button",
+    cite:"Blue Button — originated by the VA (2010) to let patients download their own health records; the ancestor of today's patient-access APIs and LumaChart's patient-mediated 'My record'." },
+  fehrm:{ label:"Federal EHR", url:"https://digital.va.gov/ehr-modernization/about/federal_ehr_governance/",
+    cite:"Federal Electronic Health Record governance (FEHRM) — a single, common EHR governed jointly across VA, DoD, and the U.S. Coast Guard; a working model for multi-organization EHR governance and a lifelong record across agencies." },
+  vaEhrm:{ label:"VA EHRM", url:"https://digital.va.gov/ehr-modernization/",
+    cite:"VA Electronic Health Record Modernization (Oracle Health/Cerner) — the multi-billion-dollar effort to replace VistA faced usability, safety, and rollout challenges (deployments paused and reset), a cautionary lesson that usability-first, incremental, composition-based change beats big-bang replacement." },
+  vaDeploy:{ label:"VA Deployment", url:"https://digital.va.gov/ehr-modernization/ehr-deployment-schedule/",
+    cite:"VA EHR phased deployment schedule — a published, site-by-site rollout wave plan with readiness gates; a model for how LumaChart should deploy: one site/specialty at a time, gated and measured, never big-bang." },
   maidNM:{ label:"NM EOL Act", url:"https://www.nmlegis.gov/",
     cite:"New Mexico Elizabeth Whitefield End-of-Life Options Act (2021) — authorizes medical aid in dying with defined eligibility, request, and reporting requirements; per statute the underlying terminal illness (not suicide) is the cause of death on the certificate. Ten U.S. jurisdictions authorize MAID." },
   patientAccess:{ label:"Patient Access", url:"https://healthit.gov/patient-access-to-health-records/developers",
@@ -956,6 +966,9 @@ const AUTHORITIES = {
 
 Object.assign(EVIDENCE, {
   shanafelt9:{ pmid:"27871627", cite:"Shanafelt & Noseworthy, Mayo Clin Proc 2017 — nine evidence-based organizational strategies executive leaders can use to reduce burnout and promote engagement." },
+  bcma:{ pmid:"20445181", cite:"Poon et al., N Engl J Med 2010 — bar-code medication administration (a VA-pioneered practice) cut non-timing administration errors ~41% and potential adverse drug events ~51%, and eliminated transcription errors." },
+  reachVet:{ pmid:"36039552", cite:"Matarazzo et al., Psychiatr Serv 2022 — the VA's REACH VET suicide-prediction model, deployed across the nation's largest health system; 98% of 6,579 identified veterans were contacted and had care reviewed — a real, monitored, population-level predictive model." },
+  pact:{ pmid:"25539056", cite:"Ladebue & Helfrich et al., Health Care Manage Rev 2016 — VA Patient Aligned Care Teams (PACT/PCMH 'teamlet') improved patient relationships and satisfaction, but understaffing drove burnout: team-based care helps only when adequately staffed." },
 });
 
 /* ---------- Standards we speak + privacy law we honor ---------- */
@@ -1014,6 +1027,17 @@ const CERT170 = {
     { s:"§170.406 Attestations", st:"planned", d:"Semiannual attestations to the Conditions of Certification, on the CHPL." },
   ],
 };
+
+/* ---------- Learning from the VA — best features of America's public EHR ---------- */
+const VA_FEATURES = [
+  { f:"Bar-code medication administration (BCMA)", va:"A VA nurse invented BCMA in the 1990s; the VA deployed it nationally — closed-loop 'five rights' scanning at the bedside.", luma:"Closed-loop med-safety check below — scan patient + medication before administration.", ev:"bcma", reg:"a1", tag:"adopt" },
+  { f:"Governed predictive models (REACH VET)", va:"The VA runs a national, monitored suicide-prediction model that reached 98% of flagged veterans — proof a population risk model can be deployed responsibly.", luma:"Canary + the deterioration early-warning, each transparent (§170.315(b)(11)) and bounded by the RSI/PCCP governance.", ev:"reachVet", reg:"b11", tag:"precedent" },
+  { f:"Team-based care (PACT 'teamlet')", va:"VA Patient Aligned Care Teams improved relationships & satisfaction — but understaffing caused burnout.", luma:"Suggested delegation steps + batched inbox — with the honest lesson built in: delegate only to a team that is actually staffed.", ev:"pact", tag:"adopt" },
+  { f:"Patient-held records (Blue Button)", va:"The VA originated Blue Button (2010) — patients downloading their own records.", luma:"Patient-mediated 'My record' + SMART app access — the modern, API-based descendant.", aut:"blueButton", reg:"e1", tag:"adopt" },
+  { f:"Open / public-domain platform (VistA)", va:"VistA is public-domain and openly studied — no vendor lock-in.", luma:"Open-by-default: §170.404 API Conditions, information blocking posture, FHIR-native (Medplum/Aidbox) core.", aut:"vista", reg:"cond404", tag:"adopt" },
+  { f:"Lifelong record (VA↔DoD)", va:"A cradle-to-grave record following the service member from DoD into the VA.", luma:"The unified 'My record' timeline reconciling every setting — the same lifelong-record idea for everyone.", tag:"adopt" },
+  { f:"Whole Health System", va:"The VA's whole-person model — well-being, not just disease.", luma:"The entire well-being-first architecture: Canary, Focus, Wellness Center, CWO tab.", aut:"sgAdvisory", tag:"adopt" },
+];
 
 /* ==========================================================================
    END OF LIFE — advance directives, death registration (EDRS/VRDR), and MAID.

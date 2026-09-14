@@ -85,6 +85,27 @@ Pick a few (17 + 18 are the highest-leverage and reuse existing components). Cit
 plus the existing namAccel/sgAdvisory/natPlan. Quotable for the deck: "The influence you have may be more
 valuable than the budget line" (Ripp); "Wellness starts with we" (Segall).
 
+## Wave 6 — Learning from the VA / Federal EHR (added 2026-09-14)
+
+The VA runs the most-studied public EHR (VistA/CPRS). "Best ideas, improved" — adopt what it proved, cite the evidence, and learn from the modernization stumble. Built into the app (Best ideas, improved → "Learning from the VA") and the annotated bibliography.
+
+**Features adopted, with evidence:**
+- **BCMA** closed-loop med safety (VA-pioneered) — Poon NEJM 2010 (PMID 20445181): ~41% fewer administration errors, ~51% fewer potential ADEs. Shipped as a five-rights scan demo, §170.315(a)(1).
+- **REACH VET** governed suicide-prediction model — Matarazzo Psychiatr Serv 2022 (PMID 36039552): national, monitored, 98% of 6,579 contacted. Precedent for Canary/deterioration under our RSI/PCCP governance; the mixed clinician-attitude finding reinforces "adoption is the metric."
+- **PACT teamlet** team-based care — Ladebue/Helfrich HCMR 2016 (PMID 25539056): helped relationships/satisfaction but **backfired where understaffed** — the honest lesson baked into our delegation feature.
+- **Blue Button** (VA-originated patient download) → patient-mediated "My record."
+- **VistA open/public-domain** → open-by-default (§170.404, information blocking, FHIR-native core).
+- **VA↔DoD lifelong record** → the unified timeline for everyone.
+- **Whole Health System** → the well-being-first architecture.
+
+**Models to adopt (not features but methods):**
+- **Federal EHR governance (FEHRM)** — joint governance across VA/DoD/USCG; a template for multi-org governance + a cross-agency lifelong record.
+- **Phased, site-by-site deployment with readiness gates** (VA's published schedule) — the rollout methodology for LumaChart's pilot-to-scale path; ties to the Readiness view + Becker's build #2. Honest counter-lesson: the Oracle/Cerner big-bang replacement stumbled on usability/safety — incremental + usability-first wins.
+
+**Key connection to review — Dr. Neil C. Evans, MD:** Program Executive Director, VA EHR Modernization Integration Office; Chief Officer, VA Office of Connected Care (telehealth, patient portal, mobile); former Acting VA CIO; former interim director, FEHRM. **Practicing primary-care physician**, board-certified in Internal Medicine *and* Clinical Informatics, Clinical Associate Professor at USUHS. **Johns Hopkins-trained (med school + Osler residency)** — a direct tie to Deanna Hanisch (JHHS, Becker's collaborator #1). Publication domain: connected care / telehealth / Veteran digital health (PubMed shows a substantial body under the name — confirm via ORCID). An ideal advisor on Federal-EHR interoperability, connected care, and phased deployment.
+
+**Possible VA field sites to interview (Indiana, deployment wave 3, ~Aug 22 2026):** Fort Wayne VAMC; Marion VAMC; Richard L. Roudebush VAMC (Indianapolis). Real, recently-deployed sites — a chance to learn what the modernization got right and wrong first-hand, and to pressure-test LumaChart's usability-first, incremental thesis.
+
 ## Sequence & effort guess
 
 Wave 1 ≈ one working session (all four are small, verified patterns exist).

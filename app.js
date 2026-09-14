@@ -44,6 +44,7 @@ const state = {
   deterDismissed: false,                 // deterioration early-warning alert acted/dismissed this session
   deathStage: "pronounce",               // EDRS death-certificate workflow stage
   maidOpen: false,                        // MAID module expanded (sensitive; collapsed by default)
+  bcmaScanned: false,                     // VA-style closed-loop medication scan verified (demo)
   _idUploaded: false,
   cmeReqIdx: store.get("cmeReqIdx", 0),  // selected state requirement (default Puerto Rico)
   cmeBooked: store.get("cmeBooked", {}), // booked CME programs
@@ -2149,6 +2150,23 @@ function vCompete(){
     <div class="evidence">This is why usability isn't a polish item at LumaChart — it's the product. The Burden lab exists to prove the SUS score and the audit-log minutes move, not just claim it.</div>
   </div>
 
+  <div class="card" style="margin:0 0 16px">
+    <h3>🎖 Learning from the VA — America's proven public EHR</h3>
+    <div class="small" style="margin-bottom:8px">The VA's VistA/CPRS is the most-studied public EHR, run across the nation's largest integrated system.${aut("vista")} "Best ideas, improved" means adopting what it got right — with the evidence, and the honest lessons, attached. The flip side is instructive too: the VA's multi-billion-dollar Oracle/Cerner replacement stumbled on usability and safety${aut("vaEhrm")} — big-bang rip-and-replace is exactly what LumaChart's incremental, composition-based, usability-first path avoids. Two VA practices worth adopting directly: its <b>joint Federal EHR governance</b> model (a lifelong record across agencies)${aut("fehrm")} and its <b>published, site-by-site phased deployment</b> with readiness gates${aut("vaDeploy")} — the rollout methodology for LumaChart's own pilot-to-scale path.</div>
+    <div class="rowlist">
+      ${VA_FEATURES.map(x=>`<div class="rowitem"><span class="chip ${x.tag==="precedent"?"accent":"green"}">${x.tag}</span>
+        <div class="d" style="flex:1"><b>${x.f}</b>${x.reg?reg(x.reg):""}${x.ev?ev(x.ev):""}${x.aut?aut(x.aut):""}<br>
+        <span class="muted">VA:</span> ${x.va}<br><span class="muted">LumaChart:</span> ${x.luma}</div></div>`).join("")}
+    </div>
+    <div class="box" style="margin-top:12px; background:var(--surface2); border:1px solid var(--line-strong); border-radius:10px; padding:11px 13px">
+      <div class="t small" style="font-weight:700">💊 Closed-loop medication safety (BCMA)${reg("a1")}${ev("bcma")}</div>
+      ${state.bcmaScanned
+        ? `<div class="small" style="margin-top:6px"><span class="chip green">✓ verified</span> Right patient · right drug · right dose · right route · right time. Administration recorded to the MAR. <button class="btn ghost small" style="margin-left:8px" data-bcma-reset>Scan another</button></div>`
+        : `<div class="small" style="margin-top:6px">Scan the patient wristband and the medication barcode to verify the five rights before administration — the VA-pioneered step that prevents wrong-drug and wrong-dose errors.</div>
+        <button class="btn primary small" style="margin-top:8px" data-bcma-scan>📷 Scan patient + medication</button>`}
+    </div>
+  </div>
+
   <div class="card">
     <h3>Take the best, add the evidence</h3>
     <div class="tablewrap"><table class="reg">
@@ -2762,6 +2780,10 @@ function wireView(){
   const ca = $("#claim-assemble"); if (ca) ca.addEventListener("click", () => { state.claim.stage = "agent"; render(); toast("🤖 Billing agent", "Claim assembled (837P) from your verified codes + demographics, and handed to the biller.", "green"); });
   const cb = $("#claim-biller"); if (cb) cb.addEventListener("click", () => { state.claim.stage = "biller"; render(); });
   const cs = $("#claim-submit"); if (cs) cs.addEventListener("click", () => { state.claim.stage = "submitted"; render(); toast("Claim submitted", "Routed to the clearinghouse through the Puerto Rico bridge connector.", "green"); });
+  // --- VA-inspired: closed-loop medication safety (BCMA) ---
+  const bcmaScan = $("[data-bcma-scan]"); if (bcmaScan) bcmaScan.addEventListener("click", () => { state.bcmaScanned = true; render(); toast("Five rights verified ✓", "Right patient · drug · dose · route · time. The VA-pioneered barcode check that cut administration errors ~41% (Poon, NEJM 2010). Recorded to the MAR. (Demo.)", "green"); });
+  const bcmaReset = $("[data-bcma-reset]"); if (bcmaReset) bcmaReset.addEventListener("click", () => { state.bcmaScanned = false; render(); });
+
   // --- end of life & vital records ---
   const eolAdv = $("[data-eol-advance]"); if (eolAdv) eolAdv.addEventListener("click", () => {
     const order = ["pronounce","cause","certify","filed"];
