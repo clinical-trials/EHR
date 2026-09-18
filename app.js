@@ -231,7 +231,11 @@ $$(".role-btn").forEach(btn => btn.addEventListener("click", () => {
 }));
 
 const helpBtn = document.getElementById("help-btn");
-if (helpBtn) helpBtn.addEventListener("click", () => { state.view = "help"; render(); });
+if (helpBtn) helpBtn.addEventListener("click", () => {
+  if (state.view === "help") state.view = state._prevView || NAVS[state.role][0].items[0].id;   // toggle back to where you were
+  else { state._prevView = state.view; state.view = "help"; }
+  render();
+});
 
 // Focus mode: the nav trims to today's clinical work — everything else is one toggle away.
 const FOCUS_CORE = new Set(["dashboard","chart","scribe","inbox","billing"]);
@@ -2920,6 +2924,9 @@ Object.values(VIEWS).forEach(v => { v.help = vHelp; });   // Help center is reac
 
 function render(){
   renderNav();
+  const isHelp = state.view === "help";              // Help is a global, role-neutral page
+  const sn = $("#sidenav"); if (sn) sn.style.display = isHelp ? "none" : "";
+  const hb = $("#help-btn"); if (hb) hb.classList.toggle("active", isHelp);
   $("#content").innerHTML = VIEWS[state.role][state.view]();
   window.scrollTo(0,0);
   wireView();
