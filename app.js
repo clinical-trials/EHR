@@ -216,6 +216,7 @@ const NAVS = {
       { id:"actions", ic:"🎯", t:"Action plan" },
       { id:"report",  ic:"📄", t:"Data extract report" },
       { id:"aigov",   ic:"🛡", t:"AI governance & assurance" },
+      { id:"rollout", ic:"🚦", t:"Adoption & rollout" },
       { id:"biblio",  ic:"📚", t:"Bibliography" },
     ]},
   ],
@@ -852,6 +853,53 @@ function govDecision(d){
   const m = { "scale":["green","▲ scale"], "pilot":["amber","◐ pilot"], "pause-until-cleared":["red","⏸ pause — until cleared"] };
   const [tone,label] = m[d] || ["plain", d];
   return `<span class="chip ${tone}">${label}</span>`;
+}
+function readyChip(st){
+  const m = { ready:["green","✓ ready"], progress:["amber","in progress"], gap:["plain","gap"] };
+  const [tone,label] = m[st] || ["plain", st];
+  return `<span class="chip ${tone}">${label}</span>`;
+}
+function vRollout(){
+  const F = IMPL;
+  const all = Object.values(F.factors).flat();
+  const ready = all.filter(x => x.st === "ready").length, total = all.length;
+  const grp = name => `<div class="card"><h3>${name}</h3><div class="rowlist">${
+    F.factors[name].map(x => `<div class="rowitem">${readyChip(x.st)}<div class="d" style="flex:1"><b>${x.f}</b> — ${x.d}</div></div>`).join("")
+  }</div></div>`;
+  return `
+  <h1 class="page-title">🚦 Adoption &amp; rollout readiness</h1>
+  <p class="page-sub">National EHR programs succeed or fail on <b>people and process — not the software</b>; the implementation itself is the intervention.${ev("fennellyNat")} This board tracks the 15 evidence-based success factors, readiness by stakeholder group${ev("mcginnImpl")}, and a gated, measured go-live — never big-bang.${aut("vaDeploy")}</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Readiness scorecard <span class="chip ${ready >= total*0.7 ? "green" : "amber"}">${ready}/${total} factors ready</span></h3>
+    <div class="small" style="margin-bottom:10px">Fifteen inter-linked organizational, human &amp; technological factors, from an umbrella review of national EHR implementations.${ev("fennellyNat")}</div>
+    <div class="grid g23">${grp("Organizational")}${grp("Human (end-users)")}${grp("Technological")}</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>👥 Readiness by stakeholder — barriers differ by group</h3>
+    <div class="small" style="margin-bottom:8px">Physicians, <b>nurses</b>, managers and patients each experience adoption differently; a one-size plan fails. Nurses are the largest clinical user group — designed <i>with</i>, not for.${ev("mcginnImpl")}</div>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Stakeholder</th><th>Top barrier (evidence)</th><th>How LumaChart addresses it</th></tr>
+      ${F.stakeholders.map(s => `<tr><td class="cap">${s.ic} ${s.who}</td><td>${s.barrier}</td><td>${s.luma}</td></tr>`).join("")}
+    </table></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>🚀 Gated go-live — one wave at a time</h3>
+      <div class="rowlist">${F.gates.map((g,i) => `<div class="rowitem"><div class="avatar">${i}</div><div style="flex:1"><div class="t small" style="font-weight:700">${g.w}</div><div class="d">${g.d}</div></div></div>`).join("")}</div>
+      <div class="evidence">A wave graduates on data — adoption and minutes-returned from the <a data-nav-inline="burden" style="cursor:pointer">Burden lab</a> — not enthusiasm; modeled on the VA's published, gated deployment.${aut("vaDeploy")}</div>
+    </div>
+    <div class="card">
+      <h3>What actually predicts success</h3>
+      <div class="rowlist">
+        <div class="rowitem"><span class="chip green">lever</span><div class="d" style="flex:1"><b>Intensive CDS use</b> — EHR adoption alone didn't raise quality; using the decision support did. Our <a data-nav-inline="chart" style="cursor:pointer">evidence-CDS</a> is that lever.${ev("zhouBates")}</div></div>
+        <div class="rowitem"><span class="chip green">predictor</span><div class="d" style="flex:1"><b>Ease of implementation + practice resources</b> drive post-go-live satisfaction, and can reduce stress.${ev("heyworthBt")}</div></div>
+        <div class="rowitem"><span class="chip accent">reach</span><div class="d" style="flex:1"><b>Works in low-resource settings</b> — standards-native + low cost extend to LMIC and safety-net hospitals.${ev("yeLMIC")}</div></div>
+      </div>
+    </div>
+  </div>`;
 }
 function vAIGov(){
   return `
@@ -2806,7 +2854,7 @@ const VIEWS = {
   clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, eol:vEndOfLife, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, cert:vCert, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, myrecord:vMyRecord, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
-  cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, aigov:vAIGov, biblio:vBiblio },
+  cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, aigov:vAIGov, rollout:vRollout, biblio:vBiblio },
 };
 
 function render(){

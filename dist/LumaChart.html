@@ -1411,6 +1411,47 @@ Object.assign(EVIDENCE, {
 });
 
 /* Authoritative reports without PMIDs — cited via link chips, like PMIDs */
+/* Adoption & rollout readiness — the implementation IS the intervention.
+   15 success factors (Fennelly 2020 umbrella review), stakeholder-specific barriers
+   (McGinn 2011), and a gated go-live. National EHRs fail on people/process, not software. */
+const IMPL = {
+  factors: {
+    "Organizational": [
+      { f:"Governance, leadership & culture", st:"ready",    d:"RSI two-loop governance, CWO/CMO ownership, AI governance registry." },
+      { f:"End-user involvement",             st:"ready",    d:"Clinician- and nurse-designed; “Own your practice,” ideas voting, site interviews." },
+      { f:"Training & change management",     st:"progress", d:"Role-based training + a super-user program — building now." },
+      { f:"Support model",                    st:"progress", d:"In-app Luma assist today; a tiered go-live support desk is in design." },
+      { f:"Resourcing",                       st:"ready",    d:"Non-dilutive NIH SBIR + transparent low pricing lower the cost barrier." },
+      { f:"Workflows",                        st:"ready",    d:"Focus / Luma Lean, batched inbox, workflow-fit design." },
+    ],
+    "Human (end-users)": [
+      { f:"Skills & characteristics",         st:"progress", d:"Usable across digital-literacy levels; role-based competencies expanding." },
+      { f:"Perceived benefit & incentives",   st:"ready",    d:"Burnout reduction and minutes-returned are the incentive." },
+      { f:"Perceived ecosystem change",       st:"ready",    d:"Canary is private; security & trust built up front." },
+    ],
+    "Technological": [
+      { f:"Usability",                        st:"ready",    d:"Restore theme, Focus, clean UI — the design center." },
+      { f:"Interoperability",                 st:"ready",    d:"FHIR R4 / US Core · USCDI · TEFCA · SMART apps." },
+      { f:"Adaptability",                     st:"ready",    d:"Composable, customizable metrics, Helix Hub app store." },
+      { f:"Infrastructure",                   st:"progress", d:"Cloud + reliability; a low-resource / offline-tolerant mode is in design (LMIC)." },
+      { f:"Regulation, standards & policy",   st:"ready",    d:"§170.315 certification path + 50-state compliance engine." },
+      { f:"Testing",                          st:"progress", d:"Phased pilots + field testing (see the gated go-live)." },
+    ],
+  },
+  stakeholders: [
+    { who:"Physicians",       ic:"🩺", barrier:"Documentation burden, workflow disruption",   luma:"Scribe + batched inbox + Focus cut the clicks." },
+    { who:"Nurses",           ic:"🩹", barrier:"Workflow fit, training time, alert fatigue",   luma:"Role-based workflows, closed-loop BCMA, gentle alerting — nurses designed-with, not for." },
+    { who:"Managers / admin", ic:"📋", barrier:"Cost, ROI, change management",                luma:"Transparent pricing, Burden-lab ROI, phased gates." },
+    { who:"Patients",         ic:"🧑", barrier:"Access, privacy, trust",                       luma:"Right-of-access record, self-scheduling, private-by-default data." },
+  ],
+  gates: [
+    { w:"Wave 0 — Readiness",            d:"Governance set, super-users named, workflows mapped, data-migration dry run." },
+    { w:"Wave 1 — Pilot service line",   d:"One unit, heavy support, daily huddles; graduate on adoption + minutes-returned." },
+    { w:"Wave 2 — Specialty expansion",  d:"Add services with lessons applied; support tapers as competence rises." },
+    { w:"Wave 3 — Enterprise",           d:"House-wide, standardized, with ongoing optimization reviews." },
+  ],
+};
+
 const AUTHORITIES = {
   sgAdvisory:{ label:"SG Advisory 2022", url:"https://www.hhs.gov/sites/default/files/health-worker-wellbeing-advisory.pdf",
     cite:"U.S. Surgeon General's Advisory on Health Worker Burnout (2022) — names workload & administrative burden as core drivers." },
@@ -2185,6 +2226,7 @@ const NAVS = {
       { id:"actions", ic:"🎯", t:"Action plan" },
       { id:"report",  ic:"📄", t:"Data extract report" },
       { id:"aigov",   ic:"🛡", t:"AI governance & assurance" },
+      { id:"rollout", ic:"🚦", t:"Adoption & rollout" },
       { id:"biblio",  ic:"📚", t:"Bibliography" },
     ]},
   ],
@@ -2821,6 +2863,53 @@ function govDecision(d){
   const m = { "scale":["green","▲ scale"], "pilot":["amber","◐ pilot"], "pause-until-cleared":["red","⏸ pause — until cleared"] };
   const [tone,label] = m[d] || ["plain", d];
   return `<span class="chip ${tone}">${label}</span>`;
+}
+function readyChip(st){
+  const m = { ready:["green","✓ ready"], progress:["amber","in progress"], gap:["plain","gap"] };
+  const [tone,label] = m[st] || ["plain", st];
+  return `<span class="chip ${tone}">${label}</span>`;
+}
+function vRollout(){
+  const F = IMPL;
+  const all = Object.values(F.factors).flat();
+  const ready = all.filter(x => x.st === "ready").length, total = all.length;
+  const grp = name => `<div class="card"><h3>${name}</h3><div class="rowlist">${
+    F.factors[name].map(x => `<div class="rowitem">${readyChip(x.st)}<div class="d" style="flex:1"><b>${x.f}</b> — ${x.d}</div></div>`).join("")
+  }</div></div>`;
+  return `
+  <h1 class="page-title">🚦 Adoption &amp; rollout readiness</h1>
+  <p class="page-sub">National EHR programs succeed or fail on <b>people and process — not the software</b>; the implementation itself is the intervention.${ev("fennellyNat")} This board tracks the 15 evidence-based success factors, readiness by stakeholder group${ev("mcginnImpl")}, and a gated, measured go-live — never big-bang.${aut("vaDeploy")}</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Readiness scorecard <span class="chip ${ready >= total*0.7 ? "green" : "amber"}">${ready}/${total} factors ready</span></h3>
+    <div class="small" style="margin-bottom:10px">Fifteen inter-linked organizational, human &amp; technological factors, from an umbrella review of national EHR implementations.${ev("fennellyNat")}</div>
+    <div class="grid g23">${grp("Organizational")}${grp("Human (end-users)")}${grp("Technological")}</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>👥 Readiness by stakeholder — barriers differ by group</h3>
+    <div class="small" style="margin-bottom:8px">Physicians, <b>nurses</b>, managers and patients each experience adoption differently; a one-size plan fails. Nurses are the largest clinical user group — designed <i>with</i>, not for.${ev("mcginnImpl")}</div>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Stakeholder</th><th>Top barrier (evidence)</th><th>How LumaChart addresses it</th></tr>
+      ${F.stakeholders.map(s => `<tr><td class="cap">${s.ic} ${s.who}</td><td>${s.barrier}</td><td>${s.luma}</td></tr>`).join("")}
+    </table></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>🚀 Gated go-live — one wave at a time</h3>
+      <div class="rowlist">${F.gates.map((g,i) => `<div class="rowitem"><div class="avatar">${i}</div><div style="flex:1"><div class="t small" style="font-weight:700">${g.w}</div><div class="d">${g.d}</div></div></div>`).join("")}</div>
+      <div class="evidence">A wave graduates on data — adoption and minutes-returned from the <a data-nav-inline="burden" style="cursor:pointer">Burden lab</a> — not enthusiasm; modeled on the VA's published, gated deployment.${aut("vaDeploy")}</div>
+    </div>
+    <div class="card">
+      <h3>What actually predicts success</h3>
+      <div class="rowlist">
+        <div class="rowitem"><span class="chip green">lever</span><div class="d" style="flex:1"><b>Intensive CDS use</b> — EHR adoption alone didn't raise quality; using the decision support did. Our <a data-nav-inline="chart" style="cursor:pointer">evidence-CDS</a> is that lever.${ev("zhouBates")}</div></div>
+        <div class="rowitem"><span class="chip green">predictor</span><div class="d" style="flex:1"><b>Ease of implementation + practice resources</b> drive post-go-live satisfaction, and can reduce stress.${ev("heyworthBt")}</div></div>
+        <div class="rowitem"><span class="chip accent">reach</span><div class="d" style="flex:1"><b>Works in low-resource settings</b> — standards-native + low cost extend to LMIC and safety-net hospitals.${ev("yeLMIC")}</div></div>
+      </div>
+    </div>
+  </div>`;
 }
 function vAIGov(){
   return `
@@ -4775,7 +4864,7 @@ const VIEWS = {
   clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, eol:vEndOfLife, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, cert:vCert, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, myrecord:vMyRecord, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
-  cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, aigov:vAIGov, biblio:vBiblio },
+  cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, aigov:vAIGov, rollout:vRollout, biblio:vBiblio },
 };
 
 function render(){

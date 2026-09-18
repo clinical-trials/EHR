@@ -902,6 +902,47 @@ Object.assign(EVIDENCE, {
 });
 
 /* Authoritative reports without PMIDs — cited via link chips, like PMIDs */
+/* Adoption & rollout readiness — the implementation IS the intervention.
+   15 success factors (Fennelly 2020 umbrella review), stakeholder-specific barriers
+   (McGinn 2011), and a gated go-live. National EHRs fail on people/process, not software. */
+const IMPL = {
+  factors: {
+    "Organizational": [
+      { f:"Governance, leadership & culture", st:"ready",    d:"RSI two-loop governance, CWO/CMO ownership, AI governance registry." },
+      { f:"End-user involvement",             st:"ready",    d:"Clinician- and nurse-designed; “Own your practice,” ideas voting, site interviews." },
+      { f:"Training & change management",     st:"progress", d:"Role-based training + a super-user program — building now." },
+      { f:"Support model",                    st:"progress", d:"In-app Luma assist today; a tiered go-live support desk is in design." },
+      { f:"Resourcing",                       st:"ready",    d:"Non-dilutive NIH SBIR + transparent low pricing lower the cost barrier." },
+      { f:"Workflows",                        st:"ready",    d:"Focus / Luma Lean, batched inbox, workflow-fit design." },
+    ],
+    "Human (end-users)": [
+      { f:"Skills & characteristics",         st:"progress", d:"Usable across digital-literacy levels; role-based competencies expanding." },
+      { f:"Perceived benefit & incentives",   st:"ready",    d:"Burnout reduction and minutes-returned are the incentive." },
+      { f:"Perceived ecosystem change",       st:"ready",    d:"Canary is private; security & trust built up front." },
+    ],
+    "Technological": [
+      { f:"Usability",                        st:"ready",    d:"Restore theme, Focus, clean UI — the design center." },
+      { f:"Interoperability",                 st:"ready",    d:"FHIR R4 / US Core · USCDI · TEFCA · SMART apps." },
+      { f:"Adaptability",                     st:"ready",    d:"Composable, customizable metrics, Helix Hub app store." },
+      { f:"Infrastructure",                   st:"progress", d:"Cloud + reliability; a low-resource / offline-tolerant mode is in design (LMIC)." },
+      { f:"Regulation, standards & policy",   st:"ready",    d:"§170.315 certification path + 50-state compliance engine." },
+      { f:"Testing",                          st:"progress", d:"Phased pilots + field testing (see the gated go-live)." },
+    ],
+  },
+  stakeholders: [
+    { who:"Physicians",       ic:"🩺", barrier:"Documentation burden, workflow disruption",   luma:"Scribe + batched inbox + Focus cut the clicks." },
+    { who:"Nurses",           ic:"🩹", barrier:"Workflow fit, training time, alert fatigue",   luma:"Role-based workflows, closed-loop BCMA, gentle alerting — nurses designed-with, not for." },
+    { who:"Managers / admin", ic:"📋", barrier:"Cost, ROI, change management",                luma:"Transparent pricing, Burden-lab ROI, phased gates." },
+    { who:"Patients",         ic:"🧑", barrier:"Access, privacy, trust",                       luma:"Right-of-access record, self-scheduling, private-by-default data." },
+  ],
+  gates: [
+    { w:"Wave 0 — Readiness",            d:"Governance set, super-users named, workflows mapped, data-migration dry run." },
+    { w:"Wave 1 — Pilot service line",   d:"One unit, heavy support, daily huddles; graduate on adoption + minutes-returned." },
+    { w:"Wave 2 — Specialty expansion",  d:"Add services with lessons applied; support tapers as competence rises." },
+    { w:"Wave 3 — Enterprise",           d:"House-wide, standardized, with ongoing optimization reviews." },
+  ],
+};
+
 const AUTHORITIES = {
   sgAdvisory:{ label:"SG Advisory 2022", url:"https://www.hhs.gov/sites/default/files/health-worker-wellbeing-advisory.pdf",
     cite:"U.S. Surgeon General's Advisory on Health Worker Burnout (2022) — names workload & administrative burden as core drivers." },
