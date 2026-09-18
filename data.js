@@ -943,6 +943,35 @@ const IMPL = {
   ],
 };
 
+/* Help center & customer service — self-service KB + severity-tiered support with
+   published response SLAs, at-the-elbow support, and a status page (more than a contact list). */
+const HELP = {
+  channels: [
+    { sev:"Patient-safety / emergency", tone:"red",    how:"24/7 hotline + in-app SOS",       sla:"Immediate — a live responder",           who:"On-call support engineer + clinical safety officer" },
+    { sev:"Urgent — care-impacting",     tone:"amber",  how:"Priority ticket + callback",       sla:"≤ 1 hr business · ≤ 4 hr after-hours",    who:"Tier-2 support" },
+    { sev:"Standard question / request", tone:"green",  how:"Ticket · email · live chat",        sla:"≤ 1 business day",                        who:"Tier-1 support + unit super-users" },
+    { sev:"Idea / enhancement",          tone:"accent", how:"Community + idea board (voting)",   sla:"Triaged every release cycle",             who:"Product team" },
+  ],
+  kb: [
+    { cat:"Getting started",     ic:"🚀", items:["Your first day","Focus mode & themes","Keyboard shortcuts"] },
+    { cat:"Charting & notes",    ic:"📝", items:["Luma Scribe","Evidence CDS at the point of care","Note templates"] },
+    { cat:"Orders & results",    ic:"🧪", items:["Placing orders","Reviewing results","Barcode med admin (BCMA)"] },
+    { cat:"Encounter & billing", ic:"⛁", items:["Coding a visit","Denial prevention","Clearinghouse & 837/835"] },
+    { cat:"Patient portal",      ic:"🧑", items:["My record & right of access","Scheduling","Payments & keep-your-coverage"] },
+    { cat:"Admin & interop",     ic:"🔌", items:["FHIR sandbox & (g)(10)","Connectors","User & role management"] },
+  ],
+  support: [
+    { t:"Unit super-users",       d:"Certified peer champions on every unit — your first-line, at-the-elbow help." },
+    { t:"Go-live command center", d:"During each rollout wave: on-floor support with real-time issue triage." },
+    { t:"Role-based training",    d:"Physician, nurse and front-desk paths — workflow-embedded, not generic clicks." },
+    { t:"Optimization sprints",   d:"Post-go-live “Getting Rid of Stupid Stuff” — you nominate what to cut." },
+  ],
+  status: [
+    { sys:"EHR core", st:"ok" }, { sys:"FHIR / (g)(10) API", st:"ok" }, { sys:"e-Prescribing", st:"ok" },
+    { sys:"Eligibility / claims", st:"degraded" }, { sys:"Telehealth", st:"ok" }, { sys:"Patient portal", st:"ok" },
+  ],
+};
+
 const AUTHORITIES = {
   sgAdvisory:{ label:"SG Advisory 2022", url:"https://www.hhs.gov/sites/default/files/health-worker-wellbeing-advisory.pdf",
     cite:"U.S. Surgeon General's Advisory on Health Worker Burnout (2022) — names workload & administrative burden as core drivers." },

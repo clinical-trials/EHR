@@ -230,6 +230,9 @@ $$(".role-btn").forEach(btn => btn.addEventListener("click", () => {
   render();
 }));
 
+const helpBtn = document.getElementById("help-btn");
+if (helpBtn) helpBtn.addEventListener("click", () => { state.view = "help"; render(); });
+
 // Focus mode: the nav trims to today's clinical work — everything else is one toggle away.
 const FOCUS_CORE = new Set(["dashboard","chart","scribe","inbox","billing"]);
 
@@ -899,6 +902,63 @@ function vRollout(){
         <div class="rowitem"><span class="chip accent">reach</span><div class="d" style="flex:1"><b>Works in low-resource settings</b> — standards-native + low cost extend to LMIC and safety-net hospitals.${ev("yeLMIC")}</div></div>
       </div>
     </div>
+  </div>`;
+}
+function chanChip(tone){
+  const c = { red:"var(--red)", amber:"var(--amber)", green:"var(--green)", accent:"var(--accent)" }[tone] || "var(--accent)";
+  const l = { red:"emergency", amber:"urgent", green:"standard", accent:"idea" }[tone] || tone;
+  return `<span class="chip" style="border-color:${c};color:${c}">● ${l}</span>`;
+}
+function helpStatusChip(st){
+  if (st === "ok") return `<span class="chip" style="border-color:var(--green);color:var(--green)">● operational</span>`;
+  if (st === "degraded") return `<span class="chip" style="border-color:var(--amber);color:var(--amber)">● degraded</span>`;
+  return `<span class="chip" style="border-color:var(--red);color:var(--red)">● down</span>`;
+}
+function vHelp(){
+  const H = HELP;
+  return `
+  <h1 class="page-title">🎧 Help center &amp; customer service</h1>
+  <p class="page-sub">Self-service answers — and real people when you need them (“give us a call, a real person will answer”). Support is a make-or-break adoption factor, so it is staffed, measured, and published with response times.${ev("fennellyNat")}</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>🔎 Search the knowledge base</h3>
+    <input class="hx-input" data-help-search type="text" placeholder="Search help — e.g. “scribe”, “claim”, “scheduling”…" style="width:100%">
+    <div class="grid g23" style="margin-top:12px">
+      ${H.kb.map(c => `<div class="card"><h3>${c.ic} ${c.cat}</h3><div class="rowlist">${
+        c.items.map(i => `<div class="rowitem kbi"><span class="chip accent">article</span><div class="d" style="flex:1">${i}</div></div>`).join("")
+      }</div></div>`).join("")}
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>📞 Contact us — by urgency, with response times</h3>
+    <div class="small" style="margin-bottom:8px">More than a contact list: every channel carries a <b>severity tier</b> and a <b>published SLA</b>. Patient-safety issues always break through, 24/7.</div>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Severity</th><th>How to reach us</th><th>Response (SLA)</th><th>Who responds</th></tr>
+      ${H.channels.map(c => `<tr><td>${chanChip(c.tone)} ${c.sev}</td><td>${c.how}</td><td><b>${c.sla}</b></td><td>${c.who}</td></tr>`).join("")}
+    </table></div>
+  </div>
+
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="card">
+      <h3>🙌 Support that comes to you</h3>
+      <div class="rowlist">${H.support.map(s => `<div class="rowitem"><span class="chip accent">program</span><div class="d" style="flex:1"><b>${s.t}</b> — ${s.d}</div></div>`).join("")}</div>
+      <div class="evidence">Post-go-live satisfaction tracks ease of implementation + resources for improvement${ev("heyworthBt")}; optimization sprints follow the “Getting Rid of Stupid Stuff” model.${ev("ashton")}</div>
+    </div>
+    <div class="card">
+      <h3>🎫 Open a support ticket <span class="chip plain">demo</span></h3>
+      <label class="small">Severity</label>
+      <select id="help-sev" class="hx-input" style="width:100%;margin:6px 0 10px">${H.channels.map((c,i) => `<option value="${i}">${c.sev}</option>`).join("")}</select>
+      <textarea id="help-msg" class="hx-input" placeholder="Describe the issue…" style="width:100%;height:68px"></textarea>
+      <button class="btn primary" data-help-submit style="margin-top:10px">Submit ticket</button>
+      <div class="tiny" style="margin-top:8px">Live chat &amp; phone are one click away in production; patient-safety issues bypass the queue.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>📊 System status</h3>
+    <div class="rowlist">${H.status.map(s => `<div class="rowitem">${helpStatusChip(s.st)}<div class="d" style="flex:1">${s.sys}</div></div>`).join("")}</div>
+    <div class="tiny" style="margin-top:6px">A public status page with incident history ships in production. (Synthetic demo data.)</div>
   </div>`;
 }
 function vAIGov(){
@@ -2856,6 +2916,7 @@ const VIEWS = {
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, aigov:vAIGov, rollout:vRollout, biblio:vBiblio },
 };
+Object.values(VIEWS).forEach(v => { v.help = vHelp; });   // Help center is reachable from every role
 
 function render(){
   renderNav();
@@ -2865,6 +2926,14 @@ function render(){
 }
 
 function wireView(){
+  { const hs = document.querySelector("[data-help-search]"); if (hs) hs.addEventListener("input", () => {
+      const q = hs.value.trim().toLowerCase();
+      document.querySelectorAll(".kbi").forEach(el => { el.style.display = (!q || el.textContent.toLowerCase().includes(q)) ? "" : "none"; });
+    }); }
+  { const hb = document.querySelector("[data-help-submit]"); if (hb) hb.addEventListener("click", () => {
+      const sel = document.getElementById("help-sev"); const c = HELP.channels[sel ? +sel.value : 2] || HELP.channels[2];
+      toast("Ticket LC-" + Math.floor(1000 + Math.random()*9000) + " created ✓", c.sev + " — target response " + c.sla + ". (Demo — nothing was actually sent.)", "green");
+    }); }
   $$("[data-nav-inline]").forEach(b => b.addEventListener("click", () => {
     const v = b.dataset.navInline;
     if (!VIEWS[state.role][v]){                                   // cross-role link → switch role
