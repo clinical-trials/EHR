@@ -40,6 +40,17 @@ const EVIDENCE = {
   scBA:       { pmid:"24936656", cite:"Ekers et al., PLoS One 2014 (meta-analysis) — behavioural activation is an effective treatment for depression." },
   scConnect:  { pmid:"20668659", cite:"Holt-Lunstad et al., PLoS Med 2010 (meta-analysis) — stronger social relationships are linked to better health and survival." },
   scAlcohol:  { pmid:"29476653", cite:"Kaner et al., Cochrane 2018 — brief interventions in primary care reduce unhealthy alcohol use." },
+
+  // EHR implementation, optimization & interoperability evidence
+  mcginnImpl: { pmid:"21524315", cite:"McGinn et al., BMC Med 2011 (systematic review) — barriers & facilitators to EHR implementation differ by user group (physicians, nurses, managers, patients); design, ease of use, interoperability, privacy/security, cost & workflow recur across all groups." },
+  fennellyNat:{ pmid:"33017724", cite:"Fennelly et al., Int J Med Inform 2020 (umbrella review) — 15 organizational, human & technological factors decide national-EHR success; the implementation process, not the vendor product, is critical." },
+  aguirreOpt: { pmid:"34049051", cite:"Aguirre et al., Int J Med Inform 2021 (review of systematic reviews) — synthesizes technological progress in EHR optimization: usability, clinical decision support, NLP and interoperability." },
+  cernianPDC: { pmid:"33207620", cite:"Cernian et al., Sensors 2020 (PatientDataChain proof-of-concept) — blockchain-based, patient-owned PHR integrating heterogeneous sources & wearable sensors; feasibility shown on 100 patients / 1000+ transactions." },
+  schmeelkBC: { pmid:"35911668", cite:"Schmeelk et al., JAMIA Open 2022 (scoping review) — blockchain shows promise for EHR interoperability (especially via HIEs) but faces scalability/performance, legal-security, and patient-matching/standardization challenges." },
+  zhouBates:  { pmid:"19390094", cite:"Zhou, Bates et al., J Am Med Inform Assoc 2009 — EHR adoption alone did not improve quality of care over time; realizing quality gains requires intensive use of key features, especially clinical decision support." },
+  heyworthBt: { pmid:"23611987", cite:"Heyworth, Bates et al., Interact J Med Res 2012 (Massachusetts eHealth Collaborative) — post-adoption physician satisfaction is predicted by ease of implementation, resources for practice improvement, and prior satisfaction; EHR adoption may reduce stress." },
+  yeLMIC:     { pmid:"37991820", cite:"Ye et al., JMIR Med Inform 2023 (PRISMA-ScR scoping review) — EHRs support clinical trials in low- & middle-income countries across recruitment, baseline capture, intervention and outcome assessment; a roadmap for evidence generation on limited budgets." },
+  mcpherIntp: { pmid:"42194377", cite:"McPherson et al., Healthcare (MDPI) 2026 (systematic review, 24 studies) — five interoperability strategies for U.S. settings: blockchain-based EHR (67%), Cures Act (17%), AI (33%), IoT (33%); interoperability drives outcomes (79%)." },
 };
 
 const SCHEDULE = [

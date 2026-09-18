@@ -406,8 +406,8 @@ pre.json{ background:var(--surface2); border:1px solid var(--line); border-radiu
   border:1px solid var(--amber-soft); background:var(--amber-soft); border-radius:99px; padding:5px 16px; }
 /* plain-language: billing/technical codes shown, but visually quiet */
 .code-light{ color:var(--text-3); font-weight:600; font-size:.85em; letter-spacing:.3px; }
-</style>
 
+</style>
 <header class="topbar">
   <div class="brand">
     <!-- Morphing logo: EHR monitor → happy doctor → caduceus, on a slow-spinning ring.
@@ -506,7 +506,6 @@ pre.json{ background:var(--surface2); border:1px solid var(--line); border-radiu
 <!-- Canary toast + modal layers -->
 <div id="toast-layer" aria-live="polite"></div>
 <div id="modal-layer" class="hidden"></div>
-
 <script>
 /* LumaChart demo data — entirely synthetic. Every PMID below is real and was
    verified against PubMed E-utilities during preparation of the planning doc. */
@@ -550,6 +549,17 @@ const EVIDENCE = {
   scBA:       { pmid:"24936656", cite:"Ekers et al., PLoS One 2014 (meta-analysis) — behavioural activation is an effective treatment for depression." },
   scConnect:  { pmid:"20668659", cite:"Holt-Lunstad et al., PLoS Med 2010 (meta-analysis) — stronger social relationships are linked to better health and survival." },
   scAlcohol:  { pmid:"29476653", cite:"Kaner et al., Cochrane 2018 — brief interventions in primary care reduce unhealthy alcohol use." },
+
+  // EHR implementation, optimization & interoperability evidence
+  mcginnImpl: { pmid:"21524315", cite:"McGinn et al., BMC Med 2011 (systematic review) — barriers & facilitators to EHR implementation differ by user group (physicians, nurses, managers, patients); design, ease of use, interoperability, privacy/security, cost & workflow recur across all groups." },
+  fennellyNat:{ pmid:"33017724", cite:"Fennelly et al., Int J Med Inform 2020 (umbrella review) — 15 organizational, human & technological factors decide national-EHR success; the implementation process, not the vendor product, is critical." },
+  aguirreOpt: { pmid:"34049051", cite:"Aguirre et al., Int J Med Inform 2021 (review of systematic reviews) — synthesizes technological progress in EHR optimization: usability, clinical decision support, NLP and interoperability." },
+  cernianPDC: { pmid:"33207620", cite:"Cernian et al., Sensors 2020 (PatientDataChain proof-of-concept) — blockchain-based, patient-owned PHR integrating heterogeneous sources & wearable sensors; feasibility shown on 100 patients / 1000+ transactions." },
+  schmeelkBC: { pmid:"35911668", cite:"Schmeelk et al., JAMIA Open 2022 (scoping review) — blockchain shows promise for EHR interoperability (especially via HIEs) but faces scalability/performance, legal-security, and patient-matching/standardization challenges." },
+  zhouBates:  { pmid:"19390094", cite:"Zhou, Bates et al., J Am Med Inform Assoc 2009 — EHR adoption alone did not improve quality of care over time; realizing quality gains requires intensive use of key features, especially clinical decision support." },
+  heyworthBt: { pmid:"23611987", cite:"Heyworth, Bates et al., Interact J Med Res 2012 (Massachusetts eHealth Collaborative) — post-adoption physician satisfaction is predicted by ease of implementation, resources for practice improvement, and prior satisfaction; EHR adoption may reduce stress." },
+  yeLMIC:     { pmid:"37991820", cite:"Ye et al., JMIR Med Inform 2023 (PRISMA-ScR scoping review) — EHRs support clinical trials in low- & middle-income countries across recruitment, baseline capture, intervention and outcome assessment; a roadmap for evidence generation on limited budgets." },
+  mcpherIntp: { pmid:"42194377", cite:"McPherson et al., Healthcare (MDPI) 2026 (systematic review, 24 studies) — five interoperability strategies for U.S. settings: blockchain-based EHR (67%), Cures Act (17%), AI (33%), IoT (33%); interoperability drives outcomes (79%)." },
 };
 
 const SCHEDULE = [
@@ -1954,6 +1964,7 @@ const AI_PRIVACY = [
 
 /* ---------- Wave 1: real QR code -> the live patient portal (scannable) ---------- */
 const QR_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 33 33" shape-rendering="crispEdges"><rect width="33" height="33" fill="white"/><path d="M2 2h7v1H2zM10 2h1v1H10zM15 2h1v1H15zM18 2h1v1H18zM24 2h7v1H24zM2 3h1v1H2zM8 3h1v1H8zM11 3h1v1H11zM13 3h1v1H13zM16 3h1v1H16zM19 3h4v1H19zM24 3h1v1H24zM30 3h1v1H30zM2 4h1v1H2zM4 4h3v1H4zM8 4h1v1H8zM12 4h1v1H12zM17 4h4v1H17zM22 4h1v1H22zM24 4h1v1H24zM26 4h3v1H26zM30 4h1v1H30zM2 5h1v1H2zM4 5h3v1H4zM8 5h1v1H8zM10 5h1v1H10zM12 5h1v1H12zM14 5h2v1H14zM18 5h1v1H18zM21 5h1v1H21zM24 5h1v1H24zM26 5h3v1H26zM30 5h1v1H30zM2 6h1v1H2zM4 6h3v1H4zM8 6h1v1H8zM10 6h3v1H10zM16 6h1v1H16zM18 6h3v1H18zM24 6h1v1H24zM26 6h3v1H26zM30 6h1v1H30zM2 7h1v1H2zM8 7h1v1H8zM10 7h1v1H10zM14 7h1v1H14zM18 7h2v1H18zM21 7h1v1H21zM24 7h1v1H24zM30 7h1v1H30zM2 8h7v1H2zM10 8h1v1H10zM12 8h1v1H12zM14 8h1v1H14zM16 8h1v1H16zM18 8h1v1H18zM20 8h1v1H20zM22 8h1v1H22zM24 8h7v1H24zM10 9h1v1H10zM12 9h2v1H12zM16 9h2v1H16zM19 9h1v1H19zM2 10h1v1H2zM6 10h1v1H6zM8 10h4v1H8zM13 10h1v1H13zM15 10h2v1H15zM19 10h1v1H19zM21 10h7v1H21zM30 10h1v1H30zM3 11h1v1H3zM5 11h3v1H5zM10 11h1v1H10zM12 11h3v1H12zM16 11h1v1H16zM18 11h1v1H18zM20 11h1v1H20zM24 11h7v1H24zM4 12h2v1H4zM8 12h3v1H8zM13 12h1v1H13zM15 12h3v1H15zM20 12h1v1H20zM22 12h2v1H22zM25 12h2v1H25zM30 12h1v1H30zM3 13h1v1H3zM6 13h1v1H6zM9 13h2v1H9zM12 13h1v1H12zM14 13h2v1H14zM19 13h2v1H19zM24 13h1v1H24zM26 13h2v1H26zM29 13h2v1H29zM8 14h3v1H8zM12 14h1v1H12zM15 14h1v1H15zM17 14h1v1H17zM19 14h1v1H19zM22 14h2v1H22zM29 14h1v1H29zM4 15h2v1H4zM9 15h2v1H9zM13 15h1v1H13zM15 15h3v1H15zM19 15h2v1H19zM24 15h7v1H24zM4 16h1v1H4zM6 16h3v1H6zM10 16h1v1H10zM14 16h1v1H14zM17 16h1v1H17zM19 16h1v1H19zM23 16h2v1H23zM27 16h2v1H27zM30 16h1v1H30zM2 17h4v1H2zM7 17h1v1H7zM10 17h2v1H10zM16 17h1v1H16zM19 17h3v1H19zM25 17h2v1H25zM29 17h2v1H29zM3 18h1v1H3zM5 18h1v1H5zM8 18h2v1H8zM12 18h6v1H12zM19 18h1v1H19zM21 18h1v1H21zM23 18h1v1H23zM29 18h1v1H29zM2 19h1v1H2zM5 19h1v1H5zM9 19h6v1H9zM17 19h2v1H17zM24 19h4v1H24zM29 19h2v1H29zM5 20h2v1H5zM8 20h1v1H8zM12 20h2v1H12zM15 20h3v1H15zM19 20h2v1H19zM23 20h3v1H23zM28 20h1v1H28zM30 20h1v1H30zM4 21h1v1H4zM6 21h1v1H6zM11 21h1v1H11zM15 21h1v1H15zM17 21h3v1H17zM22 21h1v1H22zM24 21h1v1H24zM26 21h1v1H26zM29 21h2v1H29zM2 22h3v1H2zM6 22h1v1H6zM8 22h4v1H8zM13 22h3v1H13zM17 22h1v1H17zM19 22h1v1H19zM21 22h7v1H21zM30 22h1v1H30zM10 23h1v1H10zM12 23h9v1H12zM22 23h1v1H22zM26 23h1v1H26zM30 23h1v1H30zM2 24h7v1H2zM10 24h1v1H10zM14 24h1v1H14zM17 24h3v1H17zM21 24h2v1H21zM24 24h1v1H24zM26 24h3v1H26zM30 24h1v1H30zM2 25h1v1H2zM8 25h1v1H8zM13 25h2v1H13zM16 25h1v1H16zM19 25h1v1H19zM21 25h2v1H21zM26 25h1v1H26zM29 25h1v1H29zM2 26h1v1H2zM4 26h3v1H4zM8 26h1v1H8zM10 26h8v1H10zM19 26h1v1H19zM21 26h7v1H21zM29 26h1v1H29zM2 27h1v1H2zM4 27h3v1H4zM8 27h1v1H8zM11 27h2v1H11zM17 27h1v1H17zM22 27h2v1H22zM30 27h1v1H30zM2 28h1v1H2zM4 28h3v1H4zM8 28h1v1H8zM14 28h2v1H14zM17 28h7v1H17zM27 28h4v1H27zM2 29h1v1H2zM8 29h1v1H8zM14 29h1v1H14zM16 29h1v1H16zM18 29h3v1H18zM22 29h1v1H22zM26 29h2v1H26zM29 29h2v1H29zM2 30h7v1H2zM10 30h1v1H10zM13 30h3v1H13zM19 30h1v1H19zM21 30h2v1H21zM26 30h2v1H26zM29 30h1v1H29z" fill="#12222F"/></svg>';
+
 </script>
 <script>
 /* ==========================================================================
@@ -5383,4 +5394,5 @@ updateWellnessUI();
 updateFocusUI();
 setInterval(canaryTick, 1000);
 setTimeout(() => toast("Welcome to LumaChart", `Restore Mode (low-glare dark) is on to reduce visual fatigue.${ev("eyestrain")} Tap any notification to dismiss it — they stay gentle and out of your way.`, "green"), 4500);
+
 </script>
