@@ -38,6 +38,27 @@ Every tier's output is **governed AI under §170.315(b)(11)** — source + logic
 
 ---
 
+### Evidence currency, verifiability & grading — the trust standard
+Clinicians judge a CDS by how **current and verifiable** its evidence is, not interface polish — and peer-reviewed
+literature grows by >1M articles/year, so the gap between what a tool surfaces and what the literature says widens
+fast. Adopt these as hard requirements (and SBIR differentiators):
+- **Defined corpus scope** — state exactly what we search: PubMed/MEDLINE, USPSTF, society guidelines, FDA drug labeling. No opaque internal-only reference.
+- **Inline, openable citations** — every claim links to a primary source with title, authors, journal, **date** (our PMID chips already do this — keep it universal).
+- **Refresh cadence** — publish how often the corpus/index refreshes; surface recent publications; show each claim's index / last-reviewed date.
+- **Evidence grading — GRADE** — attach certainty (high / moderate / low / very low) alongside strength of recommendation.
+- **No hallucinated citations** — retrieval grounded in named corpora with visible metadata, governed under **§170.315(b)(11)** source-and-logic transparency. A general LLM that fabricates or misattributes citations is disqualifying.
+- **Specialty breadth** — emergency / hospital / ambulatory / subspecialty, no single content silo.
+- **Compliance** — HIPAA (and GDPR where applicable).
+
+### Where LumaChart differs from cited-evidence engines
+UpToDate / DynaMed (editor-curated depth + explicit grading) and newer cited engines (Vera Health, OpenEvidence;
+broad retrieval with openable citations) are **lookup tools the clinician toggles *to***. LumaChart's difference:
+the evidence is **embedded in the record and the workflow** — cited on the note, governed by the EHR, and
+**instrumented against clinician burden** — with depth/breadth achieved by **composition** (integrate
+PubMed/MEDLINE as the named corpus, or a cited-engine API) rather than rebuilding a 60M-paper index we can't
+honestly claim today. The winning combination none of them offers: **currency + verifiability + embedding +
+burden-instrumentation + governance — all in service of physician resilience,** an axis the CDS-scoring indices don't even measure.
+
 ## Part B — Patient Access & Transparency features (approved to build)
 
 All four are on-thesis (reduce friction, serve public health) and several are **compliance-native**.

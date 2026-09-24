@@ -157,6 +157,7 @@ const NAVS = {
       { id:"readmit",   ic:"⤾", t:"Risk & early warning", badge:() => state.deterDismissed ? null : "!" },
       { id:"billing",   ic:"⛁", t:"Encounter & claim" },
       { id:"eol",       ic:"🕊", t:"End of life & vital records" },
+      { id:"iconsent",  ic:"✍", t:"Informed consent" },
       { id:"analytics", ic:"📊", t:"Revenue & analytics" },
     ]},
     { label:"Professional", items:[
@@ -215,6 +216,7 @@ const NAVS = {
       { id:"burden",  ic:"🧪", t:"Burden lab" },
       { id:"actions", ic:"🎯", t:"Action plan" },
       { id:"report",  ic:"📄", t:"Data extract report" },
+      { id:"quality", ic:"📈", t:"Quality & Care Compare" },
       { id:"aigov",   ic:"🛡", t:"AI governance & assurance" },
       { id:"rollout", ic:"🚦", t:"Adoption & rollout" },
       { id:"biblio",  ic:"📚", t:"Bibliography" },
@@ -963,6 +965,88 @@ function vHelp(){
     <h3>📊 System status</h3>
     <div class="rowlist">${H.status.map(s => `<div class="rowitem">${helpStatusChip(s.st)}<div class="d" style="flex:1">${s.sys}</div></div>`).join("")}</div>
     <div class="tiny" style="margin-top:6px">A public status page with incident history ships in production. (Synthetic demo data.)</div>
+  </div>`;
+}
+function qualStatusChip(st){
+  const m = { designed:["green","designed-in"], partial:["amber","partial"], gap:["plain","gap"] };
+  const [t,l] = m[st] || ["plain", st];
+  return `<span class="chip ${t}">${l}</span>`;
+}
+function vQuality(){
+  const Q = QUALITY;
+  return `
+  <h1 class="page-title">📈 Quality &amp; Care Compare</h1>
+  <p class="page-sub">CMS's public hospital scorecard (Care Compare) is also a <b>payment</b> lever — readmissions, complications and patient experience move real Medicare dollars. This board maps what LumaChart moves, and how it's reported.${ev("readmitTiming")}${reg("c1")}</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>CMS programs &amp; what's at stake</h3>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Program</th><th>At stake</th><th>How LumaChart helps</th></tr>
+      ${Q.programs.map(p=>`<tr><td class="cap">${p.p}</td><td><b>${p.stake}</b></td><td>${p.luma}</td></tr>`).join("")}
+    </table></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Care Compare measure groups → how we move each</h3>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Measure group</th><th>Examples</th><th>LumaChart lever</th><th>Status</th></tr>
+      ${Q.measures.map(m=>`<tr><td class="cap">${m.g}</td><td class="small">${m.ex}</td><td class="small">${m.luma}</td><td>${qualStatusChip(m.st)}</td></tr>`).join("")}
+    </table></div>
+    <div class="evidence">Readmission risk isn't only <i>who</i> — it's <b>when</b>: characterizing the timing of 30-day readmission risk targets the right post-discharge follow-up interval.${ev("readmitTiming")}</div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>Reporting — automated eCQMs</h3>
+      <div class="d small">Electronic clinical quality measures are computed from the FHIR-native record and submitted under <b>§170.315(c)</b> certified capability${reg("c1")}; the <a data-nav-inline="eol" style="cursor:pointer">50-state compliance engine</a> tracks the reporting deadlines. Measurement becomes a byproduct of care, not a separate abstraction project.</div>
+    </div>
+    <div class="card">
+      <h3>The ROI — penalty avoidance</h3>
+      <div class="rowlist">${Q.roi.map(r=>`<div class="rowitem"><span class="chip green">$</span><div class="d" style="flex:1">${r}</div></div>`).join("")}</div>
+      <div class="tiny" style="margin-top:6px">A CFO-facing case: better Care Compare standing + fewer penalties — the quiet-billing thesis, made measurable.</div>
+    </div>
+  </div>`;
+}
+function vInformedConsent(){
+  const C = CONSENT, k = C.case;
+  return `
+  <h1 class="page-title">✍ Informed consent <span class="chip plain">shared decision-making</span></h1>
+  <p class="page-sub">Consent is a <b>process, not a signature</b>: disclose, check understanding, respect the choice — and document it. Decision aids improve knowledge and value-concordant choices.${ev("staceyDA")}${aut("amaConsent")}</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>The decision <span class="chip accent">worked example</span></h3>
+    <div class="small muted" style="margin-bottom:8px"><b style="color:var(--text)">Diagnosis:</b> ${k.dx} &nbsp;·&nbsp; <b style="color:var(--text)">Proposed:</b> ${k.proposal}</div>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Expected benefit</th><th>Material risks</th><th>Reasonable alternatives (incl. no treatment)</th></tr>
+      <tr><td>${k.benefit}</td><td>${k.risks}</td><td>${k.alternatives.map(a=>`• ${a}`).join("<br>")}</td></tr>
+    </table></div>
+    <div class="evidence">Shown as a <b>decision aid</b> — benefit, risk, and alternatives side by side — so the patient chooses in line with their values, not just hears a recommendation.${ev("staceyDA")}</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>The five elements of valid consent</h3>
+    <div class="rowlist">
+      ${C.elements.map((e,i)=>`<label class="rowitem" style="cursor:pointer"><input type="checkbox" class="task-check consent-el" data-i="${i}"><div style="flex:1"><div class="t small">${e.t}</div><div class="d">${e.d}</div></div></label>`).join("")}
+    </div>
+    <div class="tiny" style="margin-top:6px">Understanding is confirmed by <b>teach-back</b> — the patient explains the plan in their own words, not just "does that make sense?"</div>
+  </div>
+
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="card">
+      <h3>Evidence &amp; AI disclosure</h3>
+      <div class="d small">When a decision-support tool informs a recommendation, that is <b>disclosed</b> and its basis shown — decision support is a transparent intervention, never a hidden nudge${reg("b11")} — and the recommendation carries its citation onto the note.</div>
+    </div>
+    <div class="card">
+      <h3>Document the outcome</h3>
+      <div class="small muted" style="margin-bottom:10px">Record consent — or an <b>informed refusal</b> (equally valid, equally documented).</div>
+      <button class="btn primary" data-consent-doc>Document informed consent</button>
+      <button class="btn ghost small" data-consent-refuse style="margin-left:8px">Record informed refusal</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Not the same as research consent</h3>
+    <div class="small">Clinical (treatment) consent is this page. <b>Research</b> participation is separate — voluntary, IRB-overseen, revocable — in the patient's <a data-nav-inline="consent" style="cursor:pointer">Research &amp; consent</a> view.${aut("commonRule")} Disclosing the record beyond treatment/payment/operations uses a HIPAA authorization.${aut("hipaaAuth")}</div>
   </div>`;
 }
 function vAIGov(){
@@ -2915,10 +2999,10 @@ function vHelix(){
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, eol:vEndOfLife, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, cert:vCert, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, eol:vEndOfLife, iconsent:vInformedConsent, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, cert:vCert, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, myrecord:vMyRecord, longevity:vLongevity, consent:vConsent },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
-  cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, aigov:vAIGov, rollout:vRollout, biblio:vBiblio },
+  cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, quality:vQuality, aigov:vAIGov, rollout:vRollout, biblio:vBiblio },
 };
 Object.values(VIEWS).forEach(v => { v.help = vHelp; });   // Help center is reachable from every role
 
@@ -2941,6 +3025,13 @@ function wireView(){
       const sel = document.getElementById("help-sev"); const c = HELP.channels[sel ? +sel.value : 2] || HELP.channels[2];
       toast("Ticket LC-" + Math.floor(1000 + Math.random()*9000) + " created ✓", c.sev + " — target response " + c.sla + ". (Demo — nothing was actually sent.)", "green");
     }); }
+  { const cd = document.querySelector("[data-consent-doc]"); if (cd) cd.addEventListener("click", () => {
+      const n = document.querySelectorAll(".consent-el:checked").length;
+      if (n < 5) toast("Consent process incomplete", (5 - n) + " of the 5 elements still unchecked — capacity, disclosure, teach-back, voluntariness, authorization.", "amber");
+      else toast("Informed consent documented ✓", "The discussion — diagnosis, risks, benefits, alternatives, teach-back — is recorded to the note and audit log. (Demo.)", "green");
+    }); }
+  { const cr = document.querySelector("[data-consent-refuse]"); if (cr) cr.addEventListener("click", () =>
+      toast("Informed refusal recorded ✓", "The patient's informed decision to decline, and the risks discussed, are documented — a valid, respected choice. (Demo.)", "green")); }
   $$("[data-nav-inline]").forEach(b => b.addEventListener("click", () => {
     const v = b.dataset.navInline;
     if (!VIEWS[state.role][v]){                                   // cross-role link → switch role

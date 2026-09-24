@@ -1,9 +1,10 @@
 # LumaChart — Annotated Bibliography
 
-Auto-generated from the running evidence base (data.js). 66 peer-reviewed sources + 39 reports, standards & legislation.
+Auto-generated from the running evidence base (data.js). 74 peer-reviewed sources + 42 reports, standards & legislation.
 
 ## Peer-reviewed literature (PubMed)
 
+- **30-day readmission timing, JAMA Netw Open 2026 (prognostic)** — characterizing WHEN readmission risk occurs across time horizons, to target post-discharge follow-up intervals. [PMID 42593794](https://pubmed.ncbi.nlm.nih.gov/42593794/) _(key: `readmitTiming`)_
 - **Adams et al., Nat Med 2022** — prospective 5-site study of the TREWS machine-learning sepsis early-warning system: 89% adoption; earlier antibiotics and reduced mortality when alerts were evaluated promptly. [PMID 35864252](https://pubmed.ncbi.nlm.nih.gov/35864252/) _(key: `adamsTrews`)_
 - **Aguirre et al., Int J Med Inform 2021 (review of systematic reviews)** — synthesizes technological progress in EHR optimization: usability, clinical decision support, NLP and interoperability. [PMID 34049051](https://pubmed.ncbi.nlm.nih.gov/34049051/) _(key: `aguirreOpt`)_
 - **Albott et al., Anesth Analg 2020** — Battle Buddies: rapid peer-support pairing for health workers. [PMID 32345861](https://pubmed.ncbi.nlm.nih.gov/32345861/) _(key: `albott`)_
@@ -19,6 +20,7 @@ Auto-generated from the running evidence base (data.js). 66 peer-reviewed source
 - **Downing, Bates & Longhurst, Ann Intern Med 2018** — US notes ~4× longer than the same EHR abroad; billing rules are the driver. [PMID 29801050](https://pubmed.ncbi.nlm.nih.gov/29801050/) _(key: `downing`)_
 - **Dyrbye et al., Mayo Clin Proc 2017** — intrusive licensure questions make physicians reluctant to seek mental health care. [PMID 28982484](https://pubmed.ncbi.nlm.nih.gov/28982484/) _(key: `dyrbyeLic`)_
 - **Ekers et al., PLoS One 2014 (meta-analysis)** — behavioural activation is an effective treatment for depression. [PMID 24936656](https://pubmed.ncbi.nlm.nih.gov/24936656/) _(key: `scBA`)_
+- **Everson, Adler-Milstein et al., JAMA Netw Open 2025** — 8,122 family physicians: “ideal” EHR interoperability is rare (8–19% by data type; worst, 8%, for outside test results), and physicians with vulnerable panels fare worse — policy hasn't yet delivered usable interoperability; data standardization & quality are the gap. [PMID 41231471](https://pubmed.ncbi.nlm.nih.gov/41231471/) _(key: `eversonInterop`)_
 - **Fennelly et al., Int J Med Inform 2020 (umbrella review)** — 15 organizational, human & technological factors decide national-EHR success; the implementation process, not the vendor product, is critical. [PMID 33017724](https://pubmed.ncbi.nlm.nih.gov/33017724/) _(key: `fennellyNat`)_
 - **Fleming et al., Health Aff 2011** — implementing an EHR cost a five-physician primary-care practice about $162,000, plus ~$85,000 in first-year maintenance. [PMID 21383367](https://pubmed.ncbi.nlm.nih.gov/21383367/) _(key: `fleming`)_
 - **Fredrickson et al., J Pers Soc Psychol 2008 (RCT)** — loving-kindness meditation builds positive emotion & personal resources. [PMID 18954193](https://pubmed.ncbi.nlm.nih.gov/18954193/) _(key: `lovingKind`)_
@@ -50,16 +52,22 @@ Auto-generated from the running evidence base (data.js). 66 peer-reviewed source
 - **McGinn et al., BMC Med 2011 (systematic review)** — barriers & facilitators to EHR implementation differ by user group (physicians, nurses, managers, patients); design, ease of use, interoperability, privacy/security, cost & workflow recur across all groups. [PMID 21524315](https://pubmed.ncbi.nlm.nih.gov/21524315/) _(key: `mcginnImpl`)_
 - **McPherson et al., Healthcare (MDPI) 2026 (systematic review, 24 studies)** — five interoperability strategies for U.S. settings: blockchain-based EHR (67%), Cures Act (17%), AI (33%), IoT (33%); interoperability drives outcomes (79%). [PMID 42194377](https://pubmed.ncbi.nlm.nih.gov/42194377/) _(key: `mcpherIntp`)_
 - **Melnick et al., Mayo Clin Proc 2020** — physicians rate EHR usability 45.9/100 on the System Usability Scale (grade F, bottom 9% of technologies); each 1-point improvement ≈ 3% lower odds of burnout. [PMID 31735343](https://pubmed.ncbi.nlm.nih.gov/31735343/) _(key: `melnickSUS`)_
+- **Myers, Carr & Branas, JAMA Pediatr 2016** — a call to unite fragmented “big health data” into a national learning health system in the U.S. [PMID 27723889](https://pubmed.ncbi.nlm.nih.gov/27723889/) _(key: `myersLHS`)_
 - **O'Mahony et al., Am J Hosp Palliat Care 2018** — ProQOL-measured compassion satisfaction buffers burnout. [PMID 28347144](https://pubmed.ncbi.nlm.nih.gov/28347144/) _(key: `proqol`)_
 - **Poon et al., N Engl J Med 2010** — bar-code medication administration (a VA-pioneered practice) cut non-timing administration errors ~41% and potential adverse drug events ~51%, and eliminated transcription errors. [PMID 20445181](https://pubmed.ncbi.nlm.nih.gov/20445181/) _(key: `bcma`)_
 - **PREDIMED, NEJM 2018 (RCT)** — Mediterranean diet + olive oil/nuts reduced major cardiovascular events ~30%. [PMID 29897866](https://pubmed.ncbi.nlm.nih.gov/29897866/) _(key: `medDiet`)_
+- **Prenatal-care surveillance metrics, JAMA Health Forum 2026 (cohort)** — EHR data can generate population-level surveillance of early & adequate prenatal care. [PMID 42247225](https://pubmed.ncbi.nlm.nih.gov/42247225/) _(key: `prenatalEHR`)_
 - **Ratwani et al., JAMIA 2018** — multi-center EHR usability study: wide variability in clicks, time and error rates across sites — usability is a patient-safety issue. [PMID 29982549](https://pubmed.ncbi.nlm.nih.gov/29982549/) _(key: `ratwani`)_
+- **Real-time prescription benefit tool, JAMA Health Forum 2026 (post hoc cluster RCT)** — effect of RTPB availability on prescription fill rates (EHR + medications). [PMID 42599729](https://pubmed.ncbi.nlm.nih.gov/42599729/) _(key: `rtpbTool`)_
 - **Schmeelk et al., JAMIA Open 2022 (scoping review)** — blockchain shows promise for EHR interoperability (especially via HIEs) but faces scalability/performance, legal-security, and patient-matching/standardization challenges. [PMID 35911668](https://pubmed.ncbi.nlm.nih.gov/35911668/) _(key: `schmeelkBC`)_
 - **Schuch et al., J Psychiatr Res 2016 (meta-analysis)** — exercise is an effective treatment for depression. [PMID 26978184](https://pubmed.ncbi.nlm.nih.gov/26978184/) _(key: `scExercise`)_
 - **Shanafelt & Noseworthy, Mayo Clin Proc 2017** — nine evidence-based organizational strategies executive leaders can use to reduce burnout and promote engagement. [PMID 27871627](https://pubmed.ncbi.nlm.nih.gov/27871627/) _(key: `shanafelt9`)_
 - **Sinsky et al., Ann Intern Med 2016** — ~2 hr of EHR/desk work per 1 hr of direct patient care. [PMID 27595430](https://pubmed.ncbi.nlm.nih.gov/27595430/) _(key: `sinskyTM`)_
+- **Social-needs screening** — “Not Yet There,” JAMA Netw Open 2026 (opinion) — HRSN screening across a large health system is closer, but not yet routine. [PMID 42550514](https://pubmed.ncbi.nlm.nih.gov/42550514/) _(key: `hrsnOpinion`)_
+- **Social-needs screening epidemiology, JAMA Netw Open 2026 (multistate cohort)** — who completes HRSN screening, has ≥1 identified need, and requests assistance. [PMID 42550509](https://pubmed.ncbi.nlm.nih.gov/42550509/) _(key: `hrsnEpi`)_
 - **Spitzer, Kroenke, Williams & Löwe, Arch Intern Med 2006** — the GAD-7, a validated brief generalized-anxiety measure. [PMID 16717171](https://pubmed.ncbi.nlm.nih.gov/16717171/) _(key: `gad7`)_
 - **SPRINT, NEJM 2015 (RCT)** — intensive BP control (<120 systolic target) reduced cardiovascular events and death. [PMID 26551272](https://pubmed.ncbi.nlm.nih.gov/26551272/) _(key: `sprint`)_
+- **Stacey et al., Cochrane 2017** — patient decision aids improve knowledge, produce more accurate risk perceptions, and lead to choices more consistent with patients' values (the evidence base for shared decision-making). [PMID 28402085](https://pubmed.ncbi.nlm.nih.gov/28402085/) _(key: `staceyDA`)_
 - **Trauer et al., Ann Intern Med 2015 (meta-analysis)** — cognitive behavioral therapy improves chronic insomnia. [PMID 26054060](https://pubmed.ncbi.nlm.nih.gov/26054060/) _(key: `scSleep`)_
 - **US Preventive Services Task Force, JAMA 2023** — Screening for Depression and Suicide Risk in Adults (Grade B). [PMID 37338872](https://pubmed.ncbi.nlm.nih.gov/37338872/) _(key: `uspstfDep`)_
 - **US Preventive Services Task Force, JAMA 2024** — Screening for Breast Cancer (Grade B). [PMID 38687503](https://pubmed.ncbi.nlm.nih.gov/38687503/) _(key: `uspstfBreast`)_
@@ -73,6 +81,9 @@ Auto-generated from the running evidence base (data.js). 66 peer-reviewed source
 
 ## Reports, standards, regulation & industry precedent
 
+- **AMA Ethics 2.1.1** — AMA Code of Medical Ethics, Opinion 2.1.1 (Informed Consent) — disclose diagnosis, nature/purpose, risks, benefits and alternatives; a process of shared decision-making, not a signature. <https://www.ama-assn.org/delivering-care/ethics/informed-consent> _(key: `amaConsent`)_
+- **Common Rule** — 45 CFR 46 (the Common Rule) — federal informed-consent requirements for human-subjects research: voluntary, informed, documented, IRB-overseen. <https://www.ecfr.gov/current/title-45/part-46> _(key: `commonRule`)_
+- **HIPAA §164.508** — 45 CFR 164.508 — HIPAA authorization: a patient's written permission to use or disclose PHI beyond treatment, payment, or health-care operations. <https://www.ecfr.gov/current/title-45/part-164> _(key: `hipaaAuth`)_
 - **SG Advisory 2022** — U.S. Surgeon General's Advisory on Health Worker Burnout (2022) — names workload & administrative burden as core drivers. <https://www.hhs.gov/sites/default/files/health-worker-wellbeing-advisory.pdf> _(key: `sgAdvisory`)_
 - **NAM 2019** — National Academy of Medicine, Taking Action Against Clinician Burnout (2019) — landmark consensus report implicating health-IT usability. <https://doi.org/10.17226/25521> _(key: `nam2019`)_
 - **ONC 2020** — ONC Strategy on Reducing Regulatory & Administrative Burden Relating to Health IT and EHRs (2020) — the Cures Act-mandated burden-reduction strategy. <https://healthit.gov/wp-content/uploads/2020/02/BurdenReport.pdf> _(key: `onc2020`)_

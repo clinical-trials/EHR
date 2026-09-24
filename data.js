@@ -51,6 +51,16 @@ const EVIDENCE = {
   heyworthBt: { pmid:"23611987", cite:"Heyworth, Bates et al., Interact J Med Res 2012 (Massachusetts eHealth Collaborative) — post-adoption physician satisfaction is predicted by ease of implementation, resources for practice improvement, and prior satisfaction; EHR adoption may reduce stress." },
   yeLMIC:     { pmid:"37991820", cite:"Ye et al., JMIR Med Inform 2023 (PRISMA-ScR scoping review) — EHRs support clinical trials in low- & middle-income countries across recruitment, baseline capture, intervention and outcome assessment; a roadmap for evidence generation on limited budgets." },
   mcpherIntp: { pmid:"42194377", cite:"McPherson et al., Healthcare (MDPI) 2026 (systematic review, 24 studies) — five interoperability strategies for U.S. settings: blockchain-based EHR (67%), Cures Act (17%), AI (33%), IoT (33%); interoperability drives outcomes (79%)." },
+  staceyDA:   { pmid:"28402085", cite:"Stacey et al., Cochrane 2017 — patient decision aids improve knowledge, produce more accurate risk perceptions, and lead to choices more consistent with patients' values (the evidence base for shared decision-making)." },
+
+  // Learning health system, EHR data uses & interoperability (JAMA family)
+  myersLHS:     { pmid:"27723889", cite:"Myers, Carr & Branas, JAMA Pediatr 2016 — a call to unite fragmented “big health data” into a national learning health system in the U.S." },
+  prenatalEHR:  { pmid:"42247225", cite:"Prenatal-care surveillance metrics, JAMA Health Forum 2026 (cohort) — EHR data can generate population-level surveillance of early & adequate prenatal care." },
+  rtpbTool:     { pmid:"42599729", cite:"Real-time prescription benefit tool, JAMA Health Forum 2026 (post hoc cluster RCT) — effect of RTPB availability on prescription fill rates (EHR + medications)." },
+  hrsnOpinion:  { pmid:"42550514", cite:"Social-needs screening — “Not Yet There,” JAMA Netw Open 2026 (opinion) — HRSN screening across a large health system is closer, but not yet routine." },
+  readmitTiming:{ pmid:"42593794", cite:"30-day readmission timing, JAMA Netw Open 2026 (prognostic) — characterizing WHEN readmission risk occurs across time horizons, to target post-discharge follow-up intervals." },
+  hrsnEpi:      { pmid:"42550509", cite:"Social-needs screening epidemiology, JAMA Netw Open 2026 (multistate cohort) — who completes HRSN screening, has ≥1 identified need, and requests assistance." },
+  eversonInterop:{ pmid:"41231471", cite:"Everson, Adler-Milstein et al., JAMA Netw Open 2025 — 8,122 family physicians: “ideal” EHR interoperability is rare (8–19% by data type; worst, 8%, for outside test results), and physicians with vulnerable panels fare worse — policy hasn't yet delivered usable interoperability; data standardization & quality are the gap." },
 };
 
 const SCHEDULE = [
@@ -972,7 +982,60 @@ const HELP = {
   ],
 };
 
+/* Clinical (treatment) informed consent — a shared-decision process, not a signature.
+   Worked example + the five elements of valid consent. Research consent lives in RESEARCH/vConsent. */
+const CONSENT = {
+  case: {
+    dx: "Newly diagnosed atrial fibrillation (CHA₂DS₂-VASc 3)",
+    proposal: "Start a direct oral anticoagulant (DOAC) to reduce stroke risk",
+    benefit: "≈ 60–65% relative reduction in stroke risk",
+    risks: "Higher bleeding risk (major bleeding ~2–3%/yr); GI upset",
+    alternatives: [
+      "No anticoagulation — accept the higher stroke risk",
+      "A different agent (warfarin vs. DOAC) — monitoring & interaction trade-offs",
+      "Aspirin alone — much weaker stroke protection (generally not recommended)",
+    ],
+  },
+  elements: [
+    { t:"Decision-making capacity", d:"The patient can understand, appreciate, reason about, and communicate a choice." },
+    { t:"Disclosure", d:"Diagnosis · nature & purpose · material risks · expected benefits · reasonable alternatives (including no treatment)." },
+    { t:"Understanding — teach-back", d:"The patient explains the decision back in their own words." },
+    { t:"Voluntariness", d:"A free choice, without coercion or undue pressure." },
+    { t:"Authorization", d:"Documented consent — or a documented informed refusal." },
+  ],
+};
+
+/* Quality & Medicare Care Compare — the public hospital scorecard is also a payment lever.
+   Measure groups → LumaChart levers → eCQM reporting (§170.315(c)) → penalty-avoidance ROI. */
+const QUALITY = {
+  programs: [
+    { p:"HRRP — Readmissions Reduction", stake:"up to −3% of Medicare inpatient payments", luma:"Risk & early-warning + timed post-discharge follow-up" },
+    { p:"HAC Reduction Program", stake:"−1% (worst quartile)", luma:"BCMA five-rights + CDS + antibiotic stewardship → fewer HAIs" },
+    { p:"Hospital VBP", stake:"~2% redistributed on quality", luma:"gains across process, outcome & patient-experience measures" },
+    { p:"Hospital IQR + Promoting Interoperability", stake:"pay-for-reporting; eCQM submission", luma:"§170.315(c) eCQM capture & automated submission" },
+  ],
+  measures: [
+    { g:"Patient experience (HCAHPS)", ex:"Communication · discharge info · care transitions · would-recommend", luma:"Portal + right-of-access + care-transition summaries + language-first communication", st:"designed" },
+    { g:"Timely & effective care", ex:"Sepsis (SEP-1) · ED throughput · preventive care · follow-up", luma:"Evidence-CDS + USPSTF prevention + one-tap sepsis screen", st:"partial" },
+    { g:"Complications & deaths", ex:"30-day mortality (AMI/HF/pneumonia/COPD/stroke) · PSI-90 · HAIs", luma:"BCMA med safety + CDS + antibiotic stewardship", st:"partial" },
+    { g:"Unplanned visits — readmissions", ex:"30-day readmission (AMI/HF/pneumonia/COPD/CABG/THA-TKA) + hospital-wide", luma:"Risk & early-warning + readmission-timing → targeted follow-up intervals", st:"designed" },
+    { g:"Payment & value of care", ex:"Medicare spending per beneficiary · value", luma:"Denial-prevention + transparent pricing + efficiency", st:"partial" },
+  ],
+  roi: [
+    "Avoid HRRP readmission penalties — up to 3% of Medicare inpatient payments.",
+    "Avoid HAC penalties (1%) by cutting HAIs and complications.",
+    "Capture VBP incentives by moving experience + outcome measures.",
+    "Penalties fall hardest on safety-net hospitals — so the ROI lands hardest exactly in the beachhead.",
+  ],
+};
+
 const AUTHORITIES = {
+  amaConsent:{ label:"AMA Ethics 2.1.1", url:"https://www.ama-assn.org/delivering-care/ethics/informed-consent",
+    cite:"AMA Code of Medical Ethics, Opinion 2.1.1 (Informed Consent) — disclose diagnosis, nature/purpose, risks, benefits and alternatives; a process of shared decision-making, not a signature." },
+  commonRule:{ label:"Common Rule", url:"https://www.ecfr.gov/current/title-45/part-46",
+    cite:"45 CFR 46 (the Common Rule) — federal informed-consent requirements for human-subjects research: voluntary, informed, documented, IRB-overseen." },
+  hipaaAuth:{ label:"HIPAA §164.508", url:"https://www.ecfr.gov/current/title-45/part-164",
+    cite:"45 CFR 164.508 — HIPAA authorization: a patient's written permission to use or disclose PHI beyond treatment, payment, or health-care operations." },
   sgAdvisory:{ label:"SG Advisory 2022", url:"https://www.hhs.gov/sites/default/files/health-worker-wellbeing-advisory.pdf",
     cite:"U.S. Surgeon General's Advisory on Health Worker Burnout (2022) — names workload & administrative burden as core drivers." },
   nam2019:{ label:"NAM 2019", url:"https://doi.org/10.17226/25521",
