@@ -1637,6 +1637,129 @@ Object.assign(EVIDENCE, {
   lifestyle:{ pmid:"29712712", cite:"Li et al., Circulation 2018 — five low-risk lifestyle factors (never smoking, healthy weight, ≥30 min/day activity, high diet quality, moderate alcohol) were associated with ~14 more years of life expectancy at age 50 for women and ~12 for men; the cohorts included the Health Professionals Follow-up Study, so the evidence speaks directly to clinicians' own nutrition and exercise." },
 });
 
+/* ---------- AI environmental footprint — evidence & authorities ---------- */
+Object.assign(EVIDENCE, {
+  eckelmanHC:   { pmid:"27280706", cite:"Eckelman & Sherman, PLoS One 2016 — the U.S. health-care sector causes ~10% of national greenhouse-gas emissions (and 9–12% of criteria air pollutants); the resulting pollution costs an estimated 470,000 DALYs of lost health each year. Health care is itself a major polluter — so how it buys matters." },
+  eckelmanUpd:  { pmid:"33284703", cite:"Eckelman et al., Health Affairs 2020 — U.S. health-care greenhouse-gas emissions reached 1,692 kg CO₂e per capita in 2018, the highest rate among industrialized nations, and were NOT correlated with better care quality: the footprint can be cut without compromising care. The authors call for mandatory reporting and benchmarking." },
+  greenAIhealth:{ pmid:"42070542", cite:"Alzoubi & Mishra, Artif Intell Med 2026 (systematic review) — “Green AI in health”: the energy use, e-waste and carbon emissions of deploying and training AI models are a growing sustainability concern; energy-efficient models, model right-sizing and renewable-powered compute are the identified levers." },
+  aiSustainMap: { pmid:"42381036", cite:"Ibrahim et al., BMC Nursing 2026 (scoping review & evidence map) — evidence on AI for environmental sustainability in health systems is still sparse; future studies should evaluate environmental endpoints alongside patient safety and the life-cycle footprint of AI systems — the measurement gap this feature is built to close." },
+  greenRad:     { pmid:"42386378", cite:"Kadom et al., AJNR 2026 (ASNR–ESNR white paper) — a specialty society reframes imaging's environmental footprint as a core professional responsibility (“Image Greenly”): appropriateness, energy and AI-assisted efficiency. Precedent that environmental impact is now a clinical-professional value, not a fringe concern." },
+  nonAIcolon:   { pmid:"42580755", cite:"Hernandez, Sherman et al., Endoscopy 2026 (microsimulation, 6M individuals) — the NON-AI resect-and-discard strategy achieved the lowest cost ($36.6B) AND the lowest carbon emissions (0.90 Mt CO₂) while yielding the highest QALYs; adding AI (CADe, and especially CADx) raised cost and emissions without improving outcomes. AI must earn its footprint — the simplest strategy can be the best on all three axes at once." },
+});
+
+Object.assign(AUTHORITIES, {
+  hcwhAI:{ label:"HCWH AI Guide", url:"https://noharm-uscanada.org/",
+    cite:"Health Care Without Harm & Practice Greenhealth — Sustainable AI Procurement Guide for US Health Sector Organizations (Sept 23, 2026): 10 environmental disclosure questions plus a weighted scoring rubric (/40, +3 bonus points; /33 in later years) so health systems can score AI vendors on carbon, water, energy source and community impact. Procurement is the lever — this feature implements that instrument." },
+  gsfSCI:{ label:"GSF SCI (ISO 21031)", url:"https://greensoftware.foundation/standards/sci/",
+    cite:"Green Software Foundation — Software Carbon Intensity (SCI), ISO/IEC 21031:2024, and its ratified SCI-for-AI extension: report carbon as a RATE per functional unit (per request / user / task) via SCI = (E×I + M) ÷ R. The methodology behind LumaChart's per-task footprint estimate." },
+  watershed:{ label:"Watershed AI", url:"https://watershed.com/",
+    cite:"Watershed — an open framework for measuring AI emissions; one of the published methodologies the HCWH guide accepts for per-task emissions estimates (alongside GSF SCI)." },
+  sbti:{ label:"SBTi", url:"https://sciencebasedtargets.org/",
+    cite:"Science Based Targets initiative (SBTi) — validates corporate emissions-reduction targets aligned with net-zero by 2050 (Scope 1/2, plus Scope 3 where material). The top tier of the guide's ‘emissions commitments’ score is an SBTi-validated target." },
+  egrid:{ label:"EPA eGRID", url:"https://www.epa.gov/egrid",
+    cite:"EPA Emissions & Generation Resource Integrated Database (eGRID) — the fuel mix and carbon intensity (gCO₂e/kWh) of electricity by U.S. region; the grid-intensity input (I) to the per-task carbon calculation and the basis for carbon-aware region choice." },
+  leedZero:{ label:"LEED / LEED Zero", url:"https://www.usgbc.org/programs/leed-zero",
+    cite:"USGBC LEED and LEED Zero (verified by GBCI) — data-center building certification for energy, water, carbon and waste; LEED Zero (net-zero) is weighted most heavily in the guide's data-center score." },
+  lancetClimate:{ label:"Lancet Countdown", url:"https://www.lancetcountdown.org/",
+    cite:"The Lancet — climate change described as the biggest global health threat of the 21st century; the Lancet Countdown tracks health-and-climate indicators. This is the link that makes AI's carbon and water footprint a health-care concern, not only an IT one." },
+  greenE:{ label:"Green-e", url:"https://www.green-e.org/",
+    cite:"Green-e (Center for Resource Solutions) — certification for renewable-energy certificates (Green-e Energy) and carbon offsets (Green-e Climate); the substantiation standard the guide expects for renewable-energy and offset claims." },
+  bmjPlanetary:{ label:"BMJ 2026 (Foley)", url:"https://www.bmj.com/content/393/bmj.s677",
+    cite:"Foley, Bonnici, Calderwood, Reyburn & Pearson, BMJ 2026;393:s677 (letter, UCL Institute of Health Informatics & UCLH) — “Evaluating the environmental impact of AI in healthcare is essential for planetary health”: robust evaluation is the most practical, underused lever for responsible AI — align AI innovation with proven value the way healthcare aligns any innovation with patient benefit, and weigh the relevant comparator (existing workflow or a simpler tool) before adopting AI." },
+  whoDecarb:{ label:"WHO Supply-Chain Decarb", url:"https://www.who.int/publications/b/81844",
+    cite:"World Health Organization — Decarbonizing the Healthcare Supply Chain: Strategic Actions for Health Systems: the supply chain (Scope 3) dominates health care's climate footprint, so sustainable procurement is a primary strategic lever health systems can pull to cut emissions." },
+});
+
+/* ---------- AI environmental footprint — the third procurement axis ----------
+   Implements the Health Care Without Harm / Practice Greenhealth "Sustainable AI
+   Procurement Guide for US Health Sector Organizations" (Sept 23, 2026): a per-task
+   footprint CALCULATOR (SCI-for-AI methodology), LumaChart's own vendor-disclosure
+   SCORECARD, the intervention LEVERS, and the HEALTH-RISK context.
+   Per-task energy values are ILLUSTRATIVE demo estimates; the METHODOLOGY is real
+   (GSF SCI for AI; grid intensity from EPA eGRID; water from provider PUE/WUE
+   disclosure). The point is transparency and a defensible calculation, not a
+   certified number — a real deployment publishes measured values. */
+const FOOTPRINT = {
+  maxScore: 40, maxBonus: 3, laterYearMax: 33,
+  // Region options for the calculator — carbon intensity (gCO2e/kWh) and water (L/kWh:
+  // on-site cooling WUE + off-site water for electricity generation). Illustrative,
+  // within real eGRID subregion and data-center WUE ranges.
+  grids: [
+    { id:"us",   label:"U.S. average grid (eGRID)",                         co2:386, water:2.9 },
+    { id:"low",  label:"Low-carbon region (hydro/nuclear · best-in-class WUE)", co2:45,  water:0.6 },
+    { id:"high", label:"High-carbon, water-stressed region (coal/gas)",       co2:620, water:5.5 },
+  ],
+  // Per-task AI actions. wh = energy/action when LumaChart RIGHT-SIZES the model (SAHAI
+  // strategy); whNaive = energy/action if one large LLM handled every task.
+  // n = default actions per clinician per day.
+  tasks: [
+    { id:"triage",  task:"Patient-message triage & routing", who:"Inbox",     model:"Lightweight NLP classifier",         wh:0.05, whNaive:3.0, n:40 },
+    { id:"scribe",  task:"Ambient note draft",               who:"Scribe",    model:"Small clinical model",               wh:2.5,  whNaive:6.0, n:16 },
+    { id:"summary", task:"Chart summary",                    who:"Chart",     model:"Small model + retrieval",            wh:1.2,  whNaive:5.0, n:20 },
+    { id:"cds",     task:"Evidence / CDS lookup",            who:"CDS",       model:"Retrieval + cache · no generation",  wh:0.10, whNaive:2.5, n:30 },
+    { id:"coding",  task:"Coding suggestion",                who:"Claim",     model:"Small model",                        wh:0.8,  whNaive:3.5, n:16 },
+    { id:"pop",     task:"Population analytics",             who:"CWO batch", model:"Off-peak scheduled · mid model",     wh:4.0,  whNaive:8.0, n:2  },
+  ],
+  // The 10 HCWH environmental disclosure questions (abbreviated), with LumaChart's stance:
+  // attested = true today · committed = design commitment · provider = needs cloud/data-center disclosure.
+  disclosure: [
+    { q:"Renewable electricity as a % of total energy (managed + provider data centers)", a:"committed", note:"Disclose our cloud-region mix and request the renewable-energy mix from our provider (AWS / Azure / GCP)." },
+    { q:"Public Scope 1/2/3 commitments & progress, incl. SBTi status",                   a:"committed", note:"Publish annually; pursue an SBTi-validated target as we scale.", aut:"sbti" },
+    { q:"Published per-task GHG emissions estimates",                                      a:"attested",  note:"This calculator publishes per-task estimates with a stated methodology.", aut:"gsfSCI" },
+    { q:"How models are optimized to lower impact (right-sizing, routing, efficient retraining)", a:"attested", note:"Model right-sizing + task routing is core design — see the levers.", ev:"greenAIhealth" },
+    { q:"Work with the buyer on user strategies to lower impact (SAHAI framework)",        a:"attested",  note:"Off-peak scheduling of analytics; lightweight NLP for routing; mixed-quality models." },
+    { q:"Data-center Power Usage Effectiveness (PUE)",                                     a:"provider",  note:"Requires provider disclosure; report the weighted PUE of the regions we run in." },
+    { q:"Data-center Water Usage Effectiveness (WUE)",                                     a:"provider",  note:"Requires provider disclosure; surfaced in the calculator's water figure." },
+    { q:"% data centers with LEED / LEED Zero certification",                             a:"provider",  note:"Requires provider disclosure of building certifications.", aut:"leedZero" },
+    { q:"% data centers reliant on diesel / coal / natural gas (incl. backup)",           a:"provider",  note:"Requires provider disclosure incl. behind-the-meter & backup generators." },
+    { q:"% data centers subject to community complaints / regulatory action / litigation", a:"provider", note:"Requires provider disclosure of community & environmental impact." },
+  ],
+  // Scoring rubric (HCWH). First-year total 40 (+3 bonus = 43); later years drop the 10
+  // attestation points → 33. kind: attest / data (graded on data) / provider (needs
+  // data-center disclosure) / bonus.
+  rubric: [
+    { cat:"Attestations — 10 yes/no disclosure commitments", max:10, kind:"attest" },
+    { cat:"Renewable energy use (% renewable)",              max:3,  kind:"data" },
+    { cat:"Emissions commitments & progress (SBTi = top)",   max:3,  kind:"data" },
+    { cat:"Per-task GHG emissions published",                max:3,  kind:"data" },
+    { cat:"Optimization for environmental impact",           max:3,  kind:"data" },
+    { cat:"User strategies to lower impact",                 max:3,  kind:"data" },
+    { cat:"PUE — data-center energy efficiency",             max:3,  kind:"provider" },
+    { cat:"WUE — data-center water efficiency",              max:3,  kind:"provider" },
+    { cat:"LEED / LEED Zero milestones",                     max:3,  kind:"provider" },
+    { cat:"Diesel / coal / gas reliance (less = better)",    max:3,  kind:"provider" },
+    { cat:"Community complaints / litigation (fewer = better)", max:3, kind:"provider" },
+    { cat:"Bonus — mitigation (watershed, offsets, energy-bill aid)", max:3, kind:"bonus" },
+  ],
+  levers: [
+    { t:"Right-size the model", d:"Route each task to the smallest model that does it well — a lightweight NLP classifier for message routing, a small model for simple drafts, a large model only for complex reasoning. The single biggest lever.", ev:"greenAIhealth" },
+    { t:"Carbon-aware scheduling", d:"Run non-urgent work — population analytics, retraining, batch eCQMs — off-peak and in low-carbon hours, when the grid is cleaner.", aut:"gsfSCI" },
+    { t:"Region & water siting", d:"Prefer cloud regions with low grid carbon intensity (eGRID), and avoid water-stressed regions for water-intensive cooling.", aut:"egrid" },
+    { t:"Retrieval & caching", d:"Answer from the record and cached evidence instead of re-generating — no inference means a near-zero footprint.", aut:"gsfSCI" },
+    { t:"Renewable procurement", d:"Buy renewable electricity / Green-e-certified RECs, and prefer providers with SBTi-validated targets and LEED data centers.", aut:"greenE" },
+    { t:"Turn off unused AI", d:"Where an AI feature isn't needed, it can be switched off entirely — no footprint for capability you don't use.", aut:"hcwhAI" },
+  ],
+  health: [
+    { f:"The health sector produces roughly 5% of global greenhouse-gas emissions — and 60–80% of that comes from its SUPPLY CHAIN: the goods and services health systems buy. Procurement is the single biggest lever health care has over its own footprint.", s:"Health Care Without Harm — Health Care's Climate Footprint" },
+    { f:"U.S. data centers used 183 TWh of electricity in 2024 — projected to grow ~133% to 426 TWh by 2030, about the total consumption of Saudi Arabia.", s:"IEA / Pew Research Center" },
+    { f:"Data centers emitted ~105 million metric tons CO₂e (mid-2023 → mid-2024), approaching U.S. airlines (131 Mt). Natural gas supplies ~40% and coal ~15% of their electricity.", s:"HCWH guide (BloombergNEF / IEA)" },
+    { f:"A pre-peer-review analysis estimated U.S. data-center electricity + diesel backup could contribute ~600,000 asthma-symptom cases and ~1,300 deaths in 2028, with public-health costs over $20 billion.", s:"UC Riverside & Caltech (via HCWH guide)" },
+    { f:"~211 billion gallons of water were consumed in 2023 for the electricity that powers data centers, plus ~17.4 billion gallons for cooling — and most U.S. data centers are being built in drought zones.", s:"HCWH guide (The Guardian)" },
+    { f:"Nearly a third of U.S. households reported energy insecurity in 2024; areas dense with data centers saw electricity prices rise as much as 267% over five years — a direct risk for people who depend on power for heating, cooling and medical devices.", s:"Residential Energy Consumption Survey / Bloomberg (via HCWH guide)" },
+    { f:"AI infrastructure could generate up to 2.5 million metric tons of e-waste per year by 2030 — heavy metals such as lead, cadmium and mercury that can contaminate soil and water.", s:"HCWH guide" },
+  ],
+  // Selected commitments become enforceable contract clauses: deliverable, accountable
+  // party, deadline, evidence, and response to failure — with reporting promises kept
+  // distinct from operational commitments. The same what/why/when/who discipline
+  // LumaChart applies to a care plan.
+  clauses: [
+    { commit:"Right-size / route models", type:"operational", deliverable:"Task-to-model routing in production — lightweight NLP for routing, large models only for complex reasoning", party:"LumaChart Eng", deadline:"at go-live", evidence:"Routing policy + per-task energy report", remedy:"Remediation plan in 30 days; service credit" },
+    { commit:"Publish per-task emissions", type:"reporting", deliverable:"Per-task carbon & water estimates with stated methodology (SCI for AI)", party:"LumaChart", deadline:"annually", evidence:"Published methodology + figures (URL)", remedy:"Cure period; recorded as unmet" },
+    { commit:"Provider PUE/WUE & renewable mix", type:"reporting", deliverable:"Weighted PUE/WUE and renewable-energy mix for regions in use", party:"Cloud provider (via LumaChart)", deadline:"within 90 days of request", evidence:"Provider attestation / independent review", remedy:"Escalate; qualified-reviewer option" },
+    { commit:"SBTi-validated target", type:"operational", deliverable:"Submit a science-based emissions target for validation", party:"LumaChart exec", deadline:"within 24 months", evidence:"SBTi commitment, then validation letter", remedy:"Board review; renegotiation trigger" },
+  ],
+};
+
 /* ---------- Standards we speak + privacy law we honor ---------- */
 const STANDARDS = {
   interop: [
@@ -2287,6 +2410,7 @@ const NAVS = {
     { label:"Trust & deploy", items:[
       { id:"security",   ic:"🔒", t:"Security & SAFER" },
       { id:"readiness",  ic:"✓", t:"Readiness & contracts" },
+      { id:"footprint",  ic:"🌱", t:"AI environmental footprint" },
     ]},
   ],
   patient: [
@@ -2300,6 +2424,7 @@ const NAVS = {
       { id:"myrecord",  ic:"🔗", t:"My record" },
       { id:"longevity", ic:"↗", t:"Longevity tracker" },
       { id:"consent",   ic:"✔", t:"Research & consent" },
+      { id:"footprint", ic:"🌱", t:"AI & the environment" },
     ]},
     { label:"Community & mind", items:[
       { id:"community", ic:"🏘", t:"Community health" },
@@ -2323,6 +2448,7 @@ const NAVS = {
       { id:"report",  ic:"📄", t:"Data extract report" },
       { id:"quality", ic:"📈", t:"Quality & Care Compare" },
       { id:"aigov",   ic:"🛡", t:"AI governance & assurance" },
+      { id:"footprint", ic:"🌱", t:"AI environmental footprint" },
       { id:"rollout", ic:"🚦", t:"Adoption & rollout" },
       { id:"biblio",  ic:"📚", t:"Bibliography" },
     ]},
@@ -3153,6 +3279,182 @@ function vInformedConsent(){
     <h3>Not the same as research consent</h3>
     <div class="small">Clinical (treatment) consent is this page. <b>Research</b> participation is separate — voluntary, IRB-overseen, revocable — in the patient's <a data-nav-inline="consent" style="cursor:pointer">Research &amp; consent</a> view.${aut("commonRule")} Disclosing the record beyond treatment/payment/operations uses a HIPAA authorization.${aut("hipaaAuth")}</div>
   </div>`;
+}
+function fpChip(a){
+  const m = {
+    attested:["green","attest now"], committed:["accent","commitment"], provider:["amber","needs provider data"],
+    attest:["green","attestation"], data:["accent","graded on data"], bonus:["plain","bonus"],
+  };
+  const [t,l] = m[a] || ["plain", a];
+  return `<span class="chip ${t}">${l}</span>`;
+}
+/* Live per-task footprint math (SCI for AI). Reads the controls, writes the outputs. */
+function recalcFootprint(){
+  if (!document.querySelector("[data-fp-calc]")) return;
+  const g = FOOTPRINT.grids.find(x => x.id === (($("[data-fp-grid]")||{}).value || "us")) || FOOTPRINT.grids[0];
+  const rs = ($("[data-fp-rightsize]")||{}).checked;
+  const clin = Math.max(1, Math.round(+(($("[data-fp-clin]")||{}).value) || 1));
+  let whR = 0, whN = 0;
+  FOOTPRINT.tasks.forEach(t => { whR += t.n * t.wh; whN += t.n * t.whNaive; });
+  const kwh = (rs ? whR : whN) / 1000;                 // kWh per clinician per day
+  const co2d = kwh * g.co2;                             // g CO2e / clinician / day
+  const watd = kwh * g.water;                           // L water / clinician / day
+  const save = Math.round((1 - whR / whN) * 100);
+  const days = 260;                                     // clinical working days / year
+  const fmt = (n, d = 0) => n.toLocaleString("en-US", { maximumFractionDigits:d, minimumFractionDigits:d });
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.innerHTML = v; };
+  set("fp-carbon",  fmt(co2d,0) + " <span style='font-size:15px'>g CO₂e</span>");
+  set("fp-water",   fmt(watd,1) + " <span style='font-size:15px'>L</span>");
+  set("fp-miles",   "≈ " + fmt(co2d/400,1) + " <span style='font-size:15px'>mi driven</span>");
+  set("fp-annual",  fmt(co2d*days/1000,1) + " kg CO₂e");
+  set("fp-clinN",   fmt(clin,0));
+  set("fp-fleetc",  fmt(co2d*days*clin/1e6,2) + " t CO₂e");
+  set("fp-fleetw",  fmt(watd*days*clin/1000,1) + " m³ water");
+  set("fp-save",    rs ? save + "% lower" : "OFF — large model for every task");
+  set("fp-gridco2", g.co2 + " gCO₂e/kWh");
+  set("fp-gridwat", g.water + " L/kWh");
+  const sr = $("[data-fp-saverow]"); if (sr) sr.style.color = rs ? "" : "var(--amber)";
+}
+function fpCalc(){
+  return `
+  <div class="card" data-fp-calc style="margin-bottom:16px">
+    <h3>Per-task footprint calculator <span class="chip plain">SCI for AI · illustrative</span></h3>
+    <div class="small muted" style="margin-bottom:10px">Carbon reported as a <b>rate per task</b> — SCI = (energy × grid-intensity + embodied) ÷ task.${aut("gsfSCI")} Per-task energy is an illustrative demo estimate; the grid input is real (EPA eGRID)${aut("egrid")}, and a production build publishes measured values.</div>
+    <div class="grid g3" style="margin-bottom:12px">
+      <label class="small">Cloud region / grid
+        <select data-fp-grid class="hx-input" style="width:100%;margin-top:4px">${FOOTPRINT.grids.map(g => `<option value="${g.id}">${g.label}</option>`).join("")}</select>
+        <div class="tiny muted" style="margin-top:3px"><span id="fp-gridco2"></span> · <span id="fp-gridwat"></span></div>
+      </label>
+      <label class="small">Clinicians (fleet)
+        <input data-fp-clin type="number" min="1" value="1000" class="hx-input" style="width:100%;margin-top:4px">
+        <div class="tiny muted" style="margin-top:3px">scales the annual fleet total</div>
+      </label>
+      <label class="small" style="display:flex;flex-direction:column;justify-content:flex-start">Model routing
+        <span style="margin-top:6px"><input data-fp-rightsize type="checkbox" checked> Right-size models (SAHAI)</span>
+        <div class="tiny muted" data-fp-saverow style="margin-top:3px">vs large-LLM-for-everything: <b id="fp-save"></b></div>
+      </label>
+    </div>
+    <div class="grid g3" style="margin-bottom:12px">
+      <div class="card"><div class="metric"><div class="v" id="fp-carbon" style="color:var(--green)">…</div><div class="l">carbon · per clinician · per day</div></div></div>
+      <div class="card"><div class="metric"><div class="v" id="fp-water" style="color:var(--accent)">…</div><div class="l">water · per clinician · per day</div></div></div>
+      <div class="card"><div class="metric"><div class="v" id="fp-miles">…</div><div class="l">everyday equivalent</div></div></div>
+    </div>
+    <div class="rowlist" style="margin-bottom:10px">
+      <div class="rowitem"><span class="chip accent">scale</span><div class="d" style="flex:1">Per clinician: <b id="fp-annual"></b> / year. Across <b id="fp-clinN"></b> clinicians: <b id="fp-fleetc"></b> and <b id="fp-fleetw"></b> per year — <i>this</i> is the number that belongs in a purchase decision.</div></div>
+    </div>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>AI task</th><th>Where</th><th>Right-sized model</th><th>Energy</th><th>If a large LLM did it</th><th>Cut</th></tr>
+      ${FOOTPRINT.tasks.map(t => `<tr><td class="cap">${t.task}</td><td class="small">${t.who}</td><td class="small">${t.model}</td><td><b>${t.wh} Wh</b></td><td class="small muted">${t.whNaive} Wh</td><td><span class="chip green">−${Math.round((1 - t.wh/t.whNaive)*100)}%</span></td></tr>`).join("")}
+    </table></div>
+    <div class="evidence">Message <b>routing</b> doesn't need a large language model — a lightweight NLP classifier does it at a fraction of the energy. Reserving big models for genuinely complex reasoning is the single biggest lever.${ev("greenAIhealth")}</div>
+  </div>`;
+}
+function vFootprint(){
+  const role = state.role;
+  const header = `
+  <h1 class="page-title">🌱 AI environmental footprint <span class="chip accent">the third procurement axis</span></h1>
+  <p class="page-sub">Every AI feature runs in data centers that burn energy and water. LumaChart makes that footprint <b>transparent</b> — a real, published number that belongs beside price and features when a hospital buys or renews any AI or EHR tool. Health care is itself ~5% of global (and ~10% of U.S.) greenhouse-gas emissions${ev("eckelmanHC")}${ev("eckelmanUpd")} — and <b>60–80% of that is its supply chain</b>, the goods and services it buys. So how a health system buys AI is one of the biggest levers it has on its own footprint.${aut("hcwhAI")}${aut("whoDecarb")}</p>`;
+
+  const prove = `
+  <div class="card" style="border-left:3px solid var(--green);margin-bottom:16px">
+    <h3>First principle — the greenest AI is the AI you don't run</h3>
+    <div class="small">AI has to <b>earn its footprint</b>. In a 6-million-person simulation, the <b>simplest, non-AI</b> approach gave the best health outcomes at the <i>lowest</i> cost <i>and</i> the <i>lowest</i> carbon — adding AI raised cost and emissions without helping patients.${ev("nonAIcolon")} Robust evaluation is the most practical, underused lever for responsible AI.${aut("bmjPlanetary")} So LumaChart follows its clinical rule everywhere: <b>prefer the simplest solution</b> — lightest on the workflow <i>and</i> on the planet — and prove value before adding AI complexity.</div>
+  </div>`;
+
+  const levers = `
+  <div class="card" style="margin-bottom:16px">
+    <h3>The levers an administrator controls</h3>
+    <div class="grid g2">
+      ${FOOTPRINT.levers.map(l => `<div class="rowitem"><span class="chip green">✓</span><div style="flex:1"><div class="t small">${l.t}</div><div class="d">${l.d}${l.ev?ev(l.ev):""}${l.aut?aut(l.aut):""}</div></div></div>`).join("")}
+    </div>
+  </div>`;
+
+  const health = `
+  <div class="card" style="margin-bottom:16px">
+    <h3>Why it's a health issue, not only an IT issue</h3>
+    <div class="small muted" style="margin-bottom:8px">Climate change is described as the biggest global health threat of the century${aut("lancetClimate")} — and AI's data-center demand has real, local health effects:</div>
+    <div class="rowlist">
+      ${FOOTPRINT.health.map(h => `<div class="rowitem"><span class="chip amber">!</span><div class="d" style="flex:1">${h.f} <span class="tiny muted">— ${h.s}</span></div></div>`).join("")}
+    </div>
+  </div>`;
+
+  if (role === "patient"){
+    return header + prove + `
+    <div class="card" style="margin-bottom:16px">
+      <h3>The AI in your care has an environmental footprint — and we tell you</h3>
+      <div class="small">When software uses artificial intelligence — to draft a note, sort messages, or help your care team — it runs in data centers that use <b>electricity and water</b>. That affects the air, water and climate that shape everyone's health.${aut("lancetClimate")} LumaChart is built on a simple rule: <b>use the least AI that does the job well</b>, and be honest about what it costs the planet.${ev("nonAIcolon")}</div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <h3>What your hospital's software commits to</h3>
+      <div class="rowlist">
+        <div class="rowitem"><span class="chip green">✓</span><div class="d" style="flex:1">Right-size the AI — a small, efficient tool for simple jobs; a powerful one only when it's truly needed.</div></div>
+        <div class="rowitem"><span class="chip green">✓</span><div class="d" style="flex:1">Publish the energy and water used per task, with a recognized method.${aut("gsfSCI")}</div></div>
+        <div class="rowitem"><span class="chip green">✓</span><div class="d" style="flex:1">Prefer clean-energy regions and providers — and switch off AI features that aren't needed.</div></div>
+        <div class="rowitem"><span class="chip green">✓</span><div class="d" style="flex:1">Answer the same 10 environmental questions any hospital can ask every AI vendor.${aut("hcwhAI")}</div></div>
+      </div>
+    </div>` + health;
+  }
+
+  if (role === "clinician"){
+    return header + prove + fpCalc() + levers + `
+    <div class="card">
+      <h3>Your AI, right-sized</h3>
+      <div class="small">Each AI feature you use is a governed decision-support intervention with its source and logic shown${reg("b11")} — matched to the lightest model that does the job. Routing a message never spins up a large language model; a lightweight classifier does it for a fraction of the energy. The footprint above is per clinician — multiply it across a health system and small design choices become large ones.</div>
+    </div>`;
+  }
+
+  // CWO — the full procurement instrument
+  const scorecard = `
+  <div class="card" style="margin-bottom:16px">
+    <h3>Vendor environmental disclosure — the HCWH scorecard <span class="chip plain">self-reported · demo</span></h3>
+    <p class="small muted">The Health Care Without Harm / Practice Greenhealth guide gives buyers 10 disclosure questions and a weighted rubric.${aut("hcwhAI")} LumaChart answers it in the open — and every hospital can require the same disclosure from Epic, Cerner, Jane or any AI vendor. Attestations LumaChart can make today; data-graded items need our cloud / data-center provider's numbers.</p>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>#</th><th>Disclosure question</th><th>LumaChart</th><th>How we answer it</th></tr>
+      ${FOOTPRINT.disclosure.map((d,i) => `<tr><td>${i+1}</td><td class="small">${d.q}</td><td>${fpChip(d.a)}</td><td class="tiny muted">${d.note}${d.ev?ev(d.ev):""}${d.aut?aut(d.aut):""}</td></tr>`).join("")}
+    </table></div>
+    <h3 style="margin:18px 0 8px">Scoring rubric — how a hospital grades the answers</h3>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Category</th><th>Max</th><th>Graded on</th></tr>
+      ${FOOTPRINT.rubric.map(r => `<tr><td class="small">${r.cat}</td><td><b>${r.max}</b></td><td>${fpChip(r.kind)}</td></tr>`).join("")}
+      <tr><td class="cap"><b>Total</b></td><td><b>${FOOTPRINT.maxScore}</b> <span class="tiny muted">(+${FOOTPRINT.maxBonus} bonus)</span></td><td class="tiny muted">later years drop the 10 attestations → /${FOOTPRINT.laterYearMax}</td></tr>
+    </table></div>
+    <div class="evidence">Higher score = better transparency <i>and</i> performance. Vendors are scored on <b>completeness</b> too — a "we don't track that" is itself informative, and consistent requests from many buyers pull the whole market toward disclosure.${aut("hcwhAI")}</div>
+  </div>`;
+
+  const axis = `
+  <div class="card" style="margin-bottom:16px">
+    <h3>The third axis — buy on price, function <i>and</i> footprint</h3>
+    <div class="grid g3" style="margin-bottom:12px">
+      <div class="card"><div class="metric"><div class="v">💲</div><div class="l">Price — total cost of ownership, licensing, implementation</div></div></div>
+      <div class="card"><div class="metric"><div class="v">⚙️</div><div class="l">Function — does it do the clinical job, and do it well</div></div></div>
+      <div class="card"><div class="metric"><div class="v" style="color:var(--green)">🌱</div><div class="l">Footprint — carbon, water, energy source, community impact</div></div></div>
+    </div>
+    <div class="small muted" style="margin-bottom:8px">How to weigh the footprint at purchase or renewal — from the guide and the planetary-health evaluation literature:${aut("bmjPlanetary")}</div>
+    <div class="rowlist">
+      <div class="rowitem"><span class="chip accent">1</span><div class="d" style="flex:1"><b>Name the comparator.</b> For documentation software, compare against the existing workflow or a simpler tool; for a diagnostic app, against feasible alternatives that meet the clinical need.</div></div>
+      <div class="rowitem"><span class="chip accent">2</span><div class="d" style="flex:1"><b>Estimate at your real volume.</b> Ask for the footprint at your expected deployment volume — lower use per task can still mean higher <i>total</i> use as adoption grows (the rebound effect).</div></div>
+      <div class="rowitem"><span class="chip accent">3</span><div class="d" style="flex:1"><b>Count second-order effects.</b> Repeat tests, visits, staff time and travel can rise or fall too — AI that avoids a trip cuts travel emissions; AI that drives more testing adds them.</div></div>
+      <div class="rowitem"><span class="chip accent">4</span><div class="d" style="flex:1"><b>Assess clinical purpose.</b> More activity may improve access — weigh the clinical benefit, not resource use alone.${ev("nonAIcolon")}</div></div>
+      <div class="rowitem"><span class="chip accent">5</span><div class="d" style="flex:1"><b>Set the rules before the bids.</b> Agree the scoring weights, evidence requirements and exception procedures <i>before</i> reviewing any vendor — so environmental evidence is weighed consistently beside cost and implementation, not bolted on afterward.</div></div>
+      <div class="rowitem"><span class="chip accent">6</span><div class="d" style="flex:1"><b>Decide how missing evidence counts.</b> State up front which environmental facts could change the decision, and how you'll score a vendor that can't (or won't) provide them — completeness itself is graded.</div></div>
+      <div class="rowitem"><span class="chip accent">7</span><div class="d" style="flex:1"><b>Govern the gaps honestly.</b> Vendors depend on cloud suppliers, so expect gaps: require each to say what's <i>known</i>, <i>who</i> holds the missing piece, and what they'll obtain by an agreed date — telling honest uncertainty from unsupported precision. For sensitive operational data, a qualified independent reviewer can verify without forcing disclosure.</div></div>
+      <div class="rowitem"><span class="chip accent">8</span><div class="d" style="flex:1"><b>Record the trade-off.</b> When a vendor with weaker environmental evidence is chosen because another feature mattered more, write down <i>why</i> — a decision record that keeps the trade-off reviewable, without pretending every consideration reduces to a single environmental score.</div></div>
+    </div>
+    <div class="evidence"><b>LumaChart's commitment:</b> we publish our own disclosure in the open <b>from day one</b> — no waiting to be asked — and we're building toward serving as (or supporting) the qualified independent reviewer that verifies sensitive data without exposing it. Transparency is a design default here, not a concession.</div>
+  </div>`;
+
+  const clauses = `
+  <div class="card" style="margin-bottom:16px">
+    <h3>Turn commitments into contract clauses <span class="chip plain">accountable, not aspirational</span></h3>
+    <p class="small muted">A promise only counts if it's enforceable. For each selected commitment, specify the deliverable, accountable party, deadline, evidence required and response to failure — and separate a <b>reporting</b> promise ("we'll tell you") from an <b>operational</b> commitment ("we'll change how we run"). The same what / why / when / who discipline LumaChart applies to a care plan.</p>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Commitment</th><th>Type</th><th>Deliverable</th><th>Accountable</th><th>By</th><th>Evidence</th><th>If missed</th></tr>
+      ${FOOTPRINT.clauses.map(c => `<tr><td class="cap">${c.commit}</td><td>${c.type==="operational"?`<span class="chip green">operational</span>`:`<span class="chip accent">reporting</span>`}</td><td class="small">${c.deliverable}</td><td class="small">${c.party}</td><td class="small">${c.deadline}</td><td class="small">${c.evidence}</td><td class="tiny muted">${c.remedy}</td></tr>`).join("")}
+    </table></div>
+    <div class="evidence"><b>Continuity &amp; proportionate remedies.</b> Changing a cloud subcontractor doesn't release the vendor from its own duties: a material change re-opens the evidence behind the award, and outstanding commitments are settled before any transfer. Remedies stay proportionate and practical — correction deadlines, extra verification, limits on optional expansion, or reconsideration at renewal — never all-or-nothing.</div>
+  </div>`;
+
+  return header + prove + fpCalc() + scorecard + axis + clauses + levers + health;
 }
 function vAIGov(){
   return `
@@ -5104,10 +5406,10 @@ function vHelix(){
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, eol:vEndOfLife, iconsent:vInformedConsent, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, cert:vCert, roadmap:vRoadmap },
-  patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, myrecord:vMyRecord, longevity:vLongevity, consent:vConsent },
+  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, eol:vEndOfLife, iconsent:vInformedConsent, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, footprint:vFootprint, cert:vCert, roadmap:vRoadmap },
+  patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, myrecord:vMyRecord, longevity:vLongevity, consent:vConsent, footprint:vFootprint },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
-  cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, quality:vQuality, aigov:vAIGov, rollout:vRollout, biblio:vBiblio },
+  cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, quality:vQuality, aigov:vAIGov, footprint:vFootprint, rollout:vRollout, biblio:vBiblio },
 };
 Object.values(VIEWS).forEach(v => { v.help = vHelp; });   // Help center is reachable from every role
 
@@ -5137,6 +5439,9 @@ function wireView(){
     }); }
   { const cr = document.querySelector("[data-consent-refuse]"); if (cr) cr.addEventListener("click", () =>
       toast("Informed refusal recorded ✓", "The patient's informed decision to decline, and the risks discussed, are documented — a valid, respected choice. (Demo.)", "green")); }
+  ["[data-fp-grid]","[data-fp-clin]","[data-fp-rightsize]"].forEach(sel => { const el = document.querySelector(sel);
+    if (el) ["change","input"].forEach(evt => el.addEventListener(evt, recalcFootprint)); });
+  if (document.querySelector("[data-fp-calc]")) recalcFootprint();
   $$("[data-nav-inline]").forEach(b => b.addEventListener("click", () => {
     const v = b.dataset.navInline;
     if (!VIEWS[state.role][v]){                                   // cross-role link → switch role

@@ -1125,6 +1125,129 @@ Object.assign(EVIDENCE, {
   lifestyle:{ pmid:"29712712", cite:"Li et al., Circulation 2018 — five low-risk lifestyle factors (never smoking, healthy weight, ≥30 min/day activity, high diet quality, moderate alcohol) were associated with ~14 more years of life expectancy at age 50 for women and ~12 for men; the cohorts included the Health Professionals Follow-up Study, so the evidence speaks directly to clinicians' own nutrition and exercise." },
 });
 
+/* ---------- AI environmental footprint — evidence & authorities ---------- */
+Object.assign(EVIDENCE, {
+  eckelmanHC:   { pmid:"27280706", cite:"Eckelman & Sherman, PLoS One 2016 — the U.S. health-care sector causes ~10% of national greenhouse-gas emissions (and 9–12% of criteria air pollutants); the resulting pollution costs an estimated 470,000 DALYs of lost health each year. Health care is itself a major polluter — so how it buys matters." },
+  eckelmanUpd:  { pmid:"33284703", cite:"Eckelman et al., Health Affairs 2020 — U.S. health-care greenhouse-gas emissions reached 1,692 kg CO₂e per capita in 2018, the highest rate among industrialized nations, and were NOT correlated with better care quality: the footprint can be cut without compromising care. The authors call for mandatory reporting and benchmarking." },
+  greenAIhealth:{ pmid:"42070542", cite:"Alzoubi & Mishra, Artif Intell Med 2026 (systematic review) — “Green AI in health”: the energy use, e-waste and carbon emissions of deploying and training AI models are a growing sustainability concern; energy-efficient models, model right-sizing and renewable-powered compute are the identified levers." },
+  aiSustainMap: { pmid:"42381036", cite:"Ibrahim et al., BMC Nursing 2026 (scoping review & evidence map) — evidence on AI for environmental sustainability in health systems is still sparse; future studies should evaluate environmental endpoints alongside patient safety and the life-cycle footprint of AI systems — the measurement gap this feature is built to close." },
+  greenRad:     { pmid:"42386378", cite:"Kadom et al., AJNR 2026 (ASNR–ESNR white paper) — a specialty society reframes imaging's environmental footprint as a core professional responsibility (“Image Greenly”): appropriateness, energy and AI-assisted efficiency. Precedent that environmental impact is now a clinical-professional value, not a fringe concern." },
+  nonAIcolon:   { pmid:"42580755", cite:"Hernandez, Sherman et al., Endoscopy 2026 (microsimulation, 6M individuals) — the NON-AI resect-and-discard strategy achieved the lowest cost ($36.6B) AND the lowest carbon emissions (0.90 Mt CO₂) while yielding the highest QALYs; adding AI (CADe, and especially CADx) raised cost and emissions without improving outcomes. AI must earn its footprint — the simplest strategy can be the best on all three axes at once." },
+});
+
+Object.assign(AUTHORITIES, {
+  hcwhAI:{ label:"HCWH AI Guide", url:"https://noharm-uscanada.org/",
+    cite:"Health Care Without Harm & Practice Greenhealth — Sustainable AI Procurement Guide for US Health Sector Organizations (Sept 23, 2026): 10 environmental disclosure questions plus a weighted scoring rubric (/40, +3 bonus points; /33 in later years) so health systems can score AI vendors on carbon, water, energy source and community impact. Procurement is the lever — this feature implements that instrument." },
+  gsfSCI:{ label:"GSF SCI (ISO 21031)", url:"https://greensoftware.foundation/standards/sci/",
+    cite:"Green Software Foundation — Software Carbon Intensity (SCI), ISO/IEC 21031:2024, and its ratified SCI-for-AI extension: report carbon as a RATE per functional unit (per request / user / task) via SCI = (E×I + M) ÷ R. The methodology behind LumaChart's per-task footprint estimate." },
+  watershed:{ label:"Watershed AI", url:"https://watershed.com/",
+    cite:"Watershed — an open framework for measuring AI emissions; one of the published methodologies the HCWH guide accepts for per-task emissions estimates (alongside GSF SCI)." },
+  sbti:{ label:"SBTi", url:"https://sciencebasedtargets.org/",
+    cite:"Science Based Targets initiative (SBTi) — validates corporate emissions-reduction targets aligned with net-zero by 2050 (Scope 1/2, plus Scope 3 where material). The top tier of the guide's ‘emissions commitments’ score is an SBTi-validated target." },
+  egrid:{ label:"EPA eGRID", url:"https://www.epa.gov/egrid",
+    cite:"EPA Emissions & Generation Resource Integrated Database (eGRID) — the fuel mix and carbon intensity (gCO₂e/kWh) of electricity by U.S. region; the grid-intensity input (I) to the per-task carbon calculation and the basis for carbon-aware region choice." },
+  leedZero:{ label:"LEED / LEED Zero", url:"https://www.usgbc.org/programs/leed-zero",
+    cite:"USGBC LEED and LEED Zero (verified by GBCI) — data-center building certification for energy, water, carbon and waste; LEED Zero (net-zero) is weighted most heavily in the guide's data-center score." },
+  lancetClimate:{ label:"Lancet Countdown", url:"https://www.lancetcountdown.org/",
+    cite:"The Lancet — climate change described as the biggest global health threat of the 21st century; the Lancet Countdown tracks health-and-climate indicators. This is the link that makes AI's carbon and water footprint a health-care concern, not only an IT one." },
+  greenE:{ label:"Green-e", url:"https://www.green-e.org/",
+    cite:"Green-e (Center for Resource Solutions) — certification for renewable-energy certificates (Green-e Energy) and carbon offsets (Green-e Climate); the substantiation standard the guide expects for renewable-energy and offset claims." },
+  bmjPlanetary:{ label:"BMJ 2026 (Foley)", url:"https://www.bmj.com/content/393/bmj.s677",
+    cite:"Foley, Bonnici, Calderwood, Reyburn & Pearson, BMJ 2026;393:s677 (letter, UCL Institute of Health Informatics & UCLH) — “Evaluating the environmental impact of AI in healthcare is essential for planetary health”: robust evaluation is the most practical, underused lever for responsible AI — align AI innovation with proven value the way healthcare aligns any innovation with patient benefit, and weigh the relevant comparator (existing workflow or a simpler tool) before adopting AI." },
+  whoDecarb:{ label:"WHO Supply-Chain Decarb", url:"https://www.who.int/publications/b/81844",
+    cite:"World Health Organization — Decarbonizing the Healthcare Supply Chain: Strategic Actions for Health Systems: the supply chain (Scope 3) dominates health care's climate footprint, so sustainable procurement is a primary strategic lever health systems can pull to cut emissions." },
+});
+
+/* ---------- AI environmental footprint — the third procurement axis ----------
+   Implements the Health Care Without Harm / Practice Greenhealth "Sustainable AI
+   Procurement Guide for US Health Sector Organizations" (Sept 23, 2026): a per-task
+   footprint CALCULATOR (SCI-for-AI methodology), LumaChart's own vendor-disclosure
+   SCORECARD, the intervention LEVERS, and the HEALTH-RISK context.
+   Per-task energy values are ILLUSTRATIVE demo estimates; the METHODOLOGY is real
+   (GSF SCI for AI; grid intensity from EPA eGRID; water from provider PUE/WUE
+   disclosure). The point is transparency and a defensible calculation, not a
+   certified number — a real deployment publishes measured values. */
+const FOOTPRINT = {
+  maxScore: 40, maxBonus: 3, laterYearMax: 33,
+  // Region options for the calculator — carbon intensity (gCO2e/kWh) and water (L/kWh:
+  // on-site cooling WUE + off-site water for electricity generation). Illustrative,
+  // within real eGRID subregion and data-center WUE ranges.
+  grids: [
+    { id:"us",   label:"U.S. average grid (eGRID)",                         co2:386, water:2.9 },
+    { id:"low",  label:"Low-carbon region (hydro/nuclear · best-in-class WUE)", co2:45,  water:0.6 },
+    { id:"high", label:"High-carbon, water-stressed region (coal/gas)",       co2:620, water:5.5 },
+  ],
+  // Per-task AI actions. wh = energy/action when LumaChart RIGHT-SIZES the model (SAHAI
+  // strategy); whNaive = energy/action if one large LLM handled every task.
+  // n = default actions per clinician per day.
+  tasks: [
+    { id:"triage",  task:"Patient-message triage & routing", who:"Inbox",     model:"Lightweight NLP classifier",         wh:0.05, whNaive:3.0, n:40 },
+    { id:"scribe",  task:"Ambient note draft",               who:"Scribe",    model:"Small clinical model",               wh:2.5,  whNaive:6.0, n:16 },
+    { id:"summary", task:"Chart summary",                    who:"Chart",     model:"Small model + retrieval",            wh:1.2,  whNaive:5.0, n:20 },
+    { id:"cds",     task:"Evidence / CDS lookup",            who:"CDS",       model:"Retrieval + cache · no generation",  wh:0.10, whNaive:2.5, n:30 },
+    { id:"coding",  task:"Coding suggestion",                who:"Claim",     model:"Small model",                        wh:0.8,  whNaive:3.5, n:16 },
+    { id:"pop",     task:"Population analytics",             who:"CWO batch", model:"Off-peak scheduled · mid model",     wh:4.0,  whNaive:8.0, n:2  },
+  ],
+  // The 10 HCWH environmental disclosure questions (abbreviated), with LumaChart's stance:
+  // attested = true today · committed = design commitment · provider = needs cloud/data-center disclosure.
+  disclosure: [
+    { q:"Renewable electricity as a % of total energy (managed + provider data centers)", a:"committed", note:"Disclose our cloud-region mix and request the renewable-energy mix from our provider (AWS / Azure / GCP)." },
+    { q:"Public Scope 1/2/3 commitments & progress, incl. SBTi status",                   a:"committed", note:"Publish annually; pursue an SBTi-validated target as we scale.", aut:"sbti" },
+    { q:"Published per-task GHG emissions estimates",                                      a:"attested",  note:"This calculator publishes per-task estimates with a stated methodology.", aut:"gsfSCI" },
+    { q:"How models are optimized to lower impact (right-sizing, routing, efficient retraining)", a:"attested", note:"Model right-sizing + task routing is core design — see the levers.", ev:"greenAIhealth" },
+    { q:"Work with the buyer on user strategies to lower impact (SAHAI framework)",        a:"attested",  note:"Off-peak scheduling of analytics; lightweight NLP for routing; mixed-quality models." },
+    { q:"Data-center Power Usage Effectiveness (PUE)",                                     a:"provider",  note:"Requires provider disclosure; report the weighted PUE of the regions we run in." },
+    { q:"Data-center Water Usage Effectiveness (WUE)",                                     a:"provider",  note:"Requires provider disclosure; surfaced in the calculator's water figure." },
+    { q:"% data centers with LEED / LEED Zero certification",                             a:"provider",  note:"Requires provider disclosure of building certifications.", aut:"leedZero" },
+    { q:"% data centers reliant on diesel / coal / natural gas (incl. backup)",           a:"provider",  note:"Requires provider disclosure incl. behind-the-meter & backup generators." },
+    { q:"% data centers subject to community complaints / regulatory action / litigation", a:"provider", note:"Requires provider disclosure of community & environmental impact." },
+  ],
+  // Scoring rubric (HCWH). First-year total 40 (+3 bonus = 43); later years drop the 10
+  // attestation points → 33. kind: attest / data (graded on data) / provider (needs
+  // data-center disclosure) / bonus.
+  rubric: [
+    { cat:"Attestations — 10 yes/no disclosure commitments", max:10, kind:"attest" },
+    { cat:"Renewable energy use (% renewable)",              max:3,  kind:"data" },
+    { cat:"Emissions commitments & progress (SBTi = top)",   max:3,  kind:"data" },
+    { cat:"Per-task GHG emissions published",                max:3,  kind:"data" },
+    { cat:"Optimization for environmental impact",           max:3,  kind:"data" },
+    { cat:"User strategies to lower impact",                 max:3,  kind:"data" },
+    { cat:"PUE — data-center energy efficiency",             max:3,  kind:"provider" },
+    { cat:"WUE — data-center water efficiency",              max:3,  kind:"provider" },
+    { cat:"LEED / LEED Zero milestones",                     max:3,  kind:"provider" },
+    { cat:"Diesel / coal / gas reliance (less = better)",    max:3,  kind:"provider" },
+    { cat:"Community complaints / litigation (fewer = better)", max:3, kind:"provider" },
+    { cat:"Bonus — mitigation (watershed, offsets, energy-bill aid)", max:3, kind:"bonus" },
+  ],
+  levers: [
+    { t:"Right-size the model", d:"Route each task to the smallest model that does it well — a lightweight NLP classifier for message routing, a small model for simple drafts, a large model only for complex reasoning. The single biggest lever.", ev:"greenAIhealth" },
+    { t:"Carbon-aware scheduling", d:"Run non-urgent work — population analytics, retraining, batch eCQMs — off-peak and in low-carbon hours, when the grid is cleaner.", aut:"gsfSCI" },
+    { t:"Region & water siting", d:"Prefer cloud regions with low grid carbon intensity (eGRID), and avoid water-stressed regions for water-intensive cooling.", aut:"egrid" },
+    { t:"Retrieval & caching", d:"Answer from the record and cached evidence instead of re-generating — no inference means a near-zero footprint.", aut:"gsfSCI" },
+    { t:"Renewable procurement", d:"Buy renewable electricity / Green-e-certified RECs, and prefer providers with SBTi-validated targets and LEED data centers.", aut:"greenE" },
+    { t:"Turn off unused AI", d:"Where an AI feature isn't needed, it can be switched off entirely — no footprint for capability you don't use.", aut:"hcwhAI" },
+  ],
+  health: [
+    { f:"The health sector produces roughly 5% of global greenhouse-gas emissions — and 60–80% of that comes from its SUPPLY CHAIN: the goods and services health systems buy. Procurement is the single biggest lever health care has over its own footprint.", s:"Health Care Without Harm — Health Care's Climate Footprint" },
+    { f:"U.S. data centers used 183 TWh of electricity in 2024 — projected to grow ~133% to 426 TWh by 2030, about the total consumption of Saudi Arabia.", s:"IEA / Pew Research Center" },
+    { f:"Data centers emitted ~105 million metric tons CO₂e (mid-2023 → mid-2024), approaching U.S. airlines (131 Mt). Natural gas supplies ~40% and coal ~15% of their electricity.", s:"HCWH guide (BloombergNEF / IEA)" },
+    { f:"A pre-peer-review analysis estimated U.S. data-center electricity + diesel backup could contribute ~600,000 asthma-symptom cases and ~1,300 deaths in 2028, with public-health costs over $20 billion.", s:"UC Riverside & Caltech (via HCWH guide)" },
+    { f:"~211 billion gallons of water were consumed in 2023 for the electricity that powers data centers, plus ~17.4 billion gallons for cooling — and most U.S. data centers are being built in drought zones.", s:"HCWH guide (The Guardian)" },
+    { f:"Nearly a third of U.S. households reported energy insecurity in 2024; areas dense with data centers saw electricity prices rise as much as 267% over five years — a direct risk for people who depend on power for heating, cooling and medical devices.", s:"Residential Energy Consumption Survey / Bloomberg (via HCWH guide)" },
+    { f:"AI infrastructure could generate up to 2.5 million metric tons of e-waste per year by 2030 — heavy metals such as lead, cadmium and mercury that can contaminate soil and water.", s:"HCWH guide" },
+  ],
+  // Selected commitments become enforceable contract clauses: deliverable, accountable
+  // party, deadline, evidence, and response to failure — with reporting promises kept
+  // distinct from operational commitments. The same what/why/when/who discipline
+  // LumaChart applies to a care plan.
+  clauses: [
+    { commit:"Right-size / route models", type:"operational", deliverable:"Task-to-model routing in production — lightweight NLP for routing, large models only for complex reasoning", party:"LumaChart Eng", deadline:"at go-live", evidence:"Routing policy + per-task energy report", remedy:"Remediation plan in 30 days; service credit" },
+    { commit:"Publish per-task emissions", type:"reporting", deliverable:"Per-task carbon & water estimates with stated methodology (SCI for AI)", party:"LumaChart", deadline:"annually", evidence:"Published methodology + figures (URL)", remedy:"Cure period; recorded as unmet" },
+    { commit:"Provider PUE/WUE & renewable mix", type:"reporting", deliverable:"Weighted PUE/WUE and renewable-energy mix for regions in use", party:"Cloud provider (via LumaChart)", deadline:"within 90 days of request", evidence:"Provider attestation / independent review", remedy:"Escalate; qualified-reviewer option" },
+    { commit:"SBTi-validated target", type:"operational", deliverable:"Submit a science-based emissions target for validation", party:"LumaChart exec", deadline:"within 24 months", evidence:"SBTi commitment, then validation letter", remedy:"Board review; renegotiation trigger" },
+  ],
+};
+
 /* ---------- Standards we speak + privacy law we honor ---------- */
 const STANDARDS = {
   interop: [
