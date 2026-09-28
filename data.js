@@ -1320,6 +1320,20 @@ Object.assign(EVIDENCE, {
   sandhuHRSN:   { pmid:"40116928", cite:"Sandhu, Holmgren, Rotenstein & Pantell et al., JAMIA 2025 (2,502 U.S. hospitals) — 61.4% electronically receive health-related social-needs (HRSN) data from outside, most often via health information exchanges; ACO/PCMH participants and Epic/Cerner users lead, while for-profit and public hospitals lag. Interoperable social-needs data is unevenly distributed — an equity gap LumaChart's HRSN capture + interoperability design targets." },
 });
 
+/* ---------- Physician well-being ↔ EHR burden (curated Shanafelt-corpus set) ---------- */
+Object.assign(EVIDENCE, {
+  melnickUsab:    { pmid:"31735343", cite:"Melnick, Dyrbye, Sinsky, Trockel, West & Shanafelt, Mayo Clin Proc 2020 — physicians graded current EHR usability an F (mean System Usability Scale 45.9, bottom 9% across industries), with a dose-response link to burnout: each 1-point better usability score meant 3% lower odds of burnout. Usability is a measurable, modifiable burnout driver." },
+  melnickTaskLoad:{ pmid:"33289493", cite:"Melnick, Harry, Sinsky, Dyrbye … & Shanafelt, J Med Internet Res 2020 (mediation analysis) — worse EHR usability raises physician task load (NASA-TLX), and task load mediates the usability→burnout link. Better usability frees working memory for decisions and patients." },
+  sinskyLog:      { pmid:"32027360", cite:"Sinsky, Rule, Cohen, Arndt, Shanafelt et al., JAMIA 2020 — seven standardized EHR audit-log measures (total EHR time, work-outside-work, time on documentation, time on prescriptions, inbox time, teamwork for orders, and undivided patient attention). The vendor-neutral metric set LumaChart's Burden lab is built on." },
+  rotensteinStaff:{ pmid:"40367518", cite:"Rotenstein, Shah, Shanafelt & Sinsky, JAMA Intern Med 2025 — incomplete team staffing is associated with higher physician burnout and greater intent to reduce hours or leave. Staffing the team is a burnout lever, not merely an HR line item." },
+  sinskyControl:  { pmid:"39586098", cite:"Sinsky, Brown, Rotenstein, Carlasare, Shah & Shanafelt, Ann Intern Med 2024 (multi-institution) — poor physician control over patient load, team composition, schedule, and workload was each independently associated with burnout and intent to reduce/leave. Work control is a distinct, actionable driver." },
+  garciaReplies:  { pmid:"38506805", cite:"Garcia … Shanafelt, Sharp et al., JAMA Netw Open 2024 (Stanford pilot) — EHR-integrated LLM draft replies to patient-portal messages reached 20% utilization and significantly cut task load and work exhaustion — but NOT reply time. AI can reduce felt burden even when it doesn't save clock time; measure both." },
+  maScribe:       { pmid:"39688515", cite:"Ma … Shanafelt, Garcia et al., JAMIA 2025 — an ambient AI scribe (55% uptake) cut median time-per-note by 0.57 min and reduced documentation, after-hours, and total EHR time by ~6.9, ~5.2, and ~20 min/day, with wide inter-user heterogeneity. Real documentation-burden relief — unevenly distributed." },
+  shahScribe:     { pmid:"39657021", cite:"Shah … Shanafelt, Garcia et al., JAMIA 2025 — an ambient AI scribe pilot showed large reductions in task load (−24) and burnout (−1.9) and improved usability (+11). Complements the documentation-time findings with well-being outcomes." },
+  hanCost:        { pmid:"31132791", cite:"Han, Shanafelt, Sinsky … Goh, Ann Intern Med 2019 (cost-consequence model) — physician burnout costs the U.S. ~$4.6B/yr (turnover + reduced clinical hours), ~$7,600 per employed physician per year. The economic case that burnout-reduction investment pays for itself." },
+  trockelPFI:     { pmid:"29196982", cite:"Trockel, Bohman … Shanafelt, Acad Psychiatry 2017 — the Professional Fulfillment Index (PFI): a validated, change-sensitive 16-item measure of professional fulfillment, work exhaustion and interpersonal disengagement that correlates with the MBI and with self-reported medical errors. A rigorous well-being instrument for the CWO console." },
+});
+
 /* ---------- Standards we speak + privacy law we honor ---------- */
 const STANDARDS = {
   interop: [
