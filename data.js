@@ -1248,6 +1248,78 @@ const FOOTPRINT = {
   ],
 };
 
+/* ---------- Total health: vision · dental · hearing — evidence & authority ---------- */
+Object.assign(EVIDENCE, {
+  dcct:          { pmid:"8366922",  cite:"DCCT, N Engl J Med 1993 (RCT, 1,441 patients) — intensive glycemic control reduced the development of diabetic retinopathy by 76% and slowed its progression by 54%. Diabetic retinopathy is diabetes: the retina is where the microvascular disease behind the A1c becomes visible." },
+  retinaMicro:   { pmid:"15854064", cite:"Wong & McIntosh, Ophthalmic Physiol Opt 2005 (review of population studies) — retinal microvascular signs (haemorrhages, microaneurysms, cotton-wool spots, arteriolar narrowing) are independently associated with blood pressure, stroke, cognitive impairment, renal dysfunction and cardiovascular mortality. The eye is a window onto systemic vascular disease." },
+  perioGlycemic: { pmid:"35420698", cite:"Simpson et al., Cochrane 2022 (35 RCTs, 3,249 participants) — treating periodontitis lowered HbA1c by an absolute ~0.43% at 3–4 months (moderate-certainty). Periodontal and glycemic control move together — the gums are part of diabetes care." },
+  perioCVD:      { pmid:"32011025", cite:"Sanz et al., J Clin Periodontol 2020 (EFP / World Heart Federation consensus) — consistent epidemiologic evidence that periodontitis independently raises future cardiovascular risk, with plausible inflammatory mechanisms; recommends coordinated dental–medical care. The mouth is part of heart care." },
+  lancetDementia:{ pmid:"32738937", cite:"Livingston et al., Lancet 2020 (Lancet Commission on dementia prevention) — of 12 modifiable risk factors across the life course, hearing loss carries the largest population-attributable fraction in midlife. Untreated hearing loss is the single largest modifiable dementia risk factor." },
+  achieveHearing:{ pmid:"37478886", cite:"Lin et al., Lancet 2023 (ACHIEVE RCT, 977 older adults) — a hearing intervention did not slow 3-year cognitive decline overall, but in a prespecified analysis it significantly slowed decline in the higher-risk subgroup. Treating hearing loss may protect cognition in at-risk older adults." },
+});
+
+Object.assign(AUTHORITIES, {
+  medicareCarveout:{ label:"Medicare coverage", url:"https://www.medicare.gov/coverage",
+    cite:"Medicare (CMS) — Original Medicare (Parts A & B) does not cover routine dental care, routine eye exams for glasses, or hearing aids and the exams to fit them; only some Medicare Advantage plans add limited benefits. These statutory carve-outs push vision, dental and hearing into separate coverage and separate records." },
+});
+
+/* ---------- Total health: eyes, teeth and ears as organs, not insurance products ----------
+   Optional, first-class clinical modules that fold vision, dental and hearing into the ONE
+   chart, with the cross-domain links that the insurance silo hides. Built in but OFF by
+   default (state.thModules) — enable only what a patient needs (least that does the job).
+   Data is synthetic; conditions are chosen to connect to the demo patient's diabetes & HTN.
+   FHIR-native: Condition + Observation (visual-acuity / audiometry LOINC; dental via ADA CDT
+   / SNODENT). */
+const TOTAL_HEALTH = {
+  intro: "Eyes, teeth and ears are organs, not insurance products — but U.S. coverage carves them into separate plans and separate records. These optional modules bring vision, dental and hearing into the one chart, where their links to the rest of the body are visible. Off by default — enable what this patient needs.",
+  siloNote: "Original Medicare doesn't cover routine dental care, eye exams for glasses, or hearing aids, and Medicaid coverage of them varies by state — so these organs usually live in separate records billed by separate plans. A whole-person record refuses that split.",
+  vision: {
+    ic:"👁", label:"Vision", dx:"Mild non-proliferative diabetic retinopathy, both eyes",
+    obs:[
+      { m:"Visual acuity (corrected)", v:"OD 20/25 · OS 20/30" },
+      { m:"Intraocular pressure", v:"OD 15 · OS 16 mmHg" },
+      { m:"Dilated fundus exam", v:"Few microaneurysms · no macular edema" },
+      { m:"Last dilated exam", v:"14 months ago" },
+    ],
+    prevention:{ t:"Annual dilated eye exam", detail:"Overdue by ~2 months — annual screening is recommended for diabetes." },
+    link:{ to:"her diabetes", text:"The retina is where her diabetes becomes visible first — those microaneurysms are the same microvascular disease driving her A1c. Tight glycemic control cut retinopathy 76% in the DCCT, and retinal signs also predict stroke and cardiovascular risk.", ev:["dcct","retinaMicro"] },
+    fhir:"Condition (diabetic retinopathy) · Observation (visual acuity LOINC 79880-4; intraocular pressure)",
+  },
+  dental: {
+    ic:"🦷", label:"Dental", dx:"Moderate generalized periodontitis (Stage III)",
+    obs:[
+      { m:"Sites with pocket ≥4 mm", v:"18% of sites" },
+      { m:"Bleeding on probing", v:"32%" },
+      { m:"DMFT (decayed / missing / filled)", v:"11" },
+      { m:"Last cleaning", v:"9 months ago" },
+    ],
+    prevention:{ t:"Periodontal therapy + 3-month maintenance", detail:"Scaling and root planing recommended; recall at 3 months." },
+    link:{ to:"her diabetes & heart", text:"Periodontal inflammation and glycemic control run both ways: treating periodontitis lowered HbA1c ~0.43% (Cochrane), and periodontitis independently raises cardiovascular risk (EFP / World Heart Federation consensus). Her gums are part of her diabetes and heart care.", ev:["perioGlycemic","perioCVD"] },
+    fhir:"Condition (periodontitis) · Observation (periodontal pocket depth, bleeding on probing) · dental coding via ADA CDT / SNODENT",
+    teeth:["ok","ok","filled","ok","ok","crown","perio","perio","perio","ok","ok","filled","ok","ok","ok","ok",
+           "ok","filled","ok","perio","perio","ok","ok","ok","ok","ok","perio","ok","missing","ok","filled","ok"],
+  },
+  hearing: {
+    ic:"👂", label:"Hearing", dx:"Mild-to-moderate bilateral sensorineural hearing loss",
+    obs:[
+      { m:"Pure-tone average (R / L)", v:"38 / 42 dB HL" },
+      { m:"Word recognition (R / L)", v:"88% / 84%" },
+      { m:"Hearing aids", v:"None — not covered by Medicare" },
+      { m:"Last audiogram", v:"This visit" },
+    ],
+    prevention:{ t:"Audiology referral + amplification discussion", detail:"Untreated loss is a modifiable dementia and falls risk — worth acting on now." },
+    link:{ to:"her cognition & falls", text:"Untreated hearing loss is the single largest modifiable dementia risk factor (Lancet Commission), and a hearing intervention slowed cognitive decline in higher-risk older adults (ACHIEVE). Yet Medicare doesn't cover hearing aids — the silo with the steepest downstream cost.", ev:["lancetDementia","achieveHearing"] },
+    fhir:"Condition (sensorineural hearing loss) · Observation (audiometry threshold panel, LOINC)",
+    audio:{ freqs:[250,500,1000,2000,4000,8000], right:[20,25,30,40,50,55], left:[25,30,35,45,55,60] },
+  },
+};
+
+/* ---------- EHR product quality & social-needs interoperability (JAMIA / JGIM) ---------- */
+Object.assign(EVIDENCE, {
+  hendrixEHRvar:{ pmid:"36952084", cite:"Hendrix, Bazemore, Holmgren, Rotenstein & Phillips et al., J Gen Intern Med 2023 (3,358 family physicians across 9 EHRs) — usability and satisfaction vary widely by product, and EHR-specific factors explain up to ~49% of the variation in whether a physician is very satisfied. The EHR you choose — its design — drives burden and burnout, not merely whether you have one. The evidence base for LumaChart's user-centric, burden-reducing thesis." },
+  sandhuHRSN:   { pmid:"40116928", cite:"Sandhu, Holmgren, Rotenstein & Pantell et al., JAMIA 2025 (2,502 U.S. hospitals) — 61.4% electronically receive health-related social-needs (HRSN) data from outside, most often via health information exchanges; ACO/PCMH participants and Epic/Cerner users lead, while for-profit and public hospitals lag. Interoperable social-needs data is unevenly distributed — an equity gap LumaChart's HRSN capture + interoperability design targets." },
+});
+
 /* ---------- Standards we speak + privacy law we honor ---------- */
 const STANDARDS = {
   interop: [

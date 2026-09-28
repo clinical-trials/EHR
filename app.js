@@ -66,6 +66,7 @@ const state = {
   helixVoted: store.get("helixVoted", {}),            // suggestions this user has upvoted
   consentTiers: null,                                 // Framingham-modeled consent tiers (lazy-init)
   readiness: {},                             // implementation readiness self-assessment
+  thModules: store.get("thModules", { vision:false, dental:false, hearing:false }),  // Total-health modules — OFF by default, opt-in per patient
 };
 
 /* ---------- evidence helpers — every PMID links straight to PubMed ---------- */
@@ -451,6 +452,84 @@ function scoreSeries(id){
   return hist;
 }
 
+/* ---------- Total health: vision · dental · hearing (opt-in chart modules) ---------- */
+function thToggleStrip(on){
+  const btn = (k, ic, lab) => `<button class="btn ${on[k] ? "primary" : "ghost"} small" data-th-toggle="${k}">${ic} ${lab} · ${on[k] ? "on" : "off"}</button>`;
+  return `<div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:10px">
+    ${btn("vision","👁","Vision")}${btn("dental","🦷","Dental")}${btn("hearing","👂","Hearing")}
+    <span class="tiny muted">off by default — enable only what this patient needs</span>
+  </div>`;
+}
+function thObsTable(obs){
+  return `<table class="reg"><tr><th>Finding</th><th>Value</th></tr>
+    ${obs.map(o => `<tr><td class="small">${o.m}</td><td><b>${o.v}</b></td></tr>`).join("")}</table>`;
+}
+function thLink(l){
+  return `<div class="evidence"><b>Not a silo — ${l.to}:</b> ${l.text}${l.ev.map(ev).join("")}</div>`;
+}
+function thPrevention(p){
+  return `<div class="rowitem" style="margin-top:8px"><span class="chip amber">due</span><div class="d" style="flex:1"><b>${p.t}</b><br><span class="tiny muted">${p.detail}</span></div></div>`;
+}
+function odontogram(teeth){
+  const color = { ok:"rgba(230,238,241,.22)", filled:"var(--accent)", crown:"var(--green)", perio:"var(--amber)", missing:"transparent" };
+  const tooth = s => `<div title="${s}" style="width:15px;height:21px;border-radius:4px 4px 3px 3px;background:${color[s]};border:1.5px ${s==="missing"?"dashed var(--amber)":"solid rgba(255,255,255,.18)"};opacity:${s==="missing"?.5:.92}"></div>`;
+  const row = arr => `<div style="display:flex; gap:3px; justify-content:center">${arr.map(tooth).join("")}</div>`;
+  const legend = Object.entries({ ok:"healthy", filled:"restored", crown:"crown", perio:"perio ≥4mm", missing:"missing" })
+    .map(([k,l]) => `<span class="tiny" style="display:inline-flex; align-items:center; gap:4px; margin-right:9px"><span style="width:10px; height:10px; border-radius:2px; background:${color[k]}; border:1px ${k==="missing"?"dashed var(--amber)":"solid rgba(255,255,255,.3)"}"></span>${l}</span>`).join("");
+  return `<div class="small muted" style="margin-bottom:5px">Odontogram <span class="tiny">— 32 teeth</span></div>
+    ${row(teeth.slice(0,16))}<div style="height:4px"></div>${row(teeth.slice(16,32))}
+    <div style="margin-top:9px">${legend}</div>`;
+}
+function audiogram(a){
+  const W=340, H=210, mL=34, mR=12, mT=14, mB=28, pw=W-mL-mR, ph=H-mT-mB;
+  const X = i => mL + (i/(a.freqs.length-1))*pw;
+  const Y = d => mT + ((d+10)/100)*ph;                       // scale −10..90 dB HL
+  const axCol = "rgba(230,238,241,.55)";
+  const band = `<rect x="${mL}" y="${Y(-10)}" width="${pw}" height="${Y(20)-Y(-10)}" fill="rgba(127,200,164,.10)"/>`;
+  const grid = [0,20,40,60,80].map(d => `<line x1="${mL}" y1="${Y(d)}" x2="${W-mR}" y2="${Y(d)}" stroke="rgba(255,255,255,.12)"/><text x="${mL-5}" y="${Y(d)+3}" text-anchor="end" font-size="9" fill="${axCol}">${d}</text>`).join("");
+  const xlab = a.freqs.map((f,i) => `<text x="${X(i)}" y="${H-9}" text-anchor="middle" font-size="9" fill="${axCol}">${f>=1000?(f/1000)+"k":f}</text>`).join("");
+  const poly = (vals, col) => `<polyline points="${vals.map((d,i)=>`${X(i)},${Y(d)}`).join(" ")}" fill="none" stroke="${col}" stroke-width="2"/>`;
+  const rMark = a.right.map((d,i) => `<circle cx="${X(i)}" cy="${Y(d)}" r="4" fill="none" stroke="var(--red)" stroke-width="2"/>`).join("");
+  const lMark = a.left.map((d,i) => { const x=X(i), y=Y(d); return `<path d="M${x-4},${y-4} L${x+4},${y+4} M${x+4},${y-4} L${x-4},${y+4}" stroke="var(--accent)" stroke-width="2"/>`; }).join("");
+  return `<div class="small muted" style="margin-bottom:5px">Audiogram <span class="tiny">— dB HL by frequency (Hz)</span></div>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%; max-width:360px; background:rgba(255,255,255,.03); border-radius:8px">
+      ${band}${grid}${poly(a.right,"var(--red)")}${poly(a.left,"var(--accent)")}${rMark}${lMark}${xlab}
+      <text x="9" y="${mT+6}" font-size="9" fill="${axCol}">dB</text>
+    </svg>
+    <div class="tiny" style="margin-top:4px"><span style="color:var(--red)">◯ Right</span> · <span style="color:var(--accent)">✕ Left</span> · lower on the chart = worse hearing. Normal ≤20 dB (shaded).</div>`;
+}
+function thSection(){
+  const on = state.thModules, T = TOTAL_HEALTH;
+  const anyOn = on.vision || on.dental || on.hearing;
+  const vision = on.vision ? `<div class="card" style="margin-top:16px">
+      <h3>${T.vision.ic} Vision <span class="chip amber">${T.vision.dx}</span></h3>
+      <div class="grid g2"><div>${thObsTable(T.vision.obs)}${thPrevention(T.vision.prevention)}</div>
+      <div><div class="tiny muted">FHIR: ${T.vision.fhir}</div></div></div>
+      ${thLink(T.vision.link)}</div>` : "";
+  const dental = on.dental ? `<div class="card" style="margin-top:16px">
+      <h3>${T.dental.ic} Dental <span class="chip amber">${T.dental.dx}</span></h3>
+      <div class="grid g2"><div>${odontogram(T.dental.teeth)}<div class="tiny muted" style="margin-top:8px">FHIR: ${T.dental.fhir}</div></div>
+      <div>${thObsTable(T.dental.obs)}${thPrevention(T.dental.prevention)}</div></div>
+      ${thLink(T.dental.link)}</div>` : "";
+  const hearing = on.hearing ? `<div class="card" style="margin-top:16px">
+      <h3>${T.hearing.ic} Hearing <span class="chip amber">${T.hearing.dx}</span></h3>
+      <div class="grid g2"><div>${audiogram(T.hearing.audio)}</div>
+      <div>${thObsTable(T.hearing.obs)}${thPrevention(T.hearing.prevention)}<div class="tiny muted" style="margin-top:8px">FHIR: ${T.hearing.fhir}</div></div></div>
+      ${thLink(T.hearing.link)}</div>` : "";
+  const footer = anyOn ? `<div class="card" style="margin-top:16px">
+      <h3>Whole-person, not carved into plans</h3>
+      <div class="small">${T.siloNote}${aut("medicareCarveout")}</div>
+      <div class="tiny muted" style="margin-top:6px">A single record that treats eyes, teeth and ears as organs — the way health systems do where they're part of care, not separate insurance products — catches disease earlier and lands hardest for the low-income patients the carve-outs hit worst.</div>
+    </div>` : "";
+  return `<div class="section-gap"></div>
+  <div class="card">
+    <h3>🫀 Total health — beyond the medical silo <span class="chip ${anyOn?"green":"plain"}">${anyOn?"modules on":"all off · opt-in"}</span></h3>
+    <p class="small muted">${T.intro}</p>
+    ${thToggleStrip(on)}
+    ${anyOn ? "" : `<div class="tiny muted" style="margin-top:10px">${T.siloNote}</div>`}
+  </div>
+  ${vision}${dental}${hearing}${footer}`;
+}
 function vChart(){
   const c = CHART;
   return `
@@ -488,7 +567,7 @@ function vChart(){
     <h3>Assessment <span class="chip green">billing decoupled — handled automatically</span></h3>
     <div class="small" style="margin-bottom:8px"><b>This is a patient note — nothing else.</b> Doctors are not data clerks: the codes, the claim, and the quality reporting all fall out of the visit in background layers, never typed into the story of the patient.</div>
     <textarea class="note-editor" id="lean-note" style="min-height:110px">${CARE_PLAN.assessment}</textarea>
-    <div class="tiny" style="margin-top:8px"><span id="note-count"></span> — U.S. notes average ~4× the length of the same EHR abroad because billing data bloats them. LumaChart keeps the note clinical.${ev("downing")} Clerical burden is the system's #1 named driver of burnout — ~2 hours of EHR/desk work per hour of patient care.${ev("sinskyTM")}${aut("nam2019")}</div>
+    <div class="tiny" style="margin-top:8px"><span id="note-count"></span> — U.S. notes average ~4× the length of the same EHR abroad because billing data bloats them. LumaChart keeps the note clinical.${ev("downing")} Clerical burden is the system's #1 named driver of burnout — ~2 hours of EHR/desk work per hour of patient care.${ev("sinskyTM")}${aut("nam2019")} And <b>which</b> EHR you choose changes that: usability and satisfaction vary widely by product.${ev("hendrixEHRvar")}</div>
   </div>
   <div class="section-gap"></div>
 
@@ -560,7 +639,8 @@ function vChart(){
         <div class="d">Score ${r.score}/${r.max}${ins.ev?ev(ins.ev):""}${r.safety?` · <span style="color:var(--red); font-weight:700">⚠ self-harm item endorsed — review urgently</span>`:""}</div></div>
         <span class="chip ${r.tone}">${r.band}</span></div>`;
     }).join("") : `<div class="small muted">None returned yet. Send a questionnaire above, or the patient completes one in their portal (Screenings & questionnaires).</div>`}
-  </div>`;
+  </div>
+  ${thSection()}`;
 }
 
 function vInbox(){
@@ -2870,7 +2950,7 @@ function vReadmit(){
     <div class="rowitem"><span class="chip accent" style="min-width:132px; text-align:center">Predict</span><div class="d" style="flex:1">Validated readmission risk models (LACE) + a systematic review stratify who needs help.${ev("lace")} ${ev("kansagara")}</div></div>
     <div class="rowitem"><span class="chip accent" style="min-width:132px; text-align:center">Trigger CHW</span><div class="d" style="flex:1">Community health worker follow-up improved post-hospital outcomes and reduced hospitalization in randomized trials.${ev("kangovi14")} ${ev("kangovi18")} ${ev("kangoviPool")}</div></div>
     <div class="rowitem"><span class="chip accent" style="min-width:132px; text-align:center">Redesign discharge</span><div class="d" style="flex:1">A reengineered discharge (Project RED) cut rehospitalization.${ev("projectRED")}</div></div>
-    <div class="tiny" style="margin-top:8px">Social determinants map to USCDI Health Status Assessments / SDOH — the same structured data the screening tools and research layer already capture.</div>
+    <div class="tiny" style="margin-top:8px">Social determinants map to USCDI Health Status Assessments / SDOH — the same structured data the screening tools and research layer already capture. Yet interoperable social-needs data reaches safety-net hospitals least — the equity gap this design closes.${ev("sandhuHRSN")}</div>
   </div>`;
 }
 
@@ -3214,6 +3294,13 @@ function wireView(){
   ["[data-fp-grid]","[data-fp-clin]","[data-fp-rightsize]"].forEach(sel => { const el = document.querySelector(sel);
     if (el) ["change","input"].forEach(evt => el.addEventListener(evt, recalcFootprint)); });
   if (document.querySelector("[data-fp-calc]")) recalcFootprint();
+  $$("[data-th-toggle]").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.thToggle;
+    state.thModules[k] = !state.thModules[k];
+    store.set("thModules", state.thModules); render();
+    toast((k[0].toUpperCase()+k.slice(1)) + " module " + (state.thModules[k] ? "on" : "off"),
+      state.thModules[k] ? "Folded into the chart — a whole-person view of this organ." : "Hidden — enable only what this patient needs.", "green");
+  }));
   $$("[data-nav-inline]").forEach(b => b.addEventListener("click", () => {
     const v = b.dataset.navInline;
     if (!VIEWS[state.role][v]){                                   // cross-role link → switch role
