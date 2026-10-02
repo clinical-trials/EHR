@@ -1,6 +1,6 @@
 # LumaChart — Annotated Bibliography
 
-Auto-generated from the running evidence base (data.js). 98 peer-reviewed sources + 53 reports, standards & legislation.
+Auto-generated from the running evidence base (data.js). 98 peer-reviewed sources + 54 reports, standards & legislation.
 
 ## Peer-reviewed literature (PubMed)
 
@@ -157,4 +157,5 @@ Auto-generated from the running evidence base (data.js). 98 peer-reviewed source
 - **Green-e** — Green-e (Center for Resource Solutions) — certification for renewable-energy certificates (Green-e Energy) and carbon offsets (Green-e Climate); the substantiation standard the guide expects for renewable-energy and offset claims. <https://www.green-e.org/> _(key: `greenE`)_
 - **BMJ 2026 (Foley)** — Foley, Bonnici, Calderwood, Reyburn & Pearson, BMJ 2026;393:s677 (letter, UCL Institute of Health Informatics & UCLH) — “Evaluating the environmental impact of AI in healthcare is essential for planetary health”: robust evaluation is the most practical, underused lever for responsible AI — align AI innovation with proven value the way healthcare aligns any innovation with patient benefit, and weigh the relevant comparator (existing workflow or a simpler tool) before adopting AI. <https://www.bmj.com/content/393/bmj.s677> _(key: `bmjPlanetary`)_
 - **WHO Supply-Chain Decarb** — World Health Organization — Decarbonizing the Healthcare Supply Chain: Strategic Actions for Health Systems: the supply chain (Scope 3) dominates health care's climate footprint, so sustainable procurement is a primary strategic lever health systems can pull to cut emissions. <https://www.who.int/publications/b/81844> _(key: `whoDecarb`)_
+- **Canada Food Guide** — Health Canada — Canada's Food Guide, the plate method: half the plate vegetables & fruit, a quarter protein foods, a quarter whole grains. Adapted here as a physician self-care tool. <https://www.canada.ca/en/health-canada/services/food-guide/eating-support/cooking/make-healthy-meals-plate.html> _(key: `canadaPlate`)_
 - **Medicare coverage** — Medicare (CMS) — Original Medicare (Parts A & B) does not cover routine dental care, routine eye exams for glasses, or hearing aids and the exams to fit them; only some Medicare Advantage plans add limited benefits. These statutory carve-outs push vision, dental and hearing into separate coverage and separate records. <https://www.medicare.gov/coverage> _(key: `medicareCarveout`)_

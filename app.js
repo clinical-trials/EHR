@@ -216,7 +216,9 @@ const NAVS = {
     { label:"Well-being program", items:[
       { id:"joy",     ic:"🏅", t:"Joy in Medicine" },
       { id:"ehr8",    ic:"⏱", t:"EHR8 · WOW8 · Inbox" },
+      { id:"ehr7",    ic:"📟", t:"EHR-7 audit-log metrics" },
       { id:"burden",  ic:"🧪", t:"Burden lab" },
+      { id:"staffing",ic:"🧑‍⚕️", t:"Staffing & coverage" },
       { id:"actions", ic:"🎯", t:"Action plan" },
       { id:"report",  ic:"📄", t:"Data extract report" },
       { id:"quality", ic:"📈", t:"Quality & Care Compare" },
@@ -748,6 +750,61 @@ function vWellness(){
       <button class="btn ghost small" data-self="reset" style="margin-left:auto">Reset week</button>
     </div>
     <div class="tiny" style="margin-top:8px">No streaks-as-pressure, no leaderboards — a quiet mirror, not another scoreboard. Delete it any time; it never leaves your device in this demo.</div>
+  </div>`; })()}
+
+  ${(() => {
+    const cx=60, cy=60, r=52;
+    const pt = frac => { const a = 2*Math.PI*frac - Math.PI/2; return [ (cx + r*Math.cos(a)).toFixed(2), (cy + r*Math.sin(a)).toFixed(2) ]; };
+    let acc = 0;
+    const slices = PLATE.groups.map(g => {
+      const f0 = acc, f1 = acc + PLATE.ideal[g.k]/100; acc = f1;
+      const [x0,y0] = pt(f0), [x1,y1] = pt(f1);
+      const large = (f1 - f0) > 0.5 ? 1 : 0;
+      return `<path d="M${cx} ${cy} L${x0} ${y0} A${r} ${r} 0 ${large} 1 ${x1} ${y1} Z" fill="${g.color}" fill-opacity="0.85" stroke="var(--surface)" stroke-width="2"/>`;
+    }).join("");
+    const legend = PLATE.groups.map(g => `<div class="rowitem" style="align-items:flex-start">
+      <span class="chip ${g.tone}">${g.share}</span>
+      <div class="d" style="flex:1"><b>${g.label}</b> — ${g.foods.join(", ")}</div></div>`).join("");
+    return `<div class="card" style="margin-bottom:16px">
+    <h3>🍽 Healthy plate <span class="chip green">for your self-care</span></h3>
+    <div class="small" style="margin-bottom:10px">A simple picture of a good meal — the same plate method you'd teach a patient, turned on yourself: half the plate vegetables &amp; fruit, a quarter protein foods, a quarter whole grains. Nutrition is among the biggest levers on a healthy life for clinicians too.${ev("medDiet")}${ev("lifestyle")} ${aut("canadaPlate")}</div>
+    <div class="grid g2">
+      <div style="text-align:center">
+        <svg viewBox="0 0 120 120" width="150" height="150" style="max-width:100%" role="img" aria-label="Ideal plate: half vegetables and fruit, a quarter protein, a quarter whole grains">
+          <circle cx="${cx}" cy="${cy}" r="${r+3}" fill="none" stroke="var(--line-strong)" stroke-width="2"/>
+          ${slices}
+        </svg>
+      </div>
+      <div class="rowlist">${legend}</div>
+    </div>
+    <div style="margin-top:12px">
+      <div class="small" style="margin-bottom:6px">Your plate today — rough % of each (it's fine if they don't add to 100):</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end">
+        <label class="tiny">🥦 Veg &amp; fruit<br><input type="number" min="0" max="100" data-plate-veg class="hx-input" style="width:92px" placeholder="%"></label>
+        <label class="tiny">🐟 Protein<br><input type="number" min="0" max="100" data-plate-protein class="hx-input" style="width:92px" placeholder="%"></label>
+        <label class="tiny">🌾 Whole grains<br><input type="number" min="0" max="100" data-plate-grain class="hx-input" style="width:92px" placeholder="%"></label>
+        <button class="btn primary small" data-plate-check>Check my plate</button>
+      </div>
+      <div class="small" data-plate-out style="margin-top:10px"></div>
+    </div>
+    <div class="tiny muted" style="margin-top:10px">For clinician self-care now; a patient-facing version can follow.</div>
+  </div>`; })()}
+
+  ${(() => {
+    const doy = (() => { const now = new Date(), start = new Date(now.getFullYear(),0,0);
+      return Math.floor((now - start) / 86400000); })();
+    const idx = ((doy % PEARLS.length) + PEARLS.length) % PEARLS.length, p = PEARLS[idx];
+    return `<div class="card" style="margin-bottom:16px">
+    <h3>🕊 Today's word</h3>
+    <div style="text-align:center; padding:16px 8px 4px">
+      <div id="pearl-word" data-idx="${idx}" style="font-size:40px; font-weight:600; letter-spacing:-.01em; color:var(--text); opacity:.9; line-height:1.1">${p.word}</div>
+      <div id="pearl-note" class="small muted" style="margin-top:10px">${p.note}</div>
+    </div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:8px">
+      <button class="btn ghost small" data-pearl-next>Another</button>
+      <button class="btn ghost small" data-pearl-add>Contribute a pearl</button>
+    </div>
+    <div class="tiny muted" style="margin-top:10px; text-align:center">In production the word is personalized to you and drawn from a growing shared library of colleagues' pearls. A single word is intentional — a mantra-like focus that never overwhelms the record.</div>
   </div>`; })()}
 
   <div class="grid g2">
@@ -2552,6 +2609,80 @@ function vEhr8(){
   </div>`;
 }
 
+/* Tiny inline sparkline — conveys longitudinal logging without a charting dependency. */
+function miniSpark(arr){
+  const w=90, h=26, p=3, mn=Math.min(...arr), mx=Math.max(...arr), rng=(mx-mn)||1;
+  const pts=arr.map((v,i)=>`${(p+i/(arr.length-1)*(w-2*p)).toFixed(1)},${(h-p-((v-mn)/rng)*(h-2*p)).toFixed(1)}`).join(" ");
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:${w}px;height:${h}px;vertical-align:middle"><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.6"/></svg>`;
+}
+function vEhr7(){
+  const E = EHR7.metrics;
+  return `
+  <h1 class="page-title">📟 EHR-7 — the seven audit-log metrics <span class="chip accent">objective measurement</span></h1>
+  <p class="page-sub">The three levers that reverse burnout are <b>minimalist design · objective measurement · evidence-based support</b>. This is the measurement pillar: the <b>seven standardized EHR audit-log measures</b>, read straight from the event log and <b>logged over time</b> (no surveys), that make burden comparable, targetable and provable.${ev("sinskyLog")}</p>
+
+  <div class="grid g3" style="margin-bottom:16px">
+    ${E.map(x=>`<div class="card">
+      <div class="metric"><div class="v" style="color:var(--${x.tone})">${x.val}<span style="font-size:14px"> ${x.unit}</span></div><div class="l">${x.m}${x.aspirational?` <span class="chip plain">aspirational</span>`:``}</div></div>
+      <div style="display:flex; align-items:center; gap:8px; margin:8px 0 4px"><span class="chip ${x.dir==="up"?"green":"amber"}">${x.target}</span>${miniSpark(x.trend)}</div>
+      <div class="tiny muted">Lever: ${x.lever}</div>
+    </div>`).join("")}
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>What each metric measures → how LumaChart moves it</h3>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>#</th><th>Metric</th><th>Better when</th><th>LumaChart lever</th></tr>
+      ${E.map((x,i)=>`<tr><td>${i+1}</td><td class="cap">${x.m}</td><td>${x.dir==="up"?"higher ↑":"lower ↓"}</td><td class="small">${x.lever}</td></tr>`).join("")}
+    </table></div>
+    <div class="evidence">The vendor-neutral measures defined for cross-study comparison — total EHR time, work-outside-work, documentation, prescriptions, inbox, teamwork-for-orders, and the aspirational <i>undivided attention</i> the patient receives.${ev("sinskyLog")} LumaChart computes them from the FHIR-native audit log, so measurement is a byproduct of care, not a separate study.</div>
+  </div>
+
+  <div class="grid g2">
+    <div class="card">
+      <h3>Logged over time — so interventions are proven</h3>
+      <div class="small">A single snapshot can't tell you whether a change worked. LumaChart <b>logs all seven longitudinally</b>, per clinician and per unit (aggregate, de-identified), so the CWO can watch an intervention take hold — or not — in the audit log itself. Pairs with the <a data-nav-inline="burden" style="cursor:pointer">Burden lab</a> protocol and the private <a data-nav-inline="canary" style="cursor:pointer">Canary</a> signal.</div>
+    </div>
+    <div class="card">
+      <h3>Measurement without surveillance</h3>
+      <div class="small">These org-level figures aggregate the same per-clinician signals Canary keeps private — <b>never individual-level, never wired to productivity or employment</b>. The point is to fix the work, not to watch the worker.${aut("sgAdvisory")}</div>
+    </div>
+  </div>`;
+}
+function vStaffing(){
+  const S = STAFFING;
+  const sc = s => s==="critical" ? `<span class="chip red">critical</span>` : s==="strained" ? `<span class="chip amber">strained</span>` : `<span class="chip green">ok</span>`;
+  return `
+  <h1 class="page-title">🧑‍⚕️ Staffing &amp; coverage <span class="chip amber">administration owns this</span></h1>
+  <p class="page-sub">Incomplete team staffing${ev("rotensteinStaff")} and poor control over <b>schedule and workload</b> are each independently associated with burnout and intent to leave.${ev("sinskyControl")} These are <b>leadership levers</b> — not a burden for the clinician to silently absorb. LumaChart surfaces every department's gaps to administration, each with an owner and a due date.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Department staffing &amp; coverage <span class="chip plain">synthetic demo</span></h3>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>Department</th><th>Budgeted</th><th>Filled</th><th>Open</th><th>Coverage</th><th>Locum</th><th>Status</th></tr>
+      ${S.depts.map(x=>`<tr><td class="cap">${x.d}</td><td>${x.budget}</td><td>${x.filled}</td><td><b>${x.budget-x.filled}</b></td><td>${x.coverage}%<div class="bar" style="margin-top:3px"><i class="${x.coverage>=95?'green':x.coverage>=80?'amber':'red'}" style="width:${x.coverage}%"></i></div></td><td class="small">${x.locum}</td><td>${sc(x.status)}</td></tr>`).join("")}
+    </table></div>
+    <div class="tiny muted" style="margin-top:6px">${S.depts.filter(x=>x.status!=="ok").map(x=>`<b>${x.d}:</b> ${x.note}`).join("<br>")}</div>
+  </div>
+
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="card">
+      <h3>Physician control — the Sinsky 2024 domains</h3>
+      <div class="small muted" style="margin-bottom:8px">Share of physicians reporting <b>adequate control</b> over each domain; low control independently predicts burnout &amp; turnover intent.${ev("sinskyControl")}</div>
+      <div class="rowlist">${S.control.map(c=>`<div class="rowitem"><span class="chip ${c.status==="adequate"?"green":"amber"}">${c.pct}%</span><div class="d" style="flex:1">${c.c} <span class="tiny muted">— ${c.status}</span></div></div>`).join("")}</div>
+    </div>
+    <div class="card">
+      <h3>Administration action plan <span class="chip accent">owned · dated</span></h3>
+      <div class="rowlist">${S.actions.map(a=>`<div class="rowitem"><span class="chip amber">gap</span><div class="d" style="flex:1"><b>${a.gap}</b> → ${a.action}<br><span class="tiny muted">Owner: ${a.owner} · due ${a.due}</span></div></div>`).join("")}</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Why this sits on the CWO board</h3>
+    <div class="small">When schedule and workload go unaddressed, they become a <b>clinician</b> burden — absorbed as after-hours time, moral distress, and attrition. Making staffing and coverage <b>visible, owned, and dated at the administrative level</b> is how the organization carries the load instead of the physician. Pairs with the <a data-nav-inline="ehr7" style="cursor:pointer">EHR-7 metrics</a> and the <a data-nav-inline="actions" style="cursor:pointer">Action plan</a>.</div>
+  </div>`;
+}
+
 function vReport(){
   const a = AMA, met = domainsMet();
   return `
@@ -3261,7 +3392,7 @@ const VIEWS = {
   clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, eol:vEndOfLife, iconsent:vInformedConsent, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, footprint:vFootprint, cert:vCert, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, myrecord:vMyRecord, longevity:vLongevity, consent:vConsent, footprint:vFootprint },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
-  cwo:{ joy:vJoy, ehr8:vEhr8, burden:vBurden, actions:vActions, report:vReport, quality:vQuality, aigov:vAIGov, footprint:vFootprint, rollout:vRollout, biblio:vBiblio },
+  cwo:{ joy:vJoy, ehr8:vEhr8, ehr7:vEhr7, burden:vBurden, staffing:vStaffing, actions:vActions, report:vReport, quality:vQuality, aigov:vAIGov, footprint:vFootprint, rollout:vRollout, biblio:vBiblio },
 };
 Object.values(VIEWS).forEach(v => { v.help = vHelp; });   // Help center is reachable from every role
 
@@ -3405,6 +3536,36 @@ function wireView(){
     else if (v === "reset") { state.selfLog = { week:[0,0,0,0,0,0,0], nourished:0 }; }
     store.set("selfLog", state.selfLog); render();
   }));
+
+  // --- Healthy plate: compare the clinician's plate to the ideal 50/25/25 ---
+  const pchk = $("[data-plate-check]"); if (pchk) pchk.addEventListener("click", () => {
+    const num = sel => { const el = $(sel); return el ? parseFloat(el.value) : NaN; };
+    const veg = num("[data-plate-veg]"), pro = num("[data-plate-protein]"), grn = num("[data-plate-grain]");
+    const out = $("[data-plate-out]"); if (!out) return;
+    if ([veg,pro,grn].some(x => !isFinite(x))) {
+      out.innerHTML = `<span class="chip amber">enter numbers</span> Fill in all three portions as a rough % of your plate, then check.`;
+      return;
+    }
+    const tips = [];
+    if (veg < 50) tips.push("Aim for half your plate vegetables &amp; fruit — the biggest, easiest win.");
+    if (grn > 25) tips.push("Make pasta or rice a side dish, not the main.");
+    if (pro > 25) tips.push("Keep protein about a quarter — lean toward fish, legumes, nuts.");
+    if (!tips.length) {
+      out.innerHTML = `<span class="chip green">nicely balanced ✓</span> Close to the ideal — about half vegetables &amp; fruit, a quarter protein, a quarter whole grains. The spirit holds: more vegetables, pasta as a side.`;
+    } else {
+      out.innerHTML = `<span class="chip accent">try this</span><ul style="margin:6px 0 0 18px; padding:0">${tips.map(t=>`<li>${t}</li>`).join("")}</ul><div class="tiny" style="margin-top:6px">The spirit: more vegetables, pasta as a side.</div>`;
+    }
+  });
+
+  // --- Today's word: swap in a different random pearl (in place; day-of-year default stays stable) ---
+  const pnext = $("[data-pearl-next]"); if (pnext) pnext.addEventListener("click", () => {
+    const wEl = $("#pearl-word"), nEl = $("#pearl-note"); if (!wEl) return;
+    const cur = +(wEl.dataset.idx || 0); let next = cur;
+    if (PEARLS.length > 1){ while (next === cur) next = Math.floor(Math.random() * PEARLS.length); }
+    const p = PEARLS[next]; wEl.textContent = p.word; wEl.dataset.idx = next; if (nEl) nEl.textContent = p.note;
+  });
+  const padd = $("[data-pearl-add]"); if (padd) padd.addEventListener("click", () =>
+    toast("Thanks for the pearl 🕊", "In production your word joins a growing shared library of colleagues' pearls, reviewed and then personalized back to you. (Demo — nothing was saved.)", "green"));
 
   // --- VA-inspired: closed-loop medication safety (BCMA) ---
   const bcmaScan = $("[data-bcma-scan]"); if (bcmaScan) bcmaScan.addEventListener("click", () => { state.bcmaScanned = true; render(); toast("Five rights verified ✓", "Right patient · drug · dose · route · time. The VA-pioneered barcode check that cut administration errors ~41% (Poon, NEJM 2010). Recorded to the MAR. (Demo.)", "green"); });

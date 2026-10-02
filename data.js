@@ -170,6 +170,48 @@ const THANK_YOUS = [
   { from:"Linh N.",   note:"You made me feel safe through the whole pregnancy." },
 ];
 
+/* ---------- Healthy plate — Canada's Food Guide plate method (clinician self-care) ---------- */
+/* Ideal proportions: half the plate vegetables & fruit, a quarter protein foods, a quarter whole grains. */
+const PLATE = {
+  ideal: { veg:50, protein:25, grain:25 },   // % of the plate — half / quarter / quarter
+  groups: [
+    { k:"veg",     label:"Vegetables & fruit", share:"½ plate", tone:"green",  color:"var(--green)",
+      foods:["broccoli","carrots","berries","peppers","spinach","apples"] },
+    { k:"protein", label:"Protein foods",      share:"¼ plate", tone:"accent", color:"var(--accent)",
+      foods:["fish","chicken","lentils","tofu","eggs","nuts","beans"] },
+    { k:"grain",   label:"Whole grains",       share:"¼ plate", tone:"amber",  color:"var(--amber)",
+      foods:["whole-grain bread/pasta","brown rice","quinoa","wild rice"] },
+  ],
+};
+
+/* ---------- Practice pearls — one warm, mantra-like word a day (clinician self-care) ---------- */
+const PEARLS = [
+  { word:"Presence",   note:"put the screen down for the first minute" },
+  { word:"Teach-back", note:"ask the patient to say it back, their words" },
+  { word:"Delegate",   note:"someone else can safely carry this task" },
+  { word:"Breathe",    note:"one slow breath before you open the door" },
+  { word:"Curiosity",  note:"ask one more question before you decide" },
+  { word:"Boundaries", note:"the inbox can wait until tomorrow" },
+  { word:"Gratitude",  note:"name one thing that went right today" },
+  { word:"Pause",      note:"a three-second pause is a clinical tool" },
+  { word:"Listen",     note:"let them finish before you speak" },
+  { word:"Kindness",   note:"the same warmth you'd want as a patient" },
+  { word:"Focus",      note:"one patient, one problem, right now" },
+  { word:"Savor",      note:"notice the good moment while it is here" },
+  { word:"Connect",    note:"five real minutes with a colleague today" },
+  { word:"Recover",    note:"rest is part of the work, not a reward" },
+  { word:"Ask",        note:"you do not have to carry it alone" },
+  { word:"Notice",     note:"how is your own body doing right now?" },
+  { word:"Simplify",   note:"cut one step that helps no one" },
+  { word:"Rest",       note:"protect the break you already earned" },
+  { word:"Anchor",     note:"feet on the floor, back to this moment" },
+  { word:"Wonder",     note:"medicine is still astonishing — let it be" },
+  { word:"Steady",     note:"slow is smooth, and smooth is safe" },
+  { word:"Compassion", note:"turn some of it toward yourself too" },
+  { word:"Enough",     note:"you did what could be done today" },
+  { word:"Forgive",    note:"let go of the case you could not fix" },
+];
+
 const RESEARCH = {
   consented:12847, total:18203,
   studies:[
@@ -1158,6 +1200,11 @@ Object.assign(AUTHORITIES, {
     cite:"World Health Organization — Decarbonizing the Healthcare Supply Chain: Strategic Actions for Health Systems: the supply chain (Scope 3) dominates health care's climate footprint, so sustainable procurement is a primary strategic lever health systems can pull to cut emissions." },
 });
 
+Object.assign(AUTHORITIES, {
+  canadaPlate:{ label:"Canada Food Guide", url:"https://www.canada.ca/en/health-canada/services/food-guide/eating-support/cooking/make-healthy-meals-plate.html",
+    cite:"Health Canada — Canada's Food Guide, the plate method: half the plate vegetables & fruit, a quarter protein foods, a quarter whole grains. Adapted here as a physician self-care tool." },
+});
+
 /* ---------- AI environmental footprint — the third procurement axis ----------
    Implements the Health Care Without Harm / Practice Greenhealth "Sustainable AI
    Procurement Guide for US Health Sector Organizations" (Sept 23, 2026): a per-task
@@ -1333,6 +1380,48 @@ Object.assign(EVIDENCE, {
   hanCost:        { pmid:"31132791", cite:"Han, Shanafelt, Sinsky … Goh, Ann Intern Med 2019 (cost-consequence model) — physician burnout costs the U.S. ~$4.6B/yr (turnover + reduced clinical hours), ~$7,600 per employed physician per year. The economic case that burnout-reduction investment pays for itself." },
   trockelPFI:     { pmid:"29196982", cite:"Trockel, Bohman … Shanafelt, Acad Psychiatry 2017 — the Professional Fulfillment Index (PFI): a validated, change-sensitive 16-item measure of professional fulfillment, work exhaustion and interpersonal disengagement that correlates with the MBI and with self-reported medical errors. A rigorous well-being instrument for the CWO console." },
 });
+
+/* ---------- EHR-7: the seven core audit-log metrics (Sinsky 2020, PMID 32027360) ----------
+   Measured straight from the EHR event log and LOGGED longitudinally. Values are illustrative
+   demo estimates; the 7-day trend shows an intervention taking hold. dir = which way is better. */
+const EHR7 = {
+  metrics: [
+    { id:"total",     m:"Total EHR time",        val:4.9, unit:"hr/day",  dir:"down", target:"↓ toward 3.5 hr", tone:"amber", trend:[5.6,5.4,5.3,5.1,5.0,4.9,4.9], lever:"Lean note · interoperability pre-fill · right-sized AI" },
+    { id:"wow",       m:"Work outside of work",  val:48,  unit:"min/day", dir:"down", target:"↓ 'pajama time'",  tone:"amber", trend:[84,78,70,63,57,52,48],        lever:"Batched inbox · delegation · ambient scribe" },
+    { id:"doc",       m:"Time on documentation", val:82,  unit:"min/day", dir:"down", target:"↓",               tone:"amber", trend:[120,112,104,98,92,86,82],       lever:"Ambient scribe + background coding" },
+    { id:"rx",        m:"Time on prescriptions", val:19,  unit:"min/day", dir:"down", target:"↓",               tone:"green", trend:[31,29,27,24,22,20,19],          lever:"Real-time benefit · standing orders · favorites" },
+    { id:"inbox",     m:"Inbox time",            val:38,  unit:"min/day", dir:"down", target:"↓",               tone:"amber", trend:[62,58,54,49,45,41,38],          lever:"Team-first triage + AI draft replies" },
+    { id:"team",      m:"Teamwork for orders",   val:41,  unit:"%",       dir:"up",   target:"↑ shared work",   tone:"green", trend:[18,24,28,32,36,39,41],          lever:"Standing orders / protocol delegation" },
+    { id:"attention", m:"Undivided attention",   val:52,  unit:"%",       dir:"up",   target:"↑ screen-free",   tone:"green", trend:[38,41,44,47,49,51,52],          lever:"Face-time ratio + Focus mode", aspirational:true },
+  ],
+};
+
+/* ---------- Staffing & coverage — a leadership lever, not a clinician burden ----------
+   Incomplete team staffing (Rotenstein 2025, PMID 40367518) and poor control over schedule
+   & workload (Sinsky 2024, PMID 39586098) independently predict burnout & turnover intent.
+   The `control` percentages are the real Sinsky-2024 adequate-control figures. Depts synthetic. */
+const STAFFING = {
+  depts: [
+    { d:"Emergency Medicine",              budget:28, filled:23, coverage:72,  locum:"high",     status:"critical", note:"5 open attending lines; night shifts uncovered — locum-dependent." },
+    { d:"Behavioral health",               budget:14, filled:9,  coverage:64,  locum:"high",     status:"critical", note:"Severe shortage; access & consult delays rising." },
+    { d:"Internal medicine (hospitalist)", budget:34, filled:30, coverage:88,  locum:"moderate", status:"strained", note:"Weekend coverage thin; cross-cover ratios above target." },
+    { d:"OB-GYN",                          budget:18, filled:17, coverage:94,  locum:"low",      status:"strained", note:"Heavy call burden on a small group — schedule control low." },
+    { d:"Primary care",                    budget:46, filled:44, coverage:96,  locum:"low",      status:"ok",       note:"Panels near cap; watch inbox & after-hours." },
+    { d:"Pediatrics",                      budget:22, filled:22, coverage:100, locum:"none",     status:"ok",       note:"Fully staffed — protect it." },
+  ],
+  control: [
+    { c:"Control over patient load",     pct:61, status:"inadequate" },
+    { c:"Control over team composition", pct:61, status:"inadequate" },
+    { c:"Control over clinical schedule",pct:75, status:"adequate" },
+    { c:"Control over workload",         pct:61, status:"inadequate" },
+    { c:"Control over hiring of staff",  pct:49, status:"inadequate" },
+  ],
+  actions: [
+    { gap:"Behavioral health −5 FTE", owner:"CMO + HR",         action:"Expedite recruitment + tele-psych coverage; interim locum plan", due:"30 days" },
+    { gap:"ED night coverage",        owner:"ED chair + Ops",   action:"Add a nocturnist line; rebalance call; cap consecutive nights",   due:"this schedule block" },
+    { gap:"Hospitalist weekends",     owner:"Hospitalist lead", action:"7-on / 7-off rebalance; float pool; cross-cover ratio ceiling",   due:"next cycle" },
+  ],
+};
 
 /* ---------- Standards we speak + privacy law we honor ---------- */
 const STANDARDS = {
@@ -1532,6 +1621,7 @@ const COMPLIANCE = {
 /* ---------- §170.315 criterion registry — cite the law like a PMID (reg()) ---------- */
 const REG170_URL = "https://www.ecfr.gov/current/title-45/section-170.315";
 const REG170_MAP = {
+  a1:  { code:"§170.315(a)(1)",  title:"Computerized provider order entry — medications" },
   a5:  { code:"§170.315(a)(5)",  title:"Demographics" },
   a9:  { code:"§170.315(a)(9)",  title:"Clinical decision support (legacy — superseded by (b)(11))" },
   a14: { code:"§170.315(a)(14)", title:"Implantable device list (UDI)" },
