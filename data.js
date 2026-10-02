@@ -1379,6 +1379,7 @@ Object.assign(EVIDENCE, {
   shahScribe:     { pmid:"39657021", cite:"Shah … Shanafelt, Garcia et al., JAMIA 2025 — an ambient AI scribe pilot showed large reductions in task load (−24) and burnout (−1.9) and improved usability (+11). Complements the documentation-time findings with well-being outcomes." },
   hanCost:        { pmid:"31132791", cite:"Han, Shanafelt, Sinsky … Goh, Ann Intern Med 2019 (cost-consequence model) — physician burnout costs the U.S. ~$4.6B/yr (turnover + reduced clinical hours), ~$7,600 per employed physician per year. The economic case that burnout-reduction investment pays for itself." },
   trockelPFI:     { pmid:"29196982", cite:"Trockel, Bohman … Shanafelt, Acad Psychiatry 2017 — the Professional Fulfillment Index (PFI): a validated, change-sensitive 16-item measure of professional fulfillment, work exhaustion and interpersonal disengagement that correlates with the MBI and with self-reported medical errors. A rigorous well-being instrument for the CWO console." },
+  coachingRCT:    { pmid:"31380892", cite:"Dyrbye, Shanafelt & West et al., JAMA Intern Med 2019 (pilot RCT, 88 physicians, 6 sessions) — professional coaching reduced emotional exhaustion and cut overall burnout by ~17% (absolute) vs control, and improved quality of life and resilience. Randomized evidence that coaching is an effective individual-level burnout intervention." },
 });
 
 /* ---------- EHR-7: the seven core audit-log metrics (Sinsky 2020, PMID 32027360) ----------

@@ -67,6 +67,7 @@ const state = {
   consentTiers: null,                                 // Framingham-modeled consent tiers (lazy-init)
   readiness: {},                             // implementation readiness self-assessment
   thModules: store.get("thModules", { vision:false, dental:false, hearing:false }),  // Total-health modules — OFF by default, opt-in per patient
+  pfi: store.get("pfi", {}),                 // Professional Fulfillment Index self-check (private, on-device)
 };
 
 /* ---------- evidence helpers — every PMID links straight to PubMed ---------- */
@@ -724,6 +725,12 @@ function vInbox(){
   </div>`;
 }
 
+function pfiReadout(p){
+  if (!p || p.ful == null) return `<span class="chip plain">not logged yet</span>`;
+  const fulChip  = p.ful  >= 3    ? `<span class="chip green">fulfilled</span>`          : `<span class="chip amber">low fulfillment</span>`;
+  const burnChip = p.burn >= 1.33 ? `<span class="chip amber">burnout-positive</span>`    : `<span class="chip green">below threshold</span>`;
+  return `Fulfillment <b>${p.ful}</b>/4 ${fulChip} · Burnout <b>${(+p.burn).toFixed(2)}</b>/4 ${burnChip} <span class="tiny muted">(${p.at})</span>`;
+}
 function vWellness(){
   return `
   <h1 class="page-title">Wellness Center</h1>
@@ -834,16 +841,33 @@ function vWellness(){
   </div>
   <div class="section-gap"></div>
 
-  <div class="card">
-    <h3>Well-being pulse <span class="chip plain">private to you</span></h3>
-    <p class="small muted">A quick weekly self-check using validated-style items (full instruments: MBI, ProQOL${ev("proqol")}). Your history stays on your device in this demo.</p>
+  ${(() => { const p = state.pfi || {};
+  return `<div class="card">
+    <h3>Professional Fulfillment Index (PFI) <span class="chip plain">self-check · private to you</span></h3>
+    <p class="small muted">A validated, change-sensitive measure of three things — <b>professional fulfillment</b>, <b>work exhaustion</b>, and <b>interpersonal disengagement</b>.${ev("trockelPFI")} The <i>structure</i> is shown here; a production deployment licenses the real PFI (and can pair it with the MBI / ProQOL${ev("proqol")}). Your scores stay on this device.</p>
     <div class="grid g3">
-      <div><div class="small" style="margin-bottom:5px">I feel emotionally drained by my work</div>
-        <input type="range" min="0" max="6" value="2" style="width:100%"></div>
-      <div><div class="small" style="margin-bottom:5px">I feel I make a difference for my patients</div>
-        <input type="range" min="0" max="6" value="5" style="width:100%"></div>
-      <div style="display:flex; align-items:flex-end"><button class="btn primary">Log this week</button></div>
+      <div><div class="small" style="margin-bottom:5px">Professional fulfillment <span class="tiny muted">higher = better</span></div>
+        <input type="range" min="0" max="4" value="${p.ful!=null?p.ful:3}" data-pfi="ful" style="width:100%"></div>
+      <div><div class="small" style="margin-bottom:5px">Work exhaustion <span class="tiny muted">lower = better</span></div>
+        <input type="range" min="0" max="4" value="${p.exh!=null?p.exh:2}" data-pfi="exh" style="width:100%"></div>
+      <div><div class="small" style="margin-bottom:5px">Interpersonal disengagement <span class="tiny muted">lower = better</span></div>
+        <input type="range" min="0" max="4" value="${p.dis!=null?p.dis:1}" data-pfi="dis" style="width:100%"></div>
     </div>
+    <div style="display:flex; gap:12px; margin-top:12px; align-items:center; flex-wrap:wrap">
+      <button class="btn primary small" data-pfi-log>Log this check</button>
+      <span class="small" data-pfi-out>${pfiReadout(p)}</span>
+    </div>
+    <div class="tiny muted" style="margin-top:8px">Scored on the PFI's 0–4 scale (fulfillment ≥3 = fulfilled; burnout ≥1.33 = positive). Logged privately — never wired to productivity or employment.</div>
+  </div>`; })()}
+
+  <div class="card" style="margin-top:16px">
+    <h3>🎯 Coaching — proven to cut exhaustion</h3>
+    <div class="small">Individualized professional coaching reduced emotional exhaustion and cut overall burnout by <b>~17%</b> (absolute), and improved quality of life and resilience, in a randomized trial.${ev("coachingRCT")} Two tracks, one tap:</div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px">
+      <button class="btn primary small" data-coach="ehr">Request EHR-efficiency coaching</button>
+      <button class="btn small" data-coach="pro">Request professional coaching</button>
+    </div>
+    <div class="tiny muted" style="margin-top:8px">Confidential; arranged through the Chief Wellness Officer's program. Demo — nothing is sent.</div>
   </div>
 
   <div class="grid g2" style="margin-top:16px">
@@ -2494,6 +2518,21 @@ function vBurden(){
     <div class="evidence">Usability is measurable — click counts and task times vary widely across EHRs and it affects safety.${ev("ratwani")}</div>
   </div>
 
+  <div class="card" style="margin-bottom:16px">
+    <h3>🎚 Usability score (SUS) <span class="chip plain">design → measurement loop</span></h3>
+    <div class="grid g2">
+      <div>
+        <div class="metric"><div class="v" style="color:var(--green)">78</div><div class="l">LumaChart target SUS (demo) — "good", top-tier usability</div></div>
+        <div class="bar" style="margin-top:8px"><i class="green" style="width:78%"></i></div>
+      </div>
+      <div>
+        <div class="metric"><div class="v" style="color:var(--red)">45.9</div><div class="l">National EHR average SUS — grade <b>F</b>, bottom 9% across industries</div></div>
+        <div class="bar" style="margin-top:8px"><i class="red" style="width:46%"></i></div>
+      </div>
+    </div>
+    <div class="evidence">Physicians graded current EHRs an <b>F</b> on the System Usability Scale, and usability is dose-responsive to burnout — each 1-point better SUS ≈ 3% lower odds of burnout.${ev("melnickUsab")} Measuring SUS per clinician closes the loop between <b>design</b> and <b>burnout</b>: the first of the three levers, made measurable.</div>
+  </div>
+
   <div class="card">
     <h3>🔥 Single-item burnout measure <span class="chip plain">validated · private to you</span></h3>
     <div class="small" style="margin-bottom:8px">${BURNOUT_ITEM.q}${ev("dolan")} A score of ${BURNOUT_ITEM.threshold}+ is burnout-positive. Production studies pair this with the MBI, Mini-Z, or Stanford PFI (licensed instruments, named — not reproduced).</div>
@@ -3566,6 +3605,18 @@ function wireView(){
   });
   const padd = $("[data-pearl-add]"); if (padd) padd.addEventListener("click", () =>
     toast("Thanks for the pearl 🕊", "In production your word joins a growing shared library of colleagues' pearls, reviewed and then personalized back to you. (Demo — nothing was saved.)", "green"));
+  const plog = $("[data-pfi-log]"); if (plog) plog.addEventListener("click", () => {
+    const n = sel => { const el = $(sel); return el ? +el.value : 0; };
+    const ful = n("[data-pfi='ful']"), exh = n("[data-pfi='exh']"), dis = n("[data-pfi='dis']");
+    const burn = +(((exh + dis) / 2).toFixed(2));
+    state.pfi = { ful, exh, dis, burn, at: new Date().toLocaleDateString() };
+    store.set("pfi", state.pfi); render();
+    toast("PFI logged — private to you", `Fulfillment ${ful}/4, burnout ${burn}/4. Stored on this device only, like every well-being measure here.`, "green");
+  });
+  $$("[data-coach]").forEach(b => b.addEventListener("click", () => {
+    const kind = b.dataset.coach === "ehr" ? "EHR-efficiency coaching" : "professional coaching";
+    toast("Coaching requested ✓", `${kind} request sent to the Chief Wellness Officer's program — confidential. Coaching cut overall burnout ~17% in a randomized trial (Dyrbye 2019). (Demo — nothing was sent.)`, "green");
+  }));
 
   // --- VA-inspired: closed-loop medication safety (BCMA) ---
   const bcmaScan = $("[data-bcma-scan]"); if (bcmaScan) bcmaScan.addEventListener("click", () => { state.bcmaScanned = true; render(); toast("Five rights verified ✓", "Right patient · drug · dose · route · time. The VA-pioneered barcode check that cut administration errors ~41% (Poon, NEJM 2010). Recorded to the MAR. (Demo.)", "green"); });

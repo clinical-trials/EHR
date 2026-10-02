@@ -1,6 +1,6 @@
 # LumaChart — Annotated Bibliography
 
-Auto-generated from the running evidence base (data.js). 98 peer-reviewed sources + 54 reports, standards & legislation.
+Auto-generated from the running evidence base (data.js). 99 peer-reviewed sources + 54 reports, standards & legislation.
 
 ## Peer-reviewed literature (PubMed)
 
@@ -21,6 +21,7 @@ Auto-generated from the running evidence base (data.js). 98 peer-reviewed source
 - **Dolan et al., J Gen Intern Med 2015** — single-item burnout measure, validated against the MBI emotional-exhaustion scale. [PMID 25451989](https://pubmed.ncbi.nlm.nih.gov/25451989/) _(key: `dolan`)_
 - **Downing, Bates & Longhurst, Ann Intern Med 2018** — US notes ~4× longer than the same EHR abroad; billing rules are the driver. [PMID 29801050](https://pubmed.ncbi.nlm.nih.gov/29801050/) _(key: `downing`)_
 - **Dyrbye et al., Mayo Clin Proc 2017** — intrusive licensure questions make physicians reluctant to seek mental health care. [PMID 28982484](https://pubmed.ncbi.nlm.nih.gov/28982484/) _(key: `dyrbyeLic`)_
+- **Dyrbye, Shanafelt & West et al., JAMA Intern Med 2019 (pilot RCT, 88 physicians, 6 sessions)** — professional coaching reduced emotional exhaustion and cut overall burnout by ~17% (absolute) vs control, and improved quality of life and resilience. Randomized evidence that coaching is an effective individual-level burnout intervention. [PMID 31380892](https://pubmed.ncbi.nlm.nih.gov/31380892/) _(key: `coachingRCT`)_
 - **Eckelman & Sherman, PLoS One 2016** — the U.S. health-care sector causes ~10% of national greenhouse-gas emissions (and 9–12% of criteria air pollutants); the resulting pollution costs an estimated 470,000 DALYs of lost health each year. Health care is itself a major polluter — so how it buys matters. [PMID 27280706](https://pubmed.ncbi.nlm.nih.gov/27280706/) _(key: `eckelmanHC`)_
 - **Eckelman et al., Health Affairs 2020** — U.S. health-care greenhouse-gas emissions reached 1,692 kg CO₂e per capita in 2018, the highest rate among industrialized nations, and were NOT correlated with better care quality: the footprint can be cut without compromising care. The authors call for mandatory reporting and benchmarking. [PMID 33284703](https://pubmed.ncbi.nlm.nih.gov/33284703/) _(key: `eckelmanUpd`)_
 - **Ekers et al., PLoS One 2014 (meta-analysis)** — behavioural activation is an effective treatment for depression. [PMID 24936656](https://pubmed.ncbi.nlm.nih.gov/24936656/) _(key: `scBA`)_
