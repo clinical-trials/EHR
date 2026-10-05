@@ -184,6 +184,7 @@ const NAVS = {
     { label:"Trust & deploy", items:[
       { id:"security",   ic:"🔒", t:"Security & SAFER" },
       { id:"readiness",  ic:"✓", t:"Readiness & contracts" },
+      { id:"sites",      ic:"🏥", t:"Client & site activation" },
       { id:"footprint",  ic:"🌱", t:"AI environmental footprint" },
     ]},
   ],
@@ -3322,6 +3323,38 @@ function vSecurity(){
   </div>`;
 }
 
+function actChip(a){
+  const m = { approved:["green","approved"], "in-review":["amber","in review"], pending:["amber","pending"], "not-activated":["plain","not activated"] };
+  const [t,l] = m[a] || ["plain", a];
+  return `<span class="chip ${t}">${l}</span>`;
+}
+function vSites(){
+  const R = SITE_REGISTRY;
+  const all = R.clients.flatMap(c => c.sites), approved = all.filter(s => s.act === "approved").length;
+  return `
+  <h1 class="page-title">🏥 Client &amp; site activation <span class="chip accent">one contract · many sites</span></h1>
+  <p class="page-sub">Each hospital client is tracked by <b>parent system · legal buyer · CCN · campus · workflow</b>. One contract can cover several sites, but <b>every site needs its own approved activation</b>, and state / federal / tribal / territorial licensing is reconciled before coverage is claimed.</p>
+
+  <div class="card" style="margin-bottom:16px">
+    <h3>Activation rules</h3>
+    <div class="rowlist">${R.rules.map(r => `<div class="rowitem"><span class="chip accent">rule</span><div class="d" style="flex:1">${r}</div></div>`).join("")}</div>
+    <div class="tiny muted" style="margin-top:6px">Coverage status: <b>${approved}</b> of <b>${all.length}</b> sites approved — don't claim complete coverage until every activation and licensing check clears.</div>
+  </div>
+
+  ${R.clients.map(c => `<div class="card" style="margin-bottom:16px">
+    <h3>${c.client}</h3>
+    <div class="small muted" style="margin-bottom:8px"><b style="color:var(--text)">Parent:</b> ${c.parent} &nbsp;·&nbsp; <b style="color:var(--text)">Legal buyer:</b> ${c.buyer} &nbsp;·&nbsp; <b style="color:var(--text)">Contract:</b> ${c.contract}</div>
+    <div class="tablewrap"><table class="reg">
+      <tr><th>CCN</th><th>Campus</th><th>Workflow</th><th>Jurisdiction</th><th>Licensing</th><th>Activation</th></tr>
+      ${c.sites.map(s => `<tr><td><b>${s.ccn}</b></td><td class="small">${s.campus}</td><td class="small">${s.workflow}</td><td class="small">${s.jur}</td><td class="small">${s.lic}</td><td>${actChip(s.act)}</td></tr>`).join("")}
+    </table></div>
+  </div>`).join("")}
+
+  <div class="card">
+    <h3>Why this is a product feature, not a spreadsheet</h3>
+    <div class="small">Safety-net selling is <b>multi-site and multi-jurisdiction</b>: a system buyer (Covenant/Providence) signs once but each campus activates separately; an independent (Roosevelt) is its own buyer; and a <b>Puerto Rico</b> site needs the <a data-nav-inline="billing" style="cursor:pointer">PR bridge</a> (ICD-10 → ICD-9 crosswalk + ASES / Plan Vital clearinghouse routing) and territorial licensing. The 50-state + territories compliance engine activates per jurisdiction, so coverage is never over-claimed.</div>
+  </div>`;
+}
 function vReadiness(){
   const t = TRUST;
   const answered = t.readiness.filter((_,i)=>state.readiness[i]).length;
@@ -3428,7 +3461,7 @@ function vHelix(){
    RENDER + WIRING
    ========================================================================== */
 const VIEWS = {
-  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, eol:vEndOfLife, iconsent:vInformedConsent, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, footprint:vFootprint, cert:vCert, roadmap:vRoadmap },
+  clinician:{ dashboard:vDashboard, chart:vChart, scribe:vScribe, inbox:vInbox, fhir:vFhir, practice:vPractice, readmit:vReadmit, billing:vBilling, eol:vEndOfLife, iconsent:vInformedConsent, analytics:vAnalytics, cme:vCME, wellness:vWellness, canary:vCanary, synthesis:vSynthesis, enterprise:vEnterprise, ecosystem:vEcosystem, helix:vHelix, compete:vCompete, plans:vPlans, security:vSecurity, readiness:vReadiness, sites:vSites, footprint:vFootprint, cert:vCert, roadmap:vRoadmap },
   patient:{ checkin:vCheckin, home:vHome, plan:vPlan, screenings:vScreenings, community:vCommunity, mental:vMental, payments:vPayments, myplan:vMyPlan, myrecord:vMyRecord, longevity:vLongevity, consent:vConsent, footprint:vFootprint },
   researcher:{ console:vConsole, systems:vSystems, synthesis:vSynthesis, roadmap:vRoadmap },
   cwo:{ joy:vJoy, ehr8:vEhr8, ehr7:vEhr7, burden:vBurden, staffing:vStaffing, actions:vActions, report:vReport, quality:vQuality, aigov:vAIGov, footprint:vFootprint, rollout:vRollout, biblio:vBiblio },

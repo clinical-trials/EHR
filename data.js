@@ -1424,6 +1424,35 @@ const STAFFING = {
   ],
 };
 
+/* ---------- Client & site activation registry ----------
+   Safety-net selling is multi-site and multi-jurisdiction. Track each client by parent system,
+   legal buyer, CCN, campus and workflow; one contract can cover many sites, but each site needs
+   its own approved activation; reconcile state / federal / tribal / territorial licensing before
+   claiming complete coverage. Seeded with the real NM accounts + a prospective Puerto Rico site. */
+const SITE_REGISTRY = {
+  rules: [
+    "Maintain separate IDs for the parent system, legal buyer, CMS Certification Number (CCN), campus and workflow.",
+    "One contract can support several sites — but each site needs its own approved activation.",
+    "Reconcile state, federal, tribal and territorial licensing before claiming complete coverage.",
+  ],
+  clients: [
+    { client:"Roosevelt General Hospital", parent:"— (independent hospital district)", buyer:"Roosevelt General Hospital District", contract:"Design-partner pilot (MSA draft)",
+      sites:[
+        { ccn:"320084", campus:"Portales — main hospital", workflow:"Clinic documentation (Rural Health Clinic)", jur:"New Mexico · state", lic:"NM state license — verified", act:"approved" },
+        { ccn:"320084", campus:"Rural Health Clinics + specialty", workflow:"Outpatient notes · referral follow-through", jur:"New Mexico · state + federal RHC", lic:"NM + federal RHC — reconciling", act:"in-review" },
+      ] },
+    { client:"Covenant Health Hobbs Hospital", parent:"Covenant Health / Providence (system)", buyer:"Covenant Health — per-site activation", contract:"System MSA (pending) · multi-site",
+      sites:[
+        { ccn:"320065", campus:"Hobbs — main hospital", workflow:"OB-GYN documentation (highest burnout & pajama time) + ED discharge/transfer", jur:"New Mexico · state", lic:"NM state — pending", act:"pending" },
+        { ccn:"—", campus:"Other Covenant NM / TX campuses", workflow:"On system expansion (TBD)", jur:"NM / TX · multi-state", lic:"Multi-state — not started", act:"not-activated" },
+      ] },
+    { client:"Puerto Rico safety-net site (prospective)", parent:"— (independent / FQHC)", buyer:"TBD", contract:"Territorial pilot (prospective)",
+      sites:[
+        { ccn:"40xxxx", campus:"Puerto Rico — clinic / hospital", workflow:"Claims via PR bridge — ICD-10 → ICD-9 crosswalk + ASES / Plan Vital clearinghouse routing", jur:"Puerto Rico · U.S. territory", lic:"PR territorial license + ASES Provider Enrollment Portal (PEP) — to reconcile", act:"not-activated" },
+      ] },
+  ],
+};
+
 /* ---------- Standards we speak + privacy law we honor ---------- */
 const STANDARDS = {
   interop: [
