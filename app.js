@@ -2278,7 +2278,7 @@ function vPractice(){
     </div>
     <div class="card">
       <h3>The EHR expense, named</h3>
-      <div class="small">Implementing a traditional EHR cost a five-physician primary-care practice about <b>$162,000</b>, plus ~$85,000 in first-year maintenance — before per-interface fees, per-fax fees, and upgrade charges.${ev("fleming")} LumaChart's pricing principle is the opposite: <b>free to start, transparent tiers, and no interface ransom</b> — open FHIR APIs are included, never sold back to you (see <a data-nav-inline="plans" style="cursor:pointer">Plans &amp; value</a> and the information-blocking design rules in <a data-nav-inline="security" style="cursor:pointer">Security</a>).</div>
+      <div class="small">Implementing a traditional EHR cost a five-physician primary-care practice about <b>$162,000</b>, plus ~$85,000 in first-year maintenance — before per-interface fees, per-fax fees, and upgrade charges.${ev("fleming")} And the long-term bill is unpredictable: total cost of ownership can vary by up to <b>~200%</b> depending on the system chosen, driven largely by hidden support-staff costs.${ev("ehrTCO")} LumaChart's pricing principle is the opposite: <b>free to start, transparent tiers, and no interface ransom</b> — open FHIR APIs are included, never sold back to you (see <a data-nav-inline="plans" style="cursor:pointer">Plans &amp; value</a> and the information-blocking design rules in <a data-nav-inline="security" style="cursor:pointer">Security</a>).</div>
     </div>
   </div>
 
@@ -3213,6 +3213,17 @@ function vPlans(){
   <div class="section-gap"></div>
   <div class="grid g2">
     ${p.value.map(v=>`<div class="card"><h3>${v.t}</h3><p class="small muted" style="margin:0">${v.d}</p></div>`).join('')}
+  </div>
+  <div class="section-gap"></div>
+  <div class="card">
+    <h3>🩺 The cost reality for safety-net hospitals — and why we publish our price</h3>
+    <div class="small" style="margin-bottom:8px">LumaChart is built for public health, which means built for the hospitals the incumbents price hardest: critical-access, rural, and safety-net. The evidence is blunt about why cost — not features — is the real gate for them:</div>
+    <div class="rowlist">
+      <div class="rowitem"><span class="chip amber">unpredictable</span><div class="d" style="flex:1">An EHR's <b>total cost of ownership can vary by up to ~200%</b> depending on the system chosen — much of it hidden support-staff cost that never appears in the bid.${ev("ehrTCO")}</div></div>
+      <div class="rowitem"><span class="chip amber">a gate, not a line item</span><div class="d" style="flex:1">A hospital's <b>financial position predicts whether it adopts an EHR at all.</b> For a financially-stretched safety-net hospital, the price <i>is</i> the access barrier.${ev("ehrAdopt")}</div></div>
+      <div class="rowitem"><span class="chip green">support is the difference</span><div class="d" style="flex:1"><b>89% of critical-access hospitals</b> had an EHR by 2013 — but independents especially needed <b>technical assistance and resources</b>, not just software, to adopt and actually use it.${ev("cahHIT")}</div></div>
+    </div>
+    <div class="evidence">So LumaChart does the opposite of the market: <b>transparent, published pricing</b> (no NDA, no quote-to-learn-the-price), <b>free to start</b>, and <b>support engineered into the price</b> rather than sold as a surprise. The goal is to make the EHR the cheapest, calmest part of a safety-net hospital's budget — see <a data-nav-inline="practice" style="cursor:pointer">Own your practice</a> and the <a data-nav-inline="sites" style="cursor:pointer">Client &amp; site activation</a> registry.</div>
   </div>
   <div class="banner" style="margin-top:16px; background:linear-gradient(100deg,var(--accent-soft),var(--surface2)); border:1px solid var(--line-strong); color:var(--text)">
     <h3 style="color:var(--text)">Why the value compounds</h3>
